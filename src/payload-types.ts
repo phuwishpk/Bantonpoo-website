@@ -75,7 +75,9 @@ export interface Config {
     articles: Article;
     workshops: Workshop;
     places: Place;
+    pages: Page;
     enquiries: Enquiry;
+    redirects: Redirect;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -91,7 +93,9 @@ export interface Config {
     articles: ArticlesSelect<false> | ArticlesSelect<true>;
     workshops: WorkshopsSelect<false> | WorkshopsSelect<true>;
     places: PlacesSelect<false> | PlacesSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
     enquiries: EnquiriesSelect<false> | EnquiriesSelect<true>;
+    redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -105,6 +109,7 @@ export interface Config {
     'site-settings': SiteSetting;
     navigation: Navigation;
     theme: Theme;
+    'ui-labels': UiLabel;
     'seo-settings': SeoSetting;
     'home-page': HomePage;
     'about-page': AboutPage;
@@ -118,6 +123,7 @@ export interface Config {
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
     navigation: NavigationSelect<false> | NavigationSelect<true>;
     theme: ThemeSelect<false> | ThemeSelect<true>;
+    'ui-labels': UiLabelsSelect<false> | UiLabelsSelect<true>;
     'seo-settings': SeoSettingsSelect<false> | SeoSettingsSelect<true>;
     'home-page': HomePageSelect<false> | HomePageSelect<true>;
     'about-page': AboutPageSelect<false> | AboutPageSelect<true>;
@@ -518,6 +524,348 @@ export interface Place {
   createdAt: string;
 }
 /**
+ * สร้างหน้าใหม่ได้เองโดยไม่ต้องแก้โค้ด · หน้าใหม่จะอยู่ที่ที่อยู่เว็บ /ชื่อลิงก์ และเพิ่มเข้าเมนูได้จากหน้า “เมนูนำทาง”
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: number;
+  title: string;
+  hero: {
+    eyebrow?: string | null;
+    title: string;
+    description?: string | null;
+    /**
+     * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
+     */
+    fontFamily?: ('theme' | 'plex-noto' | 'sarabun-trirong' | 'prompt') | null;
+    /**
+     * ย่อ-ขยายตัวอักษรทุกขนาดในส่วนนี้พร้อมกัน สัดส่วนหัวเรื่องกับเนื้อหาจึงไม่เพี้ยน
+     */
+    textScale?: ('0.9' | '0.95' | '1' | '1.1' | '1.2') | null;
+    textAlign?: ('default' | 'left' | 'center' | 'right') | null;
+    contentWidth?: ('default' | 'narrow' | 'medium' | 'full') | null;
+    /**
+     * ปรับระยะห่างบน-ล่างและช่องไฟระหว่างการ์ดในส่วนนี้
+     */
+    spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
+  };
+  /**
+   * ลากเพื่อสลับลำดับ · แต่ละส่วนปรับสี ฟอนต์ และการจัดวางของตัวเองได้ในกล่องพับด้านล่างของส่วนนั้น
+   */
+  layout: (
+    | {
+        content: (
+          | {
+              text: string;
+              level: '2' | '3';
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'heading';
+            }
+          | {
+              text: string;
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'paragraph';
+            }
+          | {
+              style: 'bullet' | 'number';
+              items?:
+                | {
+                    value: string;
+                    id?: string | null;
+                  }[]
+                | null;
+              id?: string | null;
+              blockName?: string | null;
+              blockType: 'list';
+            }
+        )[];
+        background?: ('page' | 'dark' | 'tint' | 'custom') | null;
+        /**
+         * ใส่เป็นรหัสสีแบบ #rrggbb
+         */
+        backgroundColor?: string | null;
+        textTone?: ('auto' | 'light' | 'dark') | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่มและป้ายเฉพาะในส่วนนี้
+         */
+        accentColor?: string | null;
+        /**
+         * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
+         */
+        fontFamily?: ('theme' | 'plex-noto' | 'sarabun-trirong' | 'prompt') | null;
+        /**
+         * ย่อ-ขยายตัวอักษรทุกขนาดในส่วนนี้พร้อมกัน สัดส่วนหัวเรื่องกับเนื้อหาจึงไม่เพี้ยน
+         */
+        textScale?: ('0.9' | '0.95' | '1' | '1.1' | '1.2') | null;
+        textAlign?: ('default' | 'left' | 'center' | 'right') | null;
+        contentWidth?: ('default' | 'narrow' | 'medium' | 'full') | null;
+        /**
+         * ปรับระยะห่างบน-ล่างและช่องไฟระหว่างการ์ดในส่วนนี้
+         */
+        spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'prose';
+      }
+    | {
+        image: number | Media;
+        imagePosition?: ('left' | 'right') | null;
+        title: string;
+        body: string;
+        button?: {
+          label?: string | null;
+          /**
+           * เช่น /shop
+           */
+          href?: string | null;
+        };
+        background?: ('page' | 'dark' | 'tint' | 'custom') | null;
+        /**
+         * ใส่เป็นรหัสสีแบบ #rrggbb
+         */
+        backgroundColor?: string | null;
+        textTone?: ('auto' | 'light' | 'dark') | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่มและป้ายเฉพาะในส่วนนี้
+         */
+        accentColor?: string | null;
+        /**
+         * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
+         */
+        fontFamily?: ('theme' | 'plex-noto' | 'sarabun-trirong' | 'prompt') | null;
+        /**
+         * ย่อ-ขยายตัวอักษรทุกขนาดในส่วนนี้พร้อมกัน สัดส่วนหัวเรื่องกับเนื้อหาจึงไม่เพี้ยน
+         */
+        textScale?: ('0.9' | '0.95' | '1' | '1.1' | '1.2') | null;
+        textAlign?: ('default' | 'left' | 'center' | 'right') | null;
+        contentWidth?: ('default' | 'narrow' | 'medium' | 'full') | null;
+        /**
+         * ปรับระยะห่างบน-ล่างและช่องไฟระหว่างการ์ดในส่วนนี้
+         */
+        spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'imageText';
+      }
+    | {
+        heading: {
+          eyebrow?: string | null;
+          title: string;
+          description?: string | null;
+        };
+        items: {
+          icon?: ('leaf' | 'temple' | 'mortar' | 'users' | 'map-pin' | 'none') | null;
+          title: string;
+          body: string;
+          id?: string | null;
+        }[];
+        background?: ('page' | 'dark' | 'tint' | 'custom') | null;
+        /**
+         * ใส่เป็นรหัสสีแบบ #rrggbb
+         */
+        backgroundColor?: string | null;
+        textTone?: ('auto' | 'light' | 'dark') | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่มและป้ายเฉพาะในส่วนนี้
+         */
+        accentColor?: string | null;
+        columns?: ('auto' | '2' | '3' | '4') | null;
+        /**
+         * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
+         */
+        fontFamily?: ('theme' | 'plex-noto' | 'sarabun-trirong' | 'prompt') | null;
+        /**
+         * ย่อ-ขยายตัวอักษรทุกขนาดในส่วนนี้พร้อมกัน สัดส่วนหัวเรื่องกับเนื้อหาจึงไม่เพี้ยน
+         */
+        textScale?: ('0.9' | '0.95' | '1' | '1.1' | '1.2') | null;
+        textAlign?: ('default' | 'left' | 'center' | 'right') | null;
+        contentWidth?: ('default' | 'narrow' | 'medium' | 'full') | null;
+        /**
+         * ปรับระยะห่างบน-ล่างและช่องไฟระหว่างการ์ดในส่วนนี้
+         */
+        spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'cards';
+      }
+    | {
+        heading: {
+          eyebrow?: string | null;
+          title: string;
+          description?: string | null;
+        };
+        items: {
+          value: string;
+          label: string;
+          id?: string | null;
+        }[];
+        background?: ('page' | 'dark' | 'tint' | 'custom') | null;
+        /**
+         * ใส่เป็นรหัสสีแบบ #rrggbb
+         */
+        backgroundColor?: string | null;
+        textTone?: ('auto' | 'light' | 'dark') | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่มและป้ายเฉพาะในส่วนนี้
+         */
+        accentColor?: string | null;
+        columns?: ('auto' | '2' | '3' | '4') | null;
+        /**
+         * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
+         */
+        fontFamily?: ('theme' | 'plex-noto' | 'sarabun-trirong' | 'prompt') | null;
+        /**
+         * ย่อ-ขยายตัวอักษรทุกขนาดในส่วนนี้พร้อมกัน สัดส่วนหัวเรื่องกับเนื้อหาจึงไม่เพี้ยน
+         */
+        textScale?: ('0.9' | '0.95' | '1' | '1.1' | '1.2') | null;
+        textAlign?: ('default' | 'left' | 'center' | 'right') | null;
+        contentWidth?: ('default' | 'narrow' | 'medium' | 'full') | null;
+        /**
+         * ปรับระยะห่างบน-ล่างและช่องไฟระหว่างการ์ดในส่วนนี้
+         */
+        spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'stats';
+      }
+    | {
+        heading: {
+          eyebrow?: string | null;
+          title: string;
+          description?: string | null;
+        };
+        images: {
+          image: number | Media;
+          id?: string | null;
+        }[];
+        background?: ('page' | 'dark' | 'tint' | 'custom') | null;
+        /**
+         * ใส่เป็นรหัสสีแบบ #rrggbb
+         */
+        backgroundColor?: string | null;
+        textTone?: ('auto' | 'light' | 'dark') | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่มและป้ายเฉพาะในส่วนนี้
+         */
+        accentColor?: string | null;
+        columns?: ('auto' | '2' | '3' | '4') | null;
+        /**
+         * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
+         */
+        fontFamily?: ('theme' | 'plex-noto' | 'sarabun-trirong' | 'prompt') | null;
+        /**
+         * ย่อ-ขยายตัวอักษรทุกขนาดในส่วนนี้พร้อมกัน สัดส่วนหัวเรื่องกับเนื้อหาจึงไม่เพี้ยน
+         */
+        textScale?: ('0.9' | '0.95' | '1' | '1.1' | '1.2') | null;
+        textAlign?: ('default' | 'left' | 'center' | 'right') | null;
+        contentWidth?: ('default' | 'narrow' | 'medium' | 'full') | null;
+        /**
+         * ปรับระยะห่างบน-ล่างและช่องไฟระหว่างการ์ดในส่วนนี้
+         */
+        spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'gallery';
+      }
+    | {
+        heading: {
+          eyebrow?: string | null;
+          title: string;
+          description?: string | null;
+        };
+        source: 'products' | 'articles' | 'workshops' | 'places';
+        /**
+         * เว้นว่างไว้เพื่อแสดงทั้งหมด
+         */
+        limit?: number | null;
+        link?: {
+          label?: string | null;
+          href?: string | null;
+        };
+        background?: ('page' | 'dark' | 'tint' | 'custom') | null;
+        /**
+         * ใส่เป็นรหัสสีแบบ #rrggbb
+         */
+        backgroundColor?: string | null;
+        textTone?: ('auto' | 'light' | 'dark') | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่มและป้ายเฉพาะในส่วนนี้
+         */
+        accentColor?: string | null;
+        columns?: ('auto' | '2' | '3' | '4') | null;
+        /**
+         * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
+         */
+        fontFamily?: ('theme' | 'plex-noto' | 'sarabun-trirong' | 'prompt') | null;
+        /**
+         * ย่อ-ขยายตัวอักษรทุกขนาดในส่วนนี้พร้อมกัน สัดส่วนหัวเรื่องกับเนื้อหาจึงไม่เพี้ยน
+         */
+        textScale?: ('0.9' | '0.95' | '1' | '1.1' | '1.2') | null;
+        textAlign?: ('default' | 'left' | 'center' | 'right') | null;
+        contentWidth?: ('default' | 'narrow' | 'medium' | 'full') | null;
+        /**
+         * ปรับระยะห่างบน-ล่างและช่องไฟระหว่างการ์ดในส่วนนี้
+         */
+        spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'collection';
+      }
+    | {
+        eyebrow?: string | null;
+        title: string;
+        body?: string | null;
+        background?: ('page' | 'dark' | 'tint' | 'custom') | null;
+        /**
+         * ใส่เป็นรหัสสีแบบ #rrggbb
+         */
+        backgroundColor?: string | null;
+        textTone?: ('auto' | 'light' | 'dark') | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่มและป้ายเฉพาะในส่วนนี้
+         */
+        accentColor?: string | null;
+        /**
+         * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
+         */
+        fontFamily?: ('theme' | 'plex-noto' | 'sarabun-trirong' | 'prompt') | null;
+        /**
+         * ย่อ-ขยายตัวอักษรทุกขนาดในส่วนนี้พร้อมกัน สัดส่วนหัวเรื่องกับเนื้อหาจึงไม่เพี้ยน
+         */
+        textScale?: ('0.9' | '0.95' | '1' | '1.1' | '1.2') | null;
+        textAlign?: ('default' | 'left' | 'center' | 'right') | null;
+        contentWidth?: ('default' | 'narrow' | 'medium' | 'full') | null;
+        /**
+         * ปรับระยะห่างบน-ล่างและช่องไฟระหว่างการ์ดในส่วนนี้
+         */
+        spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'cta';
+      }
+  )[];
+  /**
+   * เว้นว่างได้ ระบบจะใช้คำโปรยของแถบหัวหน้าเพจแทน
+   */
+  seoDescription?: string | null;
+  seoImage?: (number | null) | Media;
+  /**
+   * ติ๊กออกสำหรับหน้าที่ต้องการให้เข้าถึงด้วยลิงก์ตรงเท่านั้น
+   */
+  showInSitemap?: boolean | null;
+  /**
+   * ที่อยู่ของหน้านี้ เช่น ใส่ activity จะได้ /activity · เว้นว่างได้ ระบบจะสร้างให้จากชื่อหน้า · เปลี่ยนแล้วลิงก์เดิมจะใช้ไม่ได้ ให้เพิ่ม “ทางเปลี่ยนเส้นทาง” ไว้ด้วย
+   */
+  slug?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
  * ข้อความที่ส่งเข้ามาจากฟอร์มติดต่อบนหน้าเว็บ
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -532,6 +880,37 @@ export interface Enquiry {
   status: 'new' | 'contacted' | 'closed';
   /**
    * เห็นเฉพาะผู้ดูแล ไม่แสดงบนเว็บ
+   */
+  note?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * เมื่อเปลี่ยนชื่อลิงก์ (slug) หรือลบหน้าทิ้ง ให้เพิ่มรายการที่นี่ ลิงก์เก่าที่เคยแชร์ไว้จะพาไปหน้าใหม่แทนที่จะเจอหน้า 404
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "redirects".
+ */
+export interface Redirect {
+  id: number;
+  /**
+   * ใส่เฉพาะส่วนหลังชื่อโดเมน เช่น /shop/old-balm · ต้องขึ้นต้นด้วย /
+   */
+  from: string;
+  /**
+   * เส้นทางในเว็บ เช่น /shop/new-balm หรือลิงก์เต็มที่ขึ้นต้นด้วย https://
+   */
+  to: string;
+  /**
+   * ติ๊กไว้เมื่อย้ายถาวร (308) — Google จะโอนอันดับของลิงก์เก่าไปให้หน้าใหม่ · ติ๊กออกเมื่อย้ายชั่วคราว (307)
+   */
+  permanent?: boolean | null;
+  /**
+   * ติ๊กออกเพื่อหยุดใช้ชั่วคราวโดยไม่ต้องลบทิ้ง
+   */
+  enabled?: boolean | null;
+  /**
+   * เช่น “เปลี่ยนชื่อสินค้าเมื่อ ก.ย. 2569” เพื่อให้คนอื่นรู้ที่มา
    */
   note?: string | null;
   updatedAt: string;
@@ -594,8 +973,16 @@ export interface PayloadLockedDocument {
         value: number | Place;
       } | null)
     | ({
+        relationTo: 'pages';
+        value: number | Page;
+      } | null)
+    | ({
         relationTo: 'enquiries';
         value: number | Enquiry;
+      } | null)
+    | ({
+        relationTo: 'redirects';
+        value: number | Redirect;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -932,6 +1319,247 @@ export interface PlacesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages_select".
+ */
+export interface PagesSelect<T extends boolean = true> {
+  title?: T;
+  hero?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        description?: T;
+        fontFamily?: T;
+        textScale?: T;
+        textAlign?: T;
+        contentWidth?: T;
+        spacing?: T;
+      };
+  layout?:
+    | T
+    | {
+        prose?:
+          | T
+          | {
+              content?:
+                | T
+                | {
+                    heading?:
+                      | T
+                      | {
+                          text?: T;
+                          level?: T;
+                          id?: T;
+                          blockName?: T;
+                        };
+                    paragraph?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                          blockName?: T;
+                        };
+                    list?:
+                      | T
+                      | {
+                          style?: T;
+                          items?:
+                            | T
+                            | {
+                                value?: T;
+                                id?: T;
+                              };
+                          id?: T;
+                          blockName?: T;
+                        };
+                  };
+              background?: T;
+              backgroundColor?: T;
+              textTone?: T;
+              accentColor?: T;
+              fontFamily?: T;
+              textScale?: T;
+              textAlign?: T;
+              contentWidth?: T;
+              spacing?: T;
+              id?: T;
+              blockName?: T;
+            };
+        imageText?:
+          | T
+          | {
+              image?: T;
+              imagePosition?: T;
+              title?: T;
+              body?: T;
+              button?:
+                | T
+                | {
+                    label?: T;
+                    href?: T;
+                  };
+              background?: T;
+              backgroundColor?: T;
+              textTone?: T;
+              accentColor?: T;
+              fontFamily?: T;
+              textScale?: T;
+              textAlign?: T;
+              contentWidth?: T;
+              spacing?: T;
+              id?: T;
+              blockName?: T;
+            };
+        cards?:
+          | T
+          | {
+              heading?:
+                | T
+                | {
+                    eyebrow?: T;
+                    title?: T;
+                    description?: T;
+                  };
+              items?:
+                | T
+                | {
+                    icon?: T;
+                    title?: T;
+                    body?: T;
+                    id?: T;
+                  };
+              background?: T;
+              backgroundColor?: T;
+              textTone?: T;
+              accentColor?: T;
+              columns?: T;
+              fontFamily?: T;
+              textScale?: T;
+              textAlign?: T;
+              contentWidth?: T;
+              spacing?: T;
+              id?: T;
+              blockName?: T;
+            };
+        stats?:
+          | T
+          | {
+              heading?:
+                | T
+                | {
+                    eyebrow?: T;
+                    title?: T;
+                    description?: T;
+                  };
+              items?:
+                | T
+                | {
+                    value?: T;
+                    label?: T;
+                    id?: T;
+                  };
+              background?: T;
+              backgroundColor?: T;
+              textTone?: T;
+              accentColor?: T;
+              columns?: T;
+              fontFamily?: T;
+              textScale?: T;
+              textAlign?: T;
+              contentWidth?: T;
+              spacing?: T;
+              id?: T;
+              blockName?: T;
+            };
+        gallery?:
+          | T
+          | {
+              heading?:
+                | T
+                | {
+                    eyebrow?: T;
+                    title?: T;
+                    description?: T;
+                  };
+              images?:
+                | T
+                | {
+                    image?: T;
+                    id?: T;
+                  };
+              background?: T;
+              backgroundColor?: T;
+              textTone?: T;
+              accentColor?: T;
+              columns?: T;
+              fontFamily?: T;
+              textScale?: T;
+              textAlign?: T;
+              contentWidth?: T;
+              spacing?: T;
+              id?: T;
+              blockName?: T;
+            };
+        collection?:
+          | T
+          | {
+              heading?:
+                | T
+                | {
+                    eyebrow?: T;
+                    title?: T;
+                    description?: T;
+                  };
+              source?: T;
+              limit?: T;
+              link?:
+                | T
+                | {
+                    label?: T;
+                    href?: T;
+                  };
+              background?: T;
+              backgroundColor?: T;
+              textTone?: T;
+              accentColor?: T;
+              columns?: T;
+              fontFamily?: T;
+              textScale?: T;
+              textAlign?: T;
+              contentWidth?: T;
+              spacing?: T;
+              id?: T;
+              blockName?: T;
+            };
+        cta?:
+          | T
+          | {
+              eyebrow?: T;
+              title?: T;
+              body?: T;
+              background?: T;
+              backgroundColor?: T;
+              textTone?: T;
+              accentColor?: T;
+              fontFamily?: T;
+              textScale?: T;
+              textAlign?: T;
+              contentWidth?: T;
+              spacing?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
+  seoDescription?: T;
+  seoImage?: T;
+  showInSitemap?: T;
+  slug?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "enquiries_select".
  */
 export interface EnquiriesSelect<T extends boolean = true> {
@@ -940,6 +1568,19 @@ export interface EnquiriesSelect<T extends boolean = true> {
   topic?: T;
   message?: T;
   status?: T;
+  note?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "redirects_select".
+ */
+export interface RedirectsSelect<T extends boolean = true> {
+  from?: T;
+  to?: T;
+  permanent?: T;
+  enabled?: T;
   note?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1038,8 +1679,9 @@ export interface Navigation {
   mainMenu?:
     | {
         label: string;
-        linkType: 'page' | 'external' | 'dropdown';
+        linkType: 'page' | 'custom' | 'external' | 'dropdown';
         page?: ('/' | '/about' | '/stories' | '/shop' | '/tourism' | '/contact') | null;
+        customPage?: (number | null) | Page;
         /**
          * ต้องขึ้นต้นด้วย https://
          */
@@ -1047,8 +1689,9 @@ export interface Navigation {
         children?:
           | {
               label: string;
-              linkType: 'page' | 'external';
+              linkType: 'page' | 'custom' | 'external';
               page?: ('/' | '/about' | '/stories' | '/shop' | '/tourism' | '/contact') | null;
+              customPage?: (number | null) | Page;
               /**
                * ต้องขึ้นต้นด้วย https://
                */
@@ -1085,8 +1728,9 @@ export interface Navigation {
         links?:
           | {
               label: string;
-              linkType: 'page' | 'external';
+              linkType: 'page' | 'custom' | 'external';
               page?: ('/' | '/about' | '/stories' | '/shop' | '/tourism' | '/contact') | null;
+              customPage?: (number | null) | Page;
               /**
                * ต้องขึ้นต้นด้วย https://
                */
@@ -1132,6 +1776,87 @@ export interface Theme {
    * ระบบจะกรอง @import, url() ที่ชี้ออกนอกเว็บ และแท็ก HTML ออกก่อนใช้งานเสมอ · จำกัด 8,000 ตัวอักษร · ถ้าเว็บเพี้ยน ให้ลบข้อความในช่องนี้แล้วบันทึกใหม่
    */
   customCss?: string | null;
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * คำเรียกที่ใช้ซ้ำทั้งเว็บ เช่น “ผลิตโดย” หรือ “เวลาทำการ” · เว้นว่างไว้จะใช้คำตั้งต้นของระบบ
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ui-labels".
+ */
+export interface UiLabel {
+  id: number;
+  general?: {
+    askPrice?: string | null;
+    askServicePrice?: string | null;
+    viewAllProducts?: string | null;
+    viewAllWorkshops?: string | null;
+    viewAllArticles?: string | null;
+    readFullArticle?: string | null;
+    openInMaps?: string | null;
+  };
+  product?: {
+    madeBy?: string | null;
+    viewArtisans?: string | null;
+    specs?: string | null;
+    sku?: string | null;
+    form?: string | null;
+    netContent?: string | null;
+    mainHerbs?: string | null;
+    shelfLife?: string | null;
+    externalUseTitle?: string | null;
+    externalUseBody?: string | null;
+    callGroup?: string | null;
+    facebookHint?: string | null;
+    storyEyebrow?: string | null;
+    storyTitle?: string | null;
+    usageEyebrow?: string | null;
+    usageTitle?: string | null;
+    careEyebrow?: string | null;
+    careTitle?: string | null;
+    relatedEyebrow?: string | null;
+    relatedTitle?: string | null;
+    filters?: string | null;
+    sortBy?: string | null;
+    resultsUnit?: string | null;
+  };
+  article?: {
+    writtenBy?: string | null;
+    readTime?: string | null;
+    minutes?: string | null;
+    share?: string | null;
+    aboutAuthor?: string | null;
+    aboutCommunityButton?: string | null;
+    relatedEyebrow?: string | null;
+    relatedTitle?: string | null;
+    resultsUnit?: string | null;
+  };
+  tourism?: {
+    duration?: string | null;
+    participants?: string | null;
+    participantsUnit?: string | null;
+    price?: string | null;
+    perPerson?: string | null;
+    bookingTerms?: string | null;
+    takeaway?: string | null;
+    bookViaLine?: string | null;
+    callToBook?: string | null;
+  };
+  contact?: {
+    location?: string | null;
+    openingHours?: string | null;
+    coordinates?: string | null;
+    contactCommunity?: string | null;
+    directions?: string | null;
+    copyright?: string | null;
+  };
+  about?: {
+    role?: string | null;
+    source?: string | null;
+    references?: string | null;
+  };
   _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
@@ -1859,6 +2584,7 @@ export interface NavigationSelect<T extends boolean = true> {
         label?: T;
         linkType?: T;
         page?: T;
+        customPage?: T;
         url?: T;
         children?:
           | T
@@ -1866,6 +2592,7 @@ export interface NavigationSelect<T extends boolean = true> {
               label?: T;
               linkType?: T;
               page?: T;
+              customPage?: T;
               url?: T;
               id?: T;
             };
@@ -1896,6 +2623,7 @@ export interface NavigationSelect<T extends boolean = true> {
               label?: T;
               linkType?: T;
               page?: T;
+              customPage?: T;
               url?: T;
               id?: T;
             };
@@ -1919,6 +2647,97 @@ export interface ThemeSelect<T extends boolean = true> {
   radius?: T;
   density?: T;
   customCss?: T;
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ui-labels_select".
+ */
+export interface UiLabelsSelect<T extends boolean = true> {
+  general?:
+    | T
+    | {
+        askPrice?: T;
+        askServicePrice?: T;
+        viewAllProducts?: T;
+        viewAllWorkshops?: T;
+        viewAllArticles?: T;
+        readFullArticle?: T;
+        openInMaps?: T;
+      };
+  product?:
+    | T
+    | {
+        madeBy?: T;
+        viewArtisans?: T;
+        specs?: T;
+        sku?: T;
+        form?: T;
+        netContent?: T;
+        mainHerbs?: T;
+        shelfLife?: T;
+        externalUseTitle?: T;
+        externalUseBody?: T;
+        callGroup?: T;
+        facebookHint?: T;
+        storyEyebrow?: T;
+        storyTitle?: T;
+        usageEyebrow?: T;
+        usageTitle?: T;
+        careEyebrow?: T;
+        careTitle?: T;
+        relatedEyebrow?: T;
+        relatedTitle?: T;
+        filters?: T;
+        sortBy?: T;
+        resultsUnit?: T;
+      };
+  article?:
+    | T
+    | {
+        writtenBy?: T;
+        readTime?: T;
+        minutes?: T;
+        share?: T;
+        aboutAuthor?: T;
+        aboutCommunityButton?: T;
+        relatedEyebrow?: T;
+        relatedTitle?: T;
+        resultsUnit?: T;
+      };
+  tourism?:
+    | T
+    | {
+        duration?: T;
+        participants?: T;
+        participantsUnit?: T;
+        price?: T;
+        perPerson?: T;
+        bookingTerms?: T;
+        takeaway?: T;
+        bookViaLine?: T;
+        callToBook?: T;
+      };
+  contact?:
+    | T
+    | {
+        location?: T;
+        openingHours?: T;
+        coordinates?: T;
+        contactCommunity?: T;
+        directions?: T;
+        copyright?: T;
+      };
+  about?:
+    | T
+    | {
+        role?: T;
+        source?: T;
+        references?: T;
+      };
   _status?: T;
   updatedAt?: T;
   createdAt?: T;

@@ -24,6 +24,8 @@ import { getPageGlobal, getSite } from "@/lib/cms/queries";
 import { isDraftMode } from "@/lib/cms/draft";
 import { editLinksFor } from "@/lib/cms/edit-links";
 import { atGlobal } from "@/lib/cms/inline";
+import { atLabel } from "@/lib/labels";
+import { getLabels } from "@/lib/cms/labels";
 import { t } from "@/lib/i18n";
 import { telUrl } from "@/lib/line";
 import { breadcrumbJsonLd, buildMetadata, localBusinessJsonLd } from "@/lib/seo";
@@ -61,7 +63,11 @@ type ChannelKey = keyof typeof CHANNEL_META;
 
 export default async function ContactPage() {
   const editing = await isDraftMode();
-  const [page, site] = await Promise.all([getPageGlobal("contact-page"), getSite()]);
+  const [page, site, labels] = await Promise.all([
+    getPageGlobal("contact-page"),
+    getSite(),
+    getLabels(),
+  ]);
 
   const content = hero(page);
   const formSuccess = titleBody(page, "formSuccess");
@@ -189,7 +195,7 @@ export default async function ContactPage() {
                   className="flex items-center justify-center gap-2 bg-rice-50 py-3.5 text-sm font-semibold text-ink-800 transition-colors hover:bg-rice-200"
                 >
                   <MapPinIcon className="h-[18px] w-[18px]" />
-                  เปิดนำทางด้วย Google Maps
+                  <Ed at={atLabel("general", "openInMaps")}>{labels.general.openInMaps}</Ed>
                 </a>
               </div>
 
@@ -197,10 +203,13 @@ export default async function ContactPage() {
                 <div className="flex gap-3">
                   <MapPinIcon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-leaf-600" />
                   <div>
-                    <p className="text-xs font-semibold tracking-label text-river-500">ที่ตั้ง</p>
+                    <p className="text-xs font-semibold tracking-label text-river-500">
+                      <Ed at={atLabel("contact", "location")}>{labels.contact.location}</Ed>
+                    </p>
                     <p className="mt-1 text-sm leading-relaxed text-ink-800">{t(site.address)}</p>
                     <p className="mt-1 text-xs text-river-400">
-                      พิกัด {site.mapLatitude}, {site.mapLongitude}
+                      <Ed at={atLabel("contact", "coordinates")}>{labels.contact.coordinates}</Ed>{" "}
+                      {site.mapLatitude}, {site.mapLongitude}
                     </p>
                   </div>
                 </div>
@@ -208,7 +217,9 @@ export default async function ContactPage() {
                 <div className="flex gap-3 border-t border-rice-300 pt-4">
                   <ClockIcon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-leaf-600" />
                   <div>
-                    <p className="text-xs font-semibold tracking-label text-river-500">เวลาทำการ</p>
+                    <p className="text-xs font-semibold tracking-label text-river-500">
+                      <Ed at={atLabel("contact", "openingHours")}>{labels.contact.openingHours}</Ed>
+                    </p>
                     <p className="mt-1 text-sm leading-relaxed text-ink-800">{t(site.openingHours)}</p>
                   </div>
                 </div>

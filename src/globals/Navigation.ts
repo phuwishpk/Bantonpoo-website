@@ -24,9 +24,26 @@ const linkTypeField = {
   defaultValue: "page",
   label: "ประเภทลิงก์",
   options: [
-    { label: "หน้าในเว็บ", value: "page" },
+    { label: "หน้าหลักของเว็บ", value: "page" },
+    { label: "หน้าที่สร้างเอง", value: "custom" },
     { label: "ลิงก์ภายนอก", value: "external" },
   ],
+};
+
+/**
+ * ลิงก์ไปยังหน้าที่ผู้ดูแลสร้างเอง
+ *
+ * ใช้ความสัมพันธ์แทนการพิมพ์ที่อยู่เอง เพราะถ้าเปลี่ยนชื่อลิงก์ของหน้านั้นภายหลัง
+ * เมนูจะตามไปเองโดยอัตโนมัติ ไม่กลายเป็นลิงก์เสีย
+ */
+const customPageField = {
+  name: "customPage",
+  type: "relationship" as const,
+  relationTo: "pages" as const,
+  label: "เลือกหน้าที่สร้างเอง",
+  admin: {
+    condition: (_: unknown, sibling: { linkType?: string }) => sibling?.linkType === "custom",
+  },
 };
 
 const pageField = {
@@ -34,7 +51,10 @@ const pageField = {
   type: "select" as const,
   label: "เลือกหน้า",
   options: PAGE_OPTIONS,
-  admin: { condition: (_: unknown, sibling: { linkType?: string }) => sibling?.linkType !== "external" },
+  admin: {
+    condition: (_: unknown, sibling: { linkType?: string }) =>
+      sibling?.linkType !== "external" && sibling?.linkType !== "custom",
+  },
 };
 
 const urlField = {
@@ -70,6 +90,7 @@ export const Navigation: GlobalConfig = {
           options: [...linkTypeField.options, { label: "เมนูย่อย (ไม่ลิงก์ไปไหน)", value: "dropdown" }],
         },
         pageField,
+        customPageField,
         urlField,
         {
           name: "children",
@@ -85,6 +106,7 @@ export const Navigation: GlobalConfig = {
             { name: "label", type: "text", required: true, localized: true, label: "ข้อความที่แสดง" },
             linkTypeField,
             pageField,
+            customPageField,
             urlField,
           ],
         },
@@ -171,6 +193,7 @@ export const Navigation: GlobalConfig = {
             { name: "label", type: "text", required: true, localized: true, label: "ข้อความ" },
             linkTypeField,
             pageField,
+            customPageField,
             urlField,
           ],
         },

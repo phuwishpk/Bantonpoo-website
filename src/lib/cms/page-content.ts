@@ -241,6 +241,25 @@ export function readSections(doc: Doc, fallback: string[]): SectionConfig[] {
   }));
 }
 
+/**
+ * อ่านการตั้งค่าสีและการจัดวางของบล็อกหนึ่งบล็อก
+ *
+ * บล็อกใช้ชื่อฟิลด์ชุดเดียวกับแถวใน "ลำดับและการแสดงส่วนต่าง ๆ" จึงแปลงเป็น
+ * SectionConfig แล้วส่งให้ sectionSkin ตัวเดิมได้เลย ไม่ต้องมีตรรกะสีสองชุด
+ */
+export function readBlockConfig(row: Doc): SectionConfig {
+  return {
+    type: String(row.blockType ?? ""),
+    background: String(row.background ?? "page"),
+    backgroundColor: typeof row.backgroundColor === "string" ? row.backgroundColor : undefined,
+    textTone: String(row.textTone ?? "auto"),
+    accentColor: typeof row.accentColor === "string" && row.accentColor ? row.accentColor : undefined,
+    columns: String(row.columns ?? "auto"),
+    limit: typeof row.limit === "number" ? row.limit : undefined,
+    ...readTypography(row),
+  };
+}
+
 /** ความสว่างของสี ใช้ตัดสินว่าบนพื้นนี้ควรใช้ตัวอักษรสีอ่อนหรือเข้ม */
 function luminance(hex: string): number {
   const value = hex.replace("#", "");

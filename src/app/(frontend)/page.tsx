@@ -42,6 +42,8 @@ import { formatPrice } from "@/lib/format";
 import { isDraftMode } from "@/lib/cms/draft";
 import { adminDoc, editLinksFor } from "@/lib/cms/edit-links";
 import { atGlobal } from "@/lib/cms/inline";
+import { atLabel } from "@/lib/labels";
+import { getLabels } from "@/lib/cms/labels";
 import { t } from "@/lib/i18n";
 import { telUrl } from "@/lib/line";
 
@@ -69,12 +71,13 @@ const at = atGlobal("home-page");
 
 export default async function HomePage() {
   const editing = await isDraftMode();
-  const [page, site, featuredProducts, latestArticles, workshops] = await Promise.all([
+  const [page, site, featuredProducts, latestArticles, workshops, labels] = await Promise.all([
     getPageGlobal("home-page"),
     getSite(),
     getFeaturedProducts(4),
     getLatestArticles(3),
     getWorkshops(),
+    getLabels(),
   ]);
 
   const heroContent = hero(page);
@@ -261,7 +264,9 @@ export default async function HomePage() {
                     tone={skin.onDark ? "light" : "dark"}
                     action={
                       <ArrowLink href="/shop" tone={skin.onDark ? "light" : "dark"}>
-                        ดูสินค้าทั้งหมด
+                        <Ed at={atLabel("general", "viewAllProducts")} tone={skin.onDark ? "light" : "dark"}>
+                          {labels.general.viewAllProducts}
+                        </Ed>
                       </ArrowLink>
                     }
                   />
@@ -272,6 +277,7 @@ export default async function HomePage() {
                         product={product}
                         showQuickOrder
                         editHref={editing ? adminDoc("products", product.id) : undefined}
+                        labels={labels.general}
                       />
                     ))}
                   </div>
@@ -322,7 +328,9 @@ export default async function HomePage() {
                         ) : null}
                         <div>
                           <ArrowLink href={`/stories/${spotlight.slug}`} tone="light">
-                            อ่านบทความฉบับเต็ม
+                            <Ed at={atLabel("general", "readFullArticle")} tone="light">
+                              {labels.general.readFullArticle}
+                            </Ed>
                           </ArrowLink>
                         </div>
                       </div>
@@ -344,7 +352,9 @@ export default async function HomePage() {
                     tone={skin.onDark ? "light" : "dark"}
                     action={
                       <ArrowLink href="/tourism" tone={skin.onDark ? "light" : "dark"}>
-                        ดูกิจกรรมทั้งหมด
+                        <Ed at={atLabel("general", "viewAllWorkshops")} tone={skin.onDark ? "light" : "dark"}>
+                          {labels.general.viewAllWorkshops}
+                        </Ed>
                       </ArrowLink>
                     }
                   />
@@ -373,8 +383,8 @@ export default async function HomePage() {
                           <p className="text-sm leading-relaxed text-river-500">{t(workshop.summary)}</p>
                           <p className="mt-auto pt-2 text-sm font-semibold text-leaf-600">
                             {workshop.pricePerPerson === null
-                              ? "สอบถามค่าบริการ"
-                              : `${formatPrice(workshop.pricePerPerson)} / คน`}
+                              ? labels.general.askServicePrice
+                              : `${formatPrice(workshop.pricePerPerson)} ${labels.tourism.perPerson}`}
                             <span className="ml-2 font-normal text-river-400">· {t(workshop.duration)}</span>
                           </p>
                         </div>
@@ -396,7 +406,9 @@ export default async function HomePage() {
                     tone={skin.onDark ? "light" : "dark"}
                     action={
                       <ArrowLink href="/stories" tone={skin.onDark ? "light" : "dark"}>
-                        ดูบทความทั้งหมด
+                        <Ed at={atLabel("general", "viewAllArticles")} tone={skin.onDark ? "light" : "dark"}>
+                          {labels.general.viewAllArticles}
+                        </Ed>
                       </ArrowLink>
                     }
                   />
@@ -406,6 +418,7 @@ export default async function HomePage() {
                         key={article.slug}
                         article={article}
                         editHref={editing ? adminDoc("articles", article.id) : undefined}
+                        labels={labels.article}
                       />
                     ))}
                   </div>

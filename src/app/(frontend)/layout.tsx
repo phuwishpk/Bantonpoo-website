@@ -8,6 +8,7 @@ import { PreviewBar } from "@/components/preview-bar";
 import { ThemeStyle } from "@/components/theme-style";
 import { getNavigation } from "@/lib/cms/navigation";
 import { isDraftMode } from "@/lib/cms/draft";
+import { getLabels } from "@/lib/cms/labels";
 import { getPageGlobal, getSite, getTheme } from "@/lib/cms/queries";
 import { locList } from "@/lib/cms/map";
 import { t } from "@/lib/i18n";
@@ -96,10 +97,11 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [site, nav, theme, draft] = await Promise.all([
+  const [site, nav, theme, labels, draft] = await Promise.all([
     getSite(),
     getNavigation(),
     getTheme(),
+    getLabels(),
     isDraftMode(),
   ]);
 
@@ -107,7 +109,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="th" className={FONT_VARIABLES}>
       <body className="flex min-h-dvh flex-col font-sans">
         <ThemeStyle theme={theme} />
-        <SiteProvider site={site}>
+        <SiteProvider site={site} labels={labels}>
           <a
             href="#main"
             className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-leaf-500 focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white"
@@ -119,7 +121,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <main id="main" className="flex-1">
             {children}
           </main>
-          <SiteFooter site={site} nav={nav} editing={draft} />
+          <SiteFooter site={site} nav={nav} labels={labels} editing={draft} />
         </SiteProvider>
         <JsonLd data={localBusinessJsonLd(site)} />
       </body>

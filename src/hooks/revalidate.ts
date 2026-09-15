@@ -75,6 +75,41 @@ export const revalidateGlobal: GlobalAfterChangeHook = ({ doc }) => {
   return doc;
 };
 
+/** หน้าที่ผู้ดูแลสร้างเอง — ล้างทั้งที่อยู่เดิมและใหม่เผื่อมีการเปลี่ยนชื่อลิงก์ */
+export const revalidateCustomPage: CollectionAfterChangeHook & CollectionAfterDeleteHook = ({
+  doc,
+  previousDoc,
+}: {
+  doc?: Record<string, unknown>;
+  previousDoc?: Record<string, unknown>;
+}) => {
+  const paths = ["/"];
+  if (doc?.slug) paths.push(`/${doc.slug}`);
+  if (previousDoc?.slug && previousDoc.slug !== doc?.slug) paths.push(`/${previousDoc.slug}`);
+  safeRevalidate(paths);
+  return doc;
+};
+
+/**
+ * ทางเปลี่ยนเส้นทาง — ล้างแคชของลิงก์เดิม
+ *
+ * หน้าที่เคย 404 ถูกเก็บไว้ในแคช ถ้าไม่ล้าง ผู้เข้าชมจะยังเจอ 404 ต่อไป
+ * แม้จะเพิ่มทางเปลี่ยนเส้นทางแล้วก็ตาม
+ */
+export const revalidateRedirect: CollectionAfterChangeHook & CollectionAfterDeleteHook = ({
+  doc,
+  previousDoc,
+}: {
+  doc?: Record<string, unknown>;
+  previousDoc?: Record<string, unknown>;
+}) => {
+  const paths = [doc?.from, previousDoc?.from].filter(
+    (path): path is string => typeof path === "string" && path.startsWith("/")
+  );
+  safeRevalidate(paths);
+  return doc;
+};
+
 /** Global ประจำหน้าเดียว ระบุ path ที่ต้องล้างได้ตรง ๆ */
 export function revalidatePage(path: string): GlobalAfterChangeHook {
   return ({ doc }) => {

@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { NavData } from "@/lib/cms/navigation";
 import type { SiteSettings } from "@/content/types";
 import { atGlobal } from "@/lib/cms/inline";
+import { atLabel, type Labels } from "@/lib/labels";
 import { t } from "@/lib/i18n";
 import { telUrl } from "@/lib/line";
 import { Ed } from "./editable";
@@ -16,10 +17,12 @@ const atSite = atGlobal("site-settings");
 export function SiteFooter({
   site,
   nav,
+  labels,
   editing = false,
 }: {
   site: SiteSettings;
   nav: NavData;
+  labels: Labels;
   /** ส่งต่อให้โลโก้ซึ่งใช้ได้ทั้งฝั่งเซิร์ฟเวอร์และไคลเอนต์ ส่วนที่เหลือใช้ <Ed> ตัดสินเอง */
   editing?: boolean;
 }) {
@@ -94,7 +97,11 @@ export function SiteFooter({
           </div>
 
           <div className="flex flex-col gap-4">
-            <h2 className="text-xs font-semibold tracking-label text-leaf-300">ติดต่อชุมชน</h2>
+            <h2 className="text-xs font-semibold tracking-label text-leaf-300">
+              <Ed at={atLabel("contact", "contactCommunity")} tone="light">
+                {labels.contact.contactCommunity}
+              </Ed>
+            </h2>
             <ul className="flex flex-col gap-3 text-sm">
               <li className="flex gap-3">
                 <MapPinIcon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-ink-400" />
@@ -134,7 +141,9 @@ export function SiteFooter({
                 className="flex items-center justify-center gap-2 bg-white/5 py-2.5 text-xs font-semibold text-rice-100 transition-colors hover:bg-white/10"
               >
                 <MapPinIcon className="h-4 w-4" />
-                นำทางด้วย Google Maps
+                <Ed at={atLabel("contact", "directions")} tone="light">
+                  {labels.contact.directions}
+                </Ed>
               </a>
             </div>
           </div>
@@ -145,7 +154,10 @@ export function SiteFooter({
         <Container size="wide">
           <div className="flex flex-col gap-2 py-5 text-xs text-ink-400 sm:flex-row sm:items-center sm:justify-between">
             <p>
-              © {new Date().getFullYear()} {t(site.communityName)} · สงวนลิขสิทธิ์
+              © {new Date().getFullYear()} {t(site.communityName)} ·{" "}
+              <Ed at={atLabel("contact", "copyright")} tone="light">
+                {labels.contact.copyright}
+              </Ed>
             </p>
             <p>
               <Ed at={atSite("openingHoursShort")} tone="light">

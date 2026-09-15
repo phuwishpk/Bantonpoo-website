@@ -1,10 +1,14 @@
 import type { MetadataRoute } from "next";
-import { getArticles, getProducts } from "@/lib/cms/queries";
+import { getArticles, getCustomPages, getProducts } from "@/lib/cms/queries";
 import { absoluteUrl } from "@/lib/seo";
 
 /** แผนผังเว็บไซต์สำหรับ Google — อัปเดตอัตโนมัติเมื่อเพิ่มบทความหรือสินค้าใน CMS */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [products, articles] = await Promise.all([getProducts(), getArticles()]);
+  const [products, articles, custom] = await Promise.all([
+    getProducts(),
+    getArticles(),
+    getCustomPages(),
+  ]);
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: absoluteUrl("/"), changeFrequency: "weekly", priority: 1 },
@@ -17,6 +21,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...staticPages,
+    // หน้าที่ผู้ดูแลสร้างเอง — ข้ามหน้าที่ติ๊กไม่ให้ Google เก็บไว้
+    ...custom
+      .filter((page) => page.showInSitemap !== false && typeof page.slug === "string")
+      .map((page) => ({
+        url: absoluteUrl(`/${String(page.slug)}`),
+        lastModified: page.updatedAt ? new Date(String(page.updatedAt)) : undefined,
+        changeFrequency: "monthly" as const,
+        priority: 0.7,
+      })),
     ...products.map((product) => ({
       url: absoluteUrl(`/shop/${product.slug}`),
       changeFrequency: "monthly" as const,

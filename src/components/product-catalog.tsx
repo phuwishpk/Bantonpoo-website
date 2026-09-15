@@ -17,6 +17,7 @@ import { adminDoc } from "@/lib/cms/edit-links";
 import { EditButton } from "./edit-mode";
 import { QuickOrderButton } from "./line-order-button";
 import { Badge, buttonClass } from "./ui";
+import { useLabels } from "./site-context";
 
 /** เวลาต่อสไลด์เมื่อเล่นอัตโนมัติ ต้องตรงกับ duration ของ animation แถบความคืบหน้า */
 const AUTOPLAY_MS = 7000;
@@ -276,6 +277,7 @@ function CatalogSlide({
   total: number;
   editing: boolean;
 }) {
+  const labels = useLabels();
   const category = product.category;
   const cover = product.gallery[0];
   const herbs = t(product.mainHerbs);
@@ -372,7 +374,7 @@ function CatalogSlide({
         <Reveal active={active} delay={380} className="flex flex-wrap items-center gap-4 pt-1">
           <p className="font-serif text-3xl font-bold text-rice-100">
             {product.price === null ? (
-              <span className="text-xl text-ink-200">สอบถามราคา</span>
+              <span className="text-xl text-ink-200">{labels.general.askPrice}</span>
             ) : (
               formatPrice(product.price)
             )}

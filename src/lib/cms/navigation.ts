@@ -28,16 +28,32 @@ type RawLink = {
   label?: unknown;
   linkType?: string;
   page?: string | null;
+  /** หน้าที่สร้างเอง — depth 1 ทำให้ได้เป็นอ็อบเจกต์ที่มี slug มาเลย */
+  customPage?: { slug?: string | null } | string | number | null;
   url?: string | null;
   children?: RawLink[] | null;
 };
 
+/** ที่อยู่ของหน้าที่ผู้ดูแลสร้างเอง — คืน null เมื่อหน้านั้นถูกลบไปแล้ว */
+function customHref(value: RawLink["customPage"]): string | null {
+  if (!value || typeof value !== "object") return null;
+  const slug = (value as { slug?: string | null }).slug;
+  return typeof slug === "string" && slug ? `/${slug}` : null;
+}
+
 function mapLink(raw: RawLink): NavLink {
   const external = raw.linkType === "external";
+  const href = external
+    ? (raw.url ?? "#")
+    : raw.linkType === "custom"
+      ? // หน้าที่ถูกลบทิ้งไม่ควรทำให้เมนูพาไปที่ว่าง จึงตกกลับไปหน้าแรก
+        (customHref(raw.customPage) ?? "/")
+      : (raw.page ?? "/");
+
   return {
     label: loc(raw.label as never),
     // ลิงก์ภายในเลือกจากรายการหน้าที่มีอยู่จริง จึงไม่มีทางพิมพ์ผิด
-    href: external ? (raw.url ?? "#") : (raw.page ?? "/"),
+    href,
     external,
     ...(raw.children?.length ? { children: raw.children.map(mapLink) } : {}),
   };
@@ -49,7 +65,8 @@ export const getNavigation = cache(async (): Promise<NavData> => {
     draft,
     slug: "navigation",
     locale: ALL_LOCALES,
-    depth: 0,
+    // depth 1 เพื่อให้ลิงก์ที่ชี้ไปหน้าที่สร้างเองได้ slug มาพร้อมกัน
+    depth: 1,
   })) as unknown as Record<string, unknown>;
 
   const cta = (doc.headerCta ?? {}) as { enabled?: boolean; label?: unknown; action?: string };

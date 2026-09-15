@@ -16,6 +16,7 @@
 export const EDITABLE_GLOBALS: Record<string, { label: string; drafts: boolean }> = {
   "site-settings": { label: "ข้อมูลชุมชน", drafts: true },
   navigation: { label: "เมนูนำทางและท้ายเว็บ", drafts: true },
+  "ui-labels": { label: "ข้อความบนปุ่มและป้ายกำกับ", drafts: true },
   "home-page": { label: "หน้าแรก", drafts: true },
   "about-page": { label: "หน้าเกี่ยวกับชุมชน", drafts: true },
   "shop-page": { label: "หน้าสินค้าชุมชน", drafts: true },
@@ -34,6 +35,7 @@ export const EDITABLE_GLOBALS: Record<string, { label: string; drafts: boolean }
 export const EDITABLE_COLLECTIONS: Record<string, { label: string; drafts: boolean }> = {
   products: { label: "สินค้า", drafts: true },
   articles: { label: "บทความ", drafts: true },
+  pages: { label: "หน้าที่สร้างเอง", drafts: true },
   workshops: { label: "ฐานเรียนรู้และกิจกรรม", drafts: false },
   places: { label: "จุดเช็กอิน", drafts: false },
   artisans: { label: "ปราชญ์ชุมชน", drafts: false },

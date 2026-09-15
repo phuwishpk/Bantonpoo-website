@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { facebookShareUrl, lineShareUrl } from "@/lib/line";
 import { absoluteUrl } from "@/lib/seo";
 import { CheckIcon, CopyIcon, FacebookIcon, LineIcon } from "./icons";
+import { useLabels } from "./site-context";
 
 const BUTTON =
   "inline-flex items-center gap-2 rounded-lg border border-rice-300 bg-rice-50 px-3.5 py-2 text-sm font-medium text-ink-700 transition duration-200 ease-craft hover:border-ink-800 hover:bg-white";
@@ -17,6 +18,7 @@ const BUTTON =
  */
 export function ShareButtons({ path, title }: { path: string; title: string }) {
   const [copied, setCopied] = useState(false);
+  const labels = useLabels();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const url = absoluteUrl(path);
 
@@ -37,7 +39,7 @@ export function ShareButtons({ path, title }: { path: string; title: string }) {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="mr-1 text-sm text-river-500">แชร์บทความนี้</span>
+      <span className="mr-1 text-sm text-river-500">{labels.article.share}</span>
 
       <a
         href={facebookShareUrl(url)}

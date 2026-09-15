@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Article } from "@/content/types";
 import { estimateReadingMinutes, formatThaiDateShort } from "@/lib/format";
+import { DEFAULT_LABELS, type Labels } from "@/lib/labels";
 import { t } from "@/lib/i18n";
 import { EditButton } from "./edit-mode";
 
@@ -10,12 +11,15 @@ export function ArticleCard({
   layout = "vertical",
   priority = false,
   editHref,
+  labels = DEFAULT_LABELS.article,
 }: {
   article: Article;
   layout?: "vertical" | "horizontal";
   priority?: boolean;
   /** ส่งมาเฉพาะตอนอยู่ในโหมดแก้ไข */
   editHref?: string;
+  /** ป้ายกำกับจากหลังบ้าน — รับเป็น prop ด้วยเหตุผลเดียวกับ ProductCard */
+  labels?: Labels["article"];
 }) {
   const category = article.category;
   const minutes = estimateReadingMinutes(article);
@@ -43,7 +47,7 @@ export function ArticleCard({
             </Link>
           </h3>
           <p className="text-xs text-river-500">
-            {formatThaiDateShort(article.publishedAt)} · อ่าน {minutes} นาที
+            {formatThaiDateShort(article.publishedAt)} · {minutes} {labels.minutes}
           </p>
         </div>
       </article>
@@ -82,7 +86,7 @@ export function ArticleCard({
 
         <p className="line-clamp-3 text-sm leading-relaxed text-river-500">{t(article.excerpt)}</p>
 
-        <p className="mt-auto pt-2 text-xs text-river-400">ใช้เวลาอ่าน {minutes} นาที</p>
+        <p className="mt-auto pt-2 text-xs text-river-400">{labels.readTime} {minutes} {labels.minutes}</p>
       </div>
     </article>
   );

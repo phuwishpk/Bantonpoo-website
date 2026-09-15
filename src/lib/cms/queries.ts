@@ -178,6 +178,29 @@ export const getSite = cache(async (): Promise<SiteSettings> => {
   };
 });
 
+/**
+ * หน้าที่ผู้ดูแลสร้างเอง — คืนข้อมูลดิบให้ตัวเรนเดอร์บล็อกตีความ
+ *
+ * depth 2 เพื่อให้ภาพในบล็อกถูกดึงมาพร้อมกัน ไม่ต้องยิงถามทีละภาพตอนเรนเดอร์
+ */
+export const getCustomPages = cache(async (): Promise<Record<string, unknown>[]> => {
+  const [cms, draft] = await Promise.all([getCms(), isDraftMode()]);
+  const { docs } = await cms.find({
+    draft,
+    collection: "pages",
+    locale: ALL_LOCALES,
+    depth: 2,
+    limit: LIMIT,
+    sort: "title",
+  });
+  return docs as unknown as Record<string, unknown>[];
+});
+
+export const getCustomPage = cache(async (slug: string): Promise<Record<string, unknown> | null> => {
+  const pages = await getCustomPages();
+  return pages.find((page) => page.slug === slug) ?? null;
+});
+
 /** Global ประจำหน้า — คืนข้อมูลดิบให้หน้านั้นตีความเอง */
 export const getPageGlobal = cache(async (slug: string): Promise<Record<string, unknown>> => {
   const [cms, draft] = await Promise.all([getCms(), isDraftMode()]);

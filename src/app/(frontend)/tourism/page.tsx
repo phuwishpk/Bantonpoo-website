@@ -26,6 +26,8 @@ import { formatPrice } from "@/lib/format";
 import { isDraftMode } from "@/lib/cms/draft";
 import { editLinksFor } from "@/lib/cms/edit-links";
 import { atDoc, atGlobal } from "@/lib/cms/inline";
+import { atLabel } from "@/lib/labels";
+import { getLabels } from "@/lib/cms/labels";
 import { t } from "@/lib/i18n";
 import { telUrl } from "@/lib/line";
 import { breadcrumbJsonLd, buildMetadata, workshopJsonLd } from "@/lib/seo";
@@ -63,11 +65,12 @@ const PLACE_KIND_LABELS = {
 
 export default async function TourismPage() {
   const editing = await isDraftMode();
-  const [page, site, workshops, places] = await Promise.all([
+  const [page, site, workshops, places, labels] = await Promise.all([
     getPageGlobal("tourism-page"),
     getSite(),
     getWorkshops(),
     getPlaces(),
+    getLabels(),
   ]);
 
   const content = hero(page);
@@ -92,11 +95,16 @@ export default async function TourismPage() {
         <div className="flex flex-wrap gap-3 pt-2">
           <a href={site.lineUrl} target="_blank" rel="noopener noreferrer" className={buttonClass("primary")}>
             <LineIcon />
-            จองกิจกรรมผ่าน LINE
+            <Ed at={atLabel("tourism", "bookViaLine")} tone="light">
+              {labels.tourism.bookViaLine}
+            </Ed>
           </a>
           <a href={telUrl(site)} className={buttonClass("onDark")}>
             <PhoneIcon />
-            โทรนัดหมาย {site.phoneDisplay}
+            <Ed at={atLabel("tourism", "callToBook")} tone="light">
+              {labels.tourism.callToBook}
+            </Ed>{" "}
+            {site.phoneDisplay}
           </a>
         </div>
       </PageHero>
@@ -156,7 +164,7 @@ export default async function TourismPage() {
                     <div className="flex flex-col gap-1">
                       <dt className="flex items-center gap-1.5 text-xs text-river-500">
                         <ClockIcon className="h-4 w-4" />
-                        ระยะเวลา
+                        <Ed at={atLabel("tourism", "duration")}>{labels.tourism.duration}</Ed>
                       </dt>
                       <dd className="text-sm font-semibold text-ink-800">
                         <Ed at={atWorkshop("duration")}>{t(workshop.duration)}</Ed>
@@ -165,18 +173,23 @@ export default async function TourismPage() {
                     <div className="flex flex-col gap-1">
                       <dt className="flex items-center gap-1.5 text-xs text-river-500">
                         <UsersIcon className="h-4 w-4" />
-                        จำนวนผู้เข้าร่วม
+                        <Ed at={atLabel("tourism", "participants")}>
+                          {labels.tourism.participants}
+                        </Ed>
                       </dt>
                       <dd className="text-sm font-semibold text-ink-800">
-                        {workshop.minParticipants}–{workshop.maxParticipants} คน / รอบ
+                        {workshop.minParticipants}–{workshop.maxParticipants}{" "}
+                        {labels.tourism.participantsUnit}
                       </dd>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <dt className="text-xs text-river-500">ค่าบริการ</dt>
+                      <dt className="text-xs text-river-500">
+                        <Ed at={atLabel("tourism", "price")}>{labels.tourism.price}</Ed>
+                      </dt>
                       <dd className="font-serif text-lg font-bold text-leaf-600">
                         {workshop.pricePerPerson === null
-                          ? "สอบถามราคา"
-                          : `${formatPrice(workshop.pricePerPerson)} / คน`}
+                          ? labels.general.askServicePrice
+                          : `${formatPrice(workshop.pricePerPerson)} ${labels.tourism.perPerson}`}
                       </dd>
                     </div>
                   </dl>
@@ -196,13 +209,17 @@ export default async function TourismPage() {
 
                   {workshop.takeaway ? (
                     <p className="rounded-lg bg-leaf-50 px-4 py-3 text-sm text-leaf-700">
-                      <span className="font-semibold">ได้กลับบ้าน:</span>{" "}
+                      <span className="font-semibold">
+                        <Ed at={atLabel("tourism", "takeaway")}>{labels.tourism.takeaway}</Ed>
+                      </span>{" "}
                       <Ed at={atWorkshop("takeaway")}>{t(workshop.takeaway)}</Ed>
                     </p>
                   ) : null}
 
                   <div className="flex flex-col gap-2">
-                    <h4 className="text-xs font-semibold tracking-label text-ink-700">เงื่อนไขการจอง</h4>
+                    <h4 className="text-xs font-semibold tracking-label text-ink-700">
+                      <Ed at={atLabel("tourism", "bookingTerms")}>{labels.tourism.bookingTerms}</Ed>
+                    </h4>
                     <ul className="flex flex-col gap-1.5">
                       {t(workshop.bookingNotes).map((note, noteIndex) => (
                         <li key={noteIndex} className="flex gap-2.5 text-sm leading-relaxed text-river-500">
@@ -314,7 +331,7 @@ export default async function TourismPage() {
                 className="flex items-center justify-center gap-2 bg-rice-50 py-3.5 text-sm font-semibold text-ink-800 transition-colors hover:bg-rice-200"
               >
                 <MapPinIcon className="h-[18px] w-[18px]" />
-                เปิดนำทางด้วย Google Maps
+                <Ed at={atLabel("general", "openInMaps")}>{labels.general.openInMaps}</Ed>
               </a>
             </div>
 

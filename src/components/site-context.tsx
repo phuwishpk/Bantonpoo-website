@@ -2,27 +2,41 @@
 
 import { createContext, useContext } from "react";
 import type { SiteSettings } from "@/content/types";
+import type { Labels } from "@/lib/labels";
 
 /**
- * ข้อมูลชุมชนสำหรับคอมโพเนนต์ฝั่งไคลเอนต์
+ * ข้อมูลชุมชนและป้ายกำกับสำหรับคอมโพเนนต์ฝั่งไคลเอนต์
  *
- * Server Component เรียก getSite() ได้ตรง ๆ แต่ Client Component ทำไม่ได้
+ * Server Component เรียก getSite() / getLabels() ได้ตรง ๆ แต่ Client Component ทำไม่ได้
  * จึงส่งค่าลงมาครั้งเดียวที่ layout แล้วให้ทุกตัวอ่านผ่าน context นี้
  */
-const SiteContext = createContext<SiteSettings | null>(null);
+type SiteContextValue = { site: SiteSettings; labels: Labels };
+
+const SiteContext = createContext<SiteContextValue | null>(null);
 
 export function SiteProvider({
   site,
+  labels,
   children,
 }: {
   site: SiteSettings;
+  labels: Labels;
   children: React.ReactNode;
 }) {
-  return <SiteContext.Provider value={site}>{children}</SiteContext.Provider>;
+  return <SiteContext.Provider value={{ site, labels }}>{children}</SiteContext.Provider>;
+}
+
+function useSiteContext(): SiteContextValue {
+  const value = useContext(SiteContext);
+  if (!value) throw new Error("ต้องอยู่ภายใต้ <SiteProvider>");
+  return value;
 }
 
 export function useSite(): SiteSettings {
-  const site = useContext(SiteContext);
-  if (!site) throw new Error("useSite ต้องอยู่ภายใต้ <SiteProvider>");
-  return site;
+  return useSiteContext().site;
+}
+
+/** ป้ายกำกับที่แก้ได้จากหลังบ้าน — ตกกลับเป็นคำตั้งต้นถ้าเรียกนอก provider ไม่ได้ */
+export function useLabels(): Labels {
+  return useSiteContext().labels;
 }

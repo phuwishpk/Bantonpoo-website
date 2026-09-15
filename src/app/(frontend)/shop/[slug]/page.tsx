@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { PhoneIcon } from "@/components/icons";
@@ -15,6 +14,9 @@ import { SectionHeading } from "@/components/section-heading";
 import type { Product } from "@/content/types";
 import { getProduct, getProducts, getRelatedProducts, getSite } from "@/lib/cms/queries";
 import { atDoc } from "@/lib/cms/inline";
+import { atLabel } from "@/lib/labels";
+import { getLabels } from "@/lib/cms/labels";
+import { redirectOrNotFound } from "@/lib/cms/redirects";
 import { productFormLabels, productStatusLabels } from "@/lib/product-labels";
 import { formatPrice } from "@/lib/format";
 import { t } from "@/lib/i18n";
@@ -46,16 +48,23 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 /** แถวในตารางสเปก — แสดงเฉพาะแถวที่มีค่า */
-function specRows(product: Product): { label: string; value: string }[] {
-  const rows: { label: string; value: string | undefined }[] = [
-    { label: "รหัสสินค้า", value: product.sku },
-    { label: "รูปแบบ", value: t(productFormLabels[product.form]) },
-    { label: "ปริมาณสุทธิ", value: t(product.netContent) },
-    { label: "สมุนไพรหลัก", value: t(product.mainHerbs).join(" · ") },
-    { label: "อายุการเก็บรักษา", value: product.shelfLife ? t(product.shelfLife) : undefined },
+function specRows(
+  product: Product,
+  labels: Awaited<ReturnType<typeof getLabels>>["product"]
+): { key: string; label: string; value: string }[] {
+  const rows: { key: string; label: string; value: string | undefined }[] = [
+    { key: "sku", label: labels.sku, value: product.sku },
+    { key: "form", label: labels.form, value: t(productFormLabels[product.form]) },
+    { key: "netContent", label: labels.netContent, value: t(product.netContent) },
+    { key: "mainHerbs", label: labels.mainHerbs, value: t(product.mainHerbs).join(" · ") },
+    {
+      key: "shelfLife",
+      label: labels.shelfLife,
+      value: product.shelfLife ? t(product.shelfLife) : undefined,
+    },
   ];
 
-  return rows.filter((row): row is { label: string; value: string } => Boolean(row.value));
+  return rows.filter((row): row is { key: string; label: string; value: string } => Boolean(row.value));
 }
 
 const STATUS_TONE = {
@@ -66,13 +75,14 @@ const STATUS_TONE = {
 
 export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
-  const [product, site] = await Promise.all([getProduct(slug), getSite()]);
-  if (!product) notFound();
+  const [product, site, labels] = await Promise.all([getProduct(slug), getSite(), getLabels()]);
+  // ลิงก์เก่าที่เคยแชร์ไว้ควรพาไปหน้าใหม่ ไม่ใช่ตกหน้า 404 เงียบ ๆ
+  if (!product) return redirectOrNotFound(`/shop/${slug}`);
 
   const category = product.category;
   const artisan = product.artisan;
   const related = await getRelatedProducts(product, 3);
-  const specs = specRows(product);
+  const specs = specRows(product, labels.product);
   const at = atDoc("products", product.id);
 
   const crumbs = [
@@ -131,7 +141,7 @@ export default async function ProductPage({ params }: PageProps) {
                 <div>
                   <p className="font-serif text-3xl font-bold text-ink-800">
                     {product.price === null ? (
-                      <span className="text-2xl text-river-500">สอบถามราคา</span>
+                      <span className="text-2xl text-river-500">{labels.general.askPrice}</span>
                     ) : (
                       formatPrice(product.price)
                     )}
@@ -156,8 +166,15 @@ export default async function ProductPage({ params }: PageProps) {
                 >
                   <span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rotate-45 bg-ochre-600" />
                   <span>
-                    <span className="font-semibold">ใช้ภายนอกเท่านั้น</span> — ห้ามรับประทาน
-                    เก็บให้พ้นมือเด็ก และหลีกเลี่ยงบริเวณดวงตาและบาดแผลเปิด
+                    <span className="font-semibold">
+                      <Ed at={atLabel("product", "externalUseTitle")}>
+                        {labels.product.externalUseTitle}
+                      </Ed>
+                    </span>{" "}
+                    —{" "}
+                    <Ed at={atLabel("product", "externalUseBody")} multiline>
+                      {labels.product.externalUseBody}
+                    </Ed>
                   </span>
                 </p>
               ) : null}
@@ -167,7 +184,8 @@ export default async function ProductPage({ params }: PageProps) {
                 <ProductOrderButton product={product} />
                 <a href={telUrl(site)} className={buttonClass("secondary", "w-full")}>
                   <PhoneIcon />
-                  โทรสอบถามกลุ่มวิสาหกิจชุมชน {site.phoneDisplay}
+                  <Ed at={atLabel("product", "callGroup")}>{labels.product.callGroup}</Ed>{" "}
+                  {site.phoneDisplay}
                 </a>
                 <a
                   href={site.facebookUrl}
@@ -175,22 +193,26 @@ export default async function ProductPage({ params }: PageProps) {
                   rel="noopener noreferrer"
                   className="text-center text-xs text-river-500 underline underline-offset-4 hover:text-ink-800"
                 >
-                  หรือทักผ่านเพจ Facebook ของวิสาหกิจชุมชน
+                  <Ed at={atLabel("product", "facebookHint")}>{labels.product.facebookHint}</Ed>
                 </a>
               </div>
 
               {/* ---- ตารางสเปก ---- */}
               <div className="rounded-card border border-rice-300 bg-rice-50 p-5">
-                <h2 className="mb-4 text-xs font-semibold tracking-label text-ink-700">สเปกทางเทคนิค</h2>
+                <h2 className="mb-4 text-xs font-semibold tracking-label text-ink-700">
+                  <Ed at={atLabel("product", "specs")}>{labels.product.specs}</Ed>
+                </h2>
                 <dl className="flex flex-col">
                   {specs.map((row, index) => (
                     <div
-                      key={row.label}
+                      key={row.key}
                       className={`flex justify-between gap-4 py-2.5 text-sm ${
                         index > 0 ? "border-t border-rice-200" : ""
                       }`}
                     >
-                      <dt className="text-river-500">{row.label}</dt>
+                      <dt className="text-river-500">
+                        <Ed at={`g:ui-labels:product.${row.key}`}>{row.label}</Ed>
+                      </dt>
                       <dd className="text-right font-medium text-ink-800">{row.value}</dd>
                     </div>
                   ))}
@@ -209,14 +231,20 @@ export default async function ProductPage({ params }: PageProps) {
                     className="h-16 w-16 shrink-0 rounded-full object-cover"
                   />
                   <div className="flex flex-col gap-1.5">
-                    <p className="text-2xs font-semibold tracking-label text-leaf-300">ผลิตโดย</p>
+                    <p className="text-2xs font-semibold tracking-label text-leaf-300">
+                      <Ed at={atLabel("product", "madeBy")} tone="light">
+                        {labels.product.madeBy}
+                      </Ed>
+                    </p>
                     <p className="font-serif text-base font-semibold text-rice-100">{t(artisan.name)}</p>
                     <p className="text-xs text-ink-300">{t(artisan.title)}</p>
                     <Link
                       href="/about"
                       className="mt-1 text-xs font-semibold text-leaf-300 underline-offset-4 hover:underline"
                     >
-                      ดูทำเนียบปราชญ์ชุมชนทั้งหมด →
+                      <Ed at={atLabel("product", "viewArtisans")} tone="light">
+                        {labels.product.viewArtisans}
+                      </Ed>
                     </Link>
                   </div>
                 </div>
@@ -231,7 +259,12 @@ export default async function ProductPage({ params }: PageProps) {
         <Container size="wide">
           <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
             <div className="flex flex-col gap-5">
-              <SectionHeading eyebrow="เรื่องเล่าของผลิตภัณฑ์" title="ที่มาและจุดเด่น" />
+              <SectionHeading
+                atEyebrow={atLabel("product", "storyEyebrow")}
+                atTitle={atLabel("product", "storyTitle")}
+                eyebrow={labels.product.storyEyebrow}
+                title={labels.product.storyTitle}
+              />
               <div className="prose-craft">
                 {t(product.story).map((paragraph, index) => (
                   <Ed key={index} as="p" at={at(`story.${index}.value`)} multiline>
@@ -243,7 +276,12 @@ export default async function ProductPage({ params }: PageProps) {
 
             <div className="flex flex-col gap-8">
               <div className="flex flex-col gap-5">
-                <SectionHeading eyebrow="วิธีใช้" title="ใช้อย่างไร" />
+                <SectionHeading
+                  atEyebrow={atLabel("product", "usageEyebrow")}
+                  atTitle={atLabel("product", "usageTitle")}
+                  eyebrow={labels.product.usageEyebrow}
+                  title={labels.product.usageTitle}
+                />
                 <ol className="flex flex-col gap-3">
                   {t(product.usage).map((step, index) => (
                     <li
@@ -265,7 +303,12 @@ export default async function ProductPage({ params }: PageProps) {
               </div>
 
               <div className="flex flex-col gap-5">
-                <SectionHeading eyebrow="คำแนะนำ" title="การเก็บรักษาและข้อควรระวัง" />
+                <SectionHeading
+                  atEyebrow={atLabel("product", "careEyebrow")}
+                  atTitle={atLabel("product", "careTitle")}
+                  eyebrow={labels.product.careEyebrow}
+                  title={labels.product.careTitle}
+                />
                 <ul className="flex flex-col gap-3">
                   {t(product.careInstructions).map((instruction, index) => (
                     <li
@@ -291,10 +334,15 @@ export default async function ProductPage({ params }: PageProps) {
           <Container size="wide">
             <OrnamentDivider />
             <div className="mt-12">
-              <SectionHeading eyebrow="อาจถูกใจ" title="สินค้าที่คล้ายกัน" />
+              <SectionHeading
+                atEyebrow={atLabel("product", "relatedEyebrow")}
+                atTitle={atLabel("product", "relatedTitle")}
+                eyebrow={labels.product.relatedEyebrow}
+                title={labels.product.relatedTitle}
+              />
               <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-3 lg:gap-5">
                 {related.map((item) => (
-                  <ProductCard key={item.slug} product={item} />
+                  <ProductCard key={item.slug} product={item} labels={labels.general} />
                 ))}
               </div>
             </div>

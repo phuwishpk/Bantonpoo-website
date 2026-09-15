@@ -10,6 +10,7 @@ import { ProductCard } from "./product-card";
 import { adminDoc } from "@/lib/cms/edit-links";
 import { ProductCatalog } from "./product-catalog";
 import { buttonClass } from "./ui";
+import { useLabels } from "./site-context";
 
 export type ShopFilters = {
   categories: string[];
@@ -67,6 +68,7 @@ export function ShopBrowser({
 }) {
   const [filters, setFilters] = useState<ShopFilters>(initial);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const labels = useLabels();
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -193,7 +195,7 @@ export function ShopBrowser({
       {/* แถบตัวกรองด้านข้าง — เดสก์ท็อป */}
       <aside className="hidden lg:block">
         <div className="sticky top-24">
-          <h2 className="mb-5 font-serif text-lg font-semibold text-ink-800">ตัวกรอง</h2>
+          <h2 className="mb-5 font-serif text-lg font-semibold text-ink-800">{labels.product.filters}</h2>
           {filterPanel}
         </div>
       </aside>
@@ -261,7 +263,7 @@ export function ShopBrowser({
             </div>
 
             <label className="flex items-center gap-2 rounded-lg border border-rice-300 bg-rice-50 px-3 text-sm">
-              <span className="whitespace-nowrap text-river-500">เรียงตาม</span>
+              <span className="whitespace-nowrap text-river-500">{labels.product.sortBy}</span>
               <select
                 value={filters.sort}
                 onChange={(event) =>
@@ -280,7 +282,8 @@ export function ShopBrowser({
         </div>
 
         <p className="text-sm text-river-500" aria-live="polite">
-          พบ <span className="font-semibold text-ink-800">{visible.length}</span> รายการ
+          พบ <span className="font-semibold text-ink-800">{visible.length}</span>{" "}
+          {labels.product.resultsUnit}
           {hasAnyFilter ? " จากเงื่อนไขที่เลือก" : ""}
         </p>
 
@@ -295,7 +298,7 @@ export function ShopBrowser({
           ) : (
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 lg:gap-5">
               {visible.map((product) => (
-                <ProductCard
+                <ProductCard labels={labels.general}
                   key={product.slug}
                   product={product}
                   editHref={editing ? adminDoc("products", product.id) : undefined}
@@ -335,7 +338,7 @@ export function ShopBrowser({
           style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
         >
           <div className="sticky top-0 flex items-center justify-between border-b border-rice-300 bg-rice-100 px-5 py-4">
-            <h2 className="font-serif text-lg font-semibold text-ink-800">ตัวกรอง</h2>
+            <h2 className="font-serif text-lg font-semibold text-ink-800">{labels.product.filters}</h2>
             <button
               type="button"
               onClick={() => setDrawerOpen(false)}
@@ -348,7 +351,7 @@ export function ShopBrowser({
           <div className="px-5 py-5">{filterPanel}</div>
           <div className="sticky bottom-0 border-t border-rice-300 bg-rice-100 px-5 py-4">
             <button type="button" onClick={() => setDrawerOpen(false)} className={buttonClass("primary", "w-full")}>
-              ดูสินค้า {visible.length} รายการ
+              ดูสินค้า {visible.length} {labels.product.resultsUnit}
             </button>
           </div>
         </div>

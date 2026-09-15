@@ -25,6 +25,8 @@ import { getArtisans, getPageGlobal, getSite } from "@/lib/cms/queries";
 import { isDraftMode } from "@/lib/cms/draft";
 import { editLinksFor } from "@/lib/cms/edit-links";
 import { atDoc, atGlobal } from "@/lib/cms/inline";
+import { atLabel } from "@/lib/labels";
+import { getLabels } from "@/lib/cms/labels";
 import { t } from "@/lib/i18n";
 import { breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
 
@@ -55,7 +57,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function AboutPage() {
   const editing = await isDraftMode();
-  const [page, artisans] = await Promise.all([getPageGlobal("about-page"), getArtisans()]);
+  const [page, artisans, labels] = await Promise.all([
+    getPageGlobal("about-page"),
+    getArtisans(),
+    getLabels(),
+  ]);
 
   const content = hero(page);
   const heritageImage = media(page, "historyImage");
@@ -242,10 +248,14 @@ export default async function AboutPage() {
                             </Ed>
                           </p>
                           <div className="mt-auto flex flex-col gap-1 border-t border-rice-300 pt-3">
-                            <p className="text-xs text-river-400">บทบาท: {t(artisan.specialty)}</p>
+                            <p className="text-xs text-river-400">
+                              <Ed at={atLabel("about", "role")}>{labels.about.role}</Ed>:{" "}
+                              {t(artisan.specialty)}
+                            </p>
                             {artisan.source ? (
                               <p className="text-2xs text-river-400">
-                                ที่มาข้อมูล: {t(artisan.source)}
+                                <Ed at={atLabel("about", "source")}>{labels.about.source}</Ed>:{" "}
+                                {t(artisan.source)}
                               </p>
                             ) : null}
                           </div>
@@ -306,7 +316,7 @@ export default async function AboutPage() {
                 <Container size="wide">
                   <div className="rounded-card border border-rice-300 bg-rice-50 p-6">
                     <h2 className="mb-3 text-xs font-semibold tracking-label text-river-500">
-                      แหล่งอ้างอิง
+                      <Ed at={atLabel("about", "references")}>{labels.about.references}</Ed>
                     </h2>
                     <ul className="flex flex-col gap-2 text-sm leading-relaxed text-river-500">
                       {references.map((reference, referenceIndex) => (

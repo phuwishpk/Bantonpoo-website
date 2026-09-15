@@ -10,6 +10,9 @@ import { EyebrowLabel } from "./ui";
  *
  * @param at ที่อยู่ของกลุ่มฟิลด์ เช่น g:home-page:featuredSection
  *           ส่งมาเมื่อต้องการให้คลิกแก้บนหน้าเว็บได้ · เว้นไว้ถ้าข้อความนั้นอยู่ในโค้ด
+ * @param atEyebrow / atTitle / atDescription
+ *           ระบุที่อยู่รายช่องเอง สำหรับกรณีที่สามข้อความไม่ได้อยู่ในกลุ่มเดียวกัน
+ *           เช่นหัวข้อของหน้าสินค้าที่ดึงมาจาก "ข้อความบนปุ่มและป้ายกำกับ"
  */
 export function SectionHeading({
   eyebrow,
@@ -19,6 +22,9 @@ export function SectionHeading({
   tone = "dark",
   align = "left",
   at,
+  atEyebrow,
+  atTitle,
+  atDescription,
 }: {
   eyebrow?: string;
   title: string;
@@ -27,11 +33,19 @@ export function SectionHeading({
   tone?: "dark" | "light";
   align?: "left" | "center";
   at?: string;
+  atEyebrow?: string;
+  atTitle?: string;
+  atDescription?: string;
 }) {
   const titleColor = tone === "dark" ? "text-ink-800" : "text-rice-100";
   const descColor = tone === "dark" ? "text-river-500" : "text-ink-200";
   const alignment = align === "center" ? "text-center items-center" : "";
   const edTone = tone === "dark" ? "dark" : "light";
+  const paths = {
+    eyebrow: atEyebrow ?? (at ? `${at}.eyebrow` : undefined),
+    title: atTitle ?? (at ? `${at}.title` : undefined),
+    description: atDescription ?? (at ? `${at}.description` : undefined),
+  };
 
   return (
     <div
@@ -42,8 +56,8 @@ export function SectionHeading({
       <div className={`flex max-w-2xl flex-col gap-3 ${alignment}`}>
         {eyebrow ? (
           <EyebrowLabel tone={tone === "dark" ? "ember" : "light"}>
-            {at ? (
-              <Ed at={`${at}.eyebrow`} tone={edTone}>
+            {paths.eyebrow ? (
+              <Ed at={paths.eyebrow} tone={edTone}>
                 {eyebrow}
               </Ed>
             ) : (
@@ -53,8 +67,8 @@ export function SectionHeading({
         ) : null}
 
         <h2 className={`font-serif text-2xl leading-snug font-semibold sm:text-3xl ${titleColor}`}>
-          {at ? (
-            <Ed at={`${at}.title`} tone={edTone}>
+          {paths.title ? (
+            <Ed at={paths.title} tone={edTone}>
               {title}
             </Ed>
           ) : (
@@ -64,8 +78,8 @@ export function SectionHeading({
 
         {description ? (
           <p className={`text-md ${descColor}`}>
-            {at ? (
-              <Ed at={`${at}.description`} multiline tone={edTone}>
+            {paths.description ? (
+              <Ed at={paths.description} multiline tone={edTone}>
                 {description}
               </Ed>
             ) : (

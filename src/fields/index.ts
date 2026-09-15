@@ -254,6 +254,88 @@ const hexOrEmpty = (value: unknown) => {
   return "ต้องเป็นรหัสสีแบบ #rrggbb เช่น #2e7d52";
 };
 
+/** ตัวเลือกพื้นหลังที่ใช้ร่วมกันระหว่าง section ของหน้าประจำ และบล็อกของหน้าที่สร้างเอง */
+const BACKGROUND_OPTIONS = [
+  { label: "สีพื้นของหน้า", value: "page" },
+  { label: "พื้นเข้ม", value: "dark" },
+  { label: "พื้นอ่อนตัดกัน", value: "tint" },
+  { label: "กำหนดสีเอง", value: "custom" },
+];
+
+const TEXT_TONE_OPTIONS = [
+  { label: "เลือกให้อัตโนมัติจากความสว่างของพื้น", value: "auto" },
+  { label: "ตัวอักษรสีอ่อน", value: "light" },
+  { label: "ตัวอักษรสีเข้ม", value: "dark" },
+];
+
+const COLUMN_OPTIONS = [
+  { label: "ตามค่าเริ่มต้น", value: "auto" },
+  { label: "2 คอลัมน์", value: "2" },
+  { label: "3 คอลัมน์", value: "3" },
+  { label: "4 คอลัมน์", value: "4" },
+];
+
+/**
+ * สี ตัวอักษร และการจัดวางของบล็อกหนึ่งบล็อกในหน้าที่สร้างเอง
+ *
+ * ใช้ชื่อฟิลด์ชุดเดียวกับ sectionsField เพื่อให้ตัวแปลงเป็น CSS ตัวเดียวกัน
+ * (sectionSkin) อ่านได้ทั้งสองแบบ ไม่ต้องเขียนตรรกะสีซ้ำสองชุด
+ */
+export function blockStyleFields(options: { columns?: boolean } = {}): Field {
+  const isCustom = (_: unknown, sibling: { background?: string }) => sibling?.background === "custom";
+
+  return {
+    type: "collapsible",
+    label: "สี ตัวอักษร และการจัดวางของส่วนนี้",
+    admin: { initCollapsed: true, description: "เว้นไว้ตามค่าเริ่มต้นได้ทั้งหมด ถ้ายังไม่ต้องการปรับ" },
+    fields: [
+      {
+        name: "background",
+        type: "select",
+        defaultValue: "page",
+        label: "พื้นหลัง",
+        options: BACKGROUND_OPTIONS,
+      },
+      {
+        name: "backgroundColor",
+        type: "text",
+        label: "สีพื้นหลัง (รหัสสี)",
+        admin: { condition: isCustom, description: "ใส่เป็นรหัสสีแบบ #rrggbb" },
+        validate: hexOrEmpty,
+      },
+      {
+        name: "textTone",
+        type: "select",
+        defaultValue: "auto",
+        label: "สีตัวอักษรบนพื้นนี้",
+        options: TEXT_TONE_OPTIONS,
+        admin: { condition: isCustom },
+      },
+      {
+        name: "accentColor",
+        type: "text",
+        label: "สีเน้นเฉพาะส่วนนี้ (รหัสสี)",
+        admin: {
+          description: "เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่มและป้ายเฉพาะในส่วนนี้",
+        },
+        validate: hexOrEmpty,
+      },
+      ...(options.columns
+        ? [
+            {
+              name: "columns",
+              type: "select" as const,
+              defaultValue: "auto",
+              label: "จำนวนคอลัมน์",
+              options: COLUMN_OPTIONS,
+            },
+          ]
+        : []),
+      ...typographyFields(),
+    ],
+  };
+}
+
 /**
  * รายการ section ของหน้าหนึ่ง ๆ — ลากสลับลำดับ ซ่อน/แสดง และปรับรูปแบบการวางได้
  *
@@ -292,12 +374,7 @@ export function sectionsField(options: {
         type: "select",
         defaultValue: "page",
         label: "พื้นหลัง",
-        options: [
-          { label: "สีพื้นของหน้า", value: "page" },
-          { label: "พื้นเข้ม", value: "dark" },
-          { label: "พื้นอ่อนตัดกัน", value: "tint" },
-          { label: "กำหนดสีเอง", value: "custom" },
-        ],
+        options: BACKGROUND_OPTIONS,
         admin: { condition: inGroup(grid) },
       },
       {
@@ -316,11 +393,7 @@ export function sectionsField(options: {
         type: "select",
         defaultValue: "auto",
         label: "สีตัวอักษรบนพื้นนี้",
-        options: [
-          { label: "เลือกให้อัตโนมัติจากความสว่างของพื้น", value: "auto" },
-          { label: "ตัวอักษรสีอ่อน", value: "light" },
-          { label: "ตัวอักษรสีเข้ม", value: "dark" },
-        ],
+        options: TEXT_TONE_OPTIONS,
         admin: {
           condition: (_: unknown, sibling: { type?: string; background?: string }) =>
             grid.includes(sibling?.type ?? "") && sibling?.background === "custom",
@@ -342,12 +415,7 @@ export function sectionsField(options: {
         type: "select",
         defaultValue: "auto",
         label: "จำนวนคอลัมน์",
-        options: [
-          { label: "ตามค่าเริ่มต้น", value: "auto" },
-          { label: "2 คอลัมน์", value: "2" },
-          { label: "3 คอลัมน์", value: "3" },
-          { label: "4 คอลัมน์", value: "4" },
-        ],
+        options: COLUMN_OPTIONS,
         admin: { condition: inGroup(grid) },
       },
       {

@@ -12,6 +12,7 @@ export const adminList = (collection: string) => `/admin/collections/${collectio
 /** ทางลัดที่ใช้ได้ทุกหน้า */
 const SHARED = [
   { label: "เมนูนำทางและท้ายเว็บ", href: adminGlobal("navigation") },
+  { label: "ข้อความบนปุ่มและป้ายกำกับ", href: adminGlobal("ui-labels") },
   { label: "ข้อมูลชุมชนและการติดต่อ", href: adminGlobal("site-settings") },
   { label: "ธีมและสีของเว็บ", href: adminGlobal("theme") },
 ];
@@ -62,6 +63,22 @@ const PAGE_GLOBAL: Record<PageKey, { label: string; slug: string; extra?: { labe
     extra: [{ label: "ข้อความที่ส่งเข้ามา", href: adminList("enquiries") }],
   },
 };
+
+/**
+ * ทางลัดของหน้าที่ผู้ดูแลสร้างเอง
+ *
+ * หน้าเหล่านี้ไม่มี global ประจำตัว จึงลิงก์ไปที่เอกสารของหน้านั้นโดยตรง
+ */
+export function editLinksForCustomPage(id: string | number, title: string) {
+  return {
+    pageLabel: title || "หน้านี้",
+    links: [
+      { label: `เนื้อหา${title || "หน้านี้"}`, href: adminDoc("pages", id) },
+      { label: "หน้าที่สร้างเองทั้งหมด", href: adminList("pages") },
+      ...SHARED,
+    ],
+  };
+}
 
 export function editLinksFor(page: PageKey) {
   const config = PAGE_GLOBAL[page];

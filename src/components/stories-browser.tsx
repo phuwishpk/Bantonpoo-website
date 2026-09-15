@@ -7,6 +7,7 @@ import { adminDoc } from "@/lib/cms/edit-links";
 import { ArticleCard } from "./article-card";
 import { SearchIcon } from "./icons";
 import { buttonClass } from "./ui";
+import { useLabels } from "./site-context";
 
 /**
  * หน้ารวมบทความ พร้อมตัวกรองหมวดหมู่และช่องค้นหา
@@ -27,6 +28,7 @@ export function StoriesBrowser({
   emptyState: { title: string; body: string };
   editing?: boolean;
 }) {
+  const labels = useLabels();
   const [category, setCategory] = useState<string | null>(initialCategory);
   const [query, setQuery] = useState(initialQuery);
 
@@ -98,7 +100,7 @@ export function StoriesBrowser({
       {visible.length > 0 ? (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {visible.map((article, index) => (
-            <ArticleCard
+            <ArticleCard labels={labels.article}
               key={article.slug}
               article={article}
               priority={index < 3}

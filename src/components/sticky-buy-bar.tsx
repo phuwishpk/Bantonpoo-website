@@ -6,6 +6,7 @@ import type { Product } from "@/content/types";
 import { formatPrice } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import { CheckIcon, LineIcon } from "./icons";
+import { useLabels } from "./site-context";
 import { useProductOrder } from "./use-line-order";
 
 /**
@@ -18,6 +19,7 @@ import { useProductOrder } from "./use-line-order";
  */
 export function StickyBuyBar({ product, anchorId }: { product: Product; anchorId: string }) {
   const [visible, setVisible] = useState(false);
+  const labels = useLabels();
   const { copied, handleClick } = useProductOrder(product);
 
   useEffect(() => {
@@ -49,7 +51,7 @@ export function StickyBuyBar({ product, anchorId }: { product: Product; anchorId
           <p className="truncate text-xs text-river-500">{t(productStatusLabels[product.status])}</p>
           <p className="font-serif text-lg font-semibold text-ink-800">
             {product.price === null ? (
-              <span className="text-base">สอบถามราคา</span>
+              <span className="text-base">{labels.general.askPrice}</span>
             ) : (
               formatPrice(product.price)
             )}

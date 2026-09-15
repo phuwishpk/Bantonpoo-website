@@ -22,51 +22,8 @@ export function th<T>(value: T): Localized<T> {
   return { th: value };
 }
 
-/** ข้อความ UI ที่ไม่ได้มาจาก CMS — รวมไว้ที่เดียวเพื่อให้แปลได้ทีเดียวจบ */
-export const ui = {
-  th: {
-    skipToContent: "ข้ามไปยังเนื้อหาหลัก",
-    menu: "เมนู",
-    closeMenu: "ปิดเมนู",
-    openMenu: "เปิดเมนู",
-    home: "หน้าแรก",
-    viewAll: "ดูทั้งหมด",
-    readMore: "อ่านต่อ",
-    readFullArticle: "อ่านบทความฉบับเต็ม",
-    orderViaLine: "สั่งซื้อผ่าน LINE",
-    callCommunity: "โทรสอบถามกลุ่มวิสาหกิจชุมชน",
-    contactUs: "ติดต่อเรา",
-    askPrice: "สอบถามราคา",
-    baht: "฿",
-    perPerson: "/ คน",
-    minutesRead: "นาที",
-    readTime: "ใช้เวลาอ่าน",
-    publishedOn: "เผยแพร่เมื่อ",
-    writtenBy: "เขียนโดย",
-    share: "แชร์บทความนี้",
-    shareFacebook: "แชร์ไปยัง Facebook",
-    shareLine: "แชร์ไปยัง LINE",
-    copyLink: "คัดลอกลิงก์",
-    copied: "คัดลอกแล้ว",
-    relatedArticles: "บทความที่เกี่ยวข้อง",
-    relatedProducts: "สินค้าที่คล้ายกัน",
-    allCategories: "ทั้งหมด",
-    searchPlaceholder: "ค้นหาเรื่องเล่าและข่าวกิจกรรม",
-    searchProductsPlaceholder: "ค้นหาชื่อสินค้า รหัส หรือชื่อสมุนไพร",
-    noResults: "ไม่พบรายการที่ตรงกับเงื่อนไข",
-    clearFilters: "ล้างตัวกรอง",
-    filters: "ตัวกรอง",
-    category: "หมวดหมู่",
-    productForm: "รูปแบบผลิตภัณฑ์",
-    availability: "สถานะสินค้า",
-    specs: "สเปกทางเทคนิค",
-    madeBy: "ผลิตโดย",
-    care: "การดูแลรักษา",
-    productCode: "รหัสสินค้า",
-    resultsCount: "รายการ",
-  },
-} as const;
-
-export function useUi(locale: Locale = DEFAULT_LOCALE) {
-  return ui[locale as "th"] ?? ui.th;
-}
+/*
+  ข้อความ UI ที่ไม่ได้อยู่ในเนื้อหาของหน้า เช่น "ผลิตโดย" หรือ "เวลาทำการ"
+  ย้ายไปอยู่ใน Global "ข้อความบนปุ่มและป้ายกำกับ" แล้ว ผู้ดูแลจึงแก้เองได้
+  ค่าตั้งต้นอยู่ที่ DEFAULT_LABELS ใน src/lib/cms/labels.ts
+*/

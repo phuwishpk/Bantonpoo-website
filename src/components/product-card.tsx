@@ -3,6 +3,7 @@ import Link from "next/link";
 import { productStatusLabels } from "@/lib/product-labels";
 import type { Product } from "@/content/types";
 import { formatPrice } from "@/lib/format";
+import { DEFAULT_LABELS, type Labels } from "@/lib/labels";
 import { t } from "@/lib/i18n";
 import { EditButton } from "./edit-mode";
 import { QuickOrderButton } from "./line-order-button";
@@ -19,12 +20,19 @@ export function ProductCard({
   showQuickOrder = false,
   priority = false,
   editHref,
+  labels = DEFAULT_LABELS.general,
 }: {
   product: Product;
   showQuickOrder?: boolean;
   priority?: boolean;
   /** ส่งมาเฉพาะตอนอยู่ในโหมดแก้ไข เพื่อไม่ให้ลิงก์หลังบ้านหลุดไปหาผู้เข้าชมทั่วไป */
   editHref?: string;
+  /**
+   * ป้ายกำกับจากหลังบ้าน — รับเป็น prop ไม่ใช่เรียก hook เอง
+   * เพราะการ์ดนี้ถูกใช้ทั้งจากหน้าเซิร์ฟเวอร์และจากตัวกรองฝั่งไคลเอนต์
+   * ถ้าใช้ hook จะต้องประกาศเป็น client component ทั้งไฟล์โดยไม่จำเป็น
+   */
+  labels?: Labels["general"];
 }) {
   const category = product.category;
   const [cover, hoverImage] = product.gallery;
@@ -87,7 +95,7 @@ export function ProductCard({
         <div className="mt-auto flex items-end justify-between gap-3 pt-2">
           <p className="font-serif text-lg font-semibold text-ink-800">
             {product.price === null ? (
-              <span className="text-base text-river-500">สอบถามราคา</span>
+              <span className="text-base text-river-500">{labels.askPrice}</span>
             ) : (
               formatPrice(product.price)
             )}

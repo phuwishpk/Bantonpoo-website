@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ArticleCard } from "@/components/article-card";
 import { Breadcrumbs } from "@/components/breadcrumbs";
@@ -11,6 +10,9 @@ import { ButtonLink, Container, OrnamentDivider } from "@/components/ui";
 import { SectionHeading } from "@/components/section-heading";
 import { getArticle, getArticles, getRelatedArticles, getSite } from "@/lib/cms/queries";
 import { atDoc } from "@/lib/cms/inline";
+import { atLabel } from "@/lib/labels";
+import { getLabels } from "@/lib/cms/labels";
+import { redirectOrNotFound } from "@/lib/cms/redirects";
 import { estimateReadingMinutes, formatThaiDate } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import { articleJsonLd, breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
@@ -41,8 +43,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ArticlePage({ params }: PageProps) {
   const { slug } = await params;
-  const [article, site] = await Promise.all([getArticle(slug), getSite()]);
-  if (!article) notFound();
+  const [article, site, labels] = await Promise.all([getArticle(slug), getSite(), getLabels()]);
+  // ลิงก์เก่าที่เคยแชร์ไว้ควรพาไปหน้าใหม่ ไม่ใช่ตกหน้า 404 เงียบ ๆ
+  if (!article) return redirectOrNotFound(`/stories/${slug}`);
 
   const category = article.category;
   const artisan = article.artisan;
@@ -83,7 +86,12 @@ export default async function ArticlePage({ params }: PageProps) {
               </p>
 
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-300">
-                <span>เขียนโดย {t(article.author)}</span>
+                <span>
+                  <Ed at={atLabel("article", "writtenBy")} tone="light">
+                    {labels.article.writtenBy}
+                  </Ed>{" "}
+                  {t(article.author)}
+                </span>
                 <span aria-hidden className="text-ink-500">
                   ·
                 </span>
@@ -91,7 +99,15 @@ export default async function ArticlePage({ params }: PageProps) {
                 <span aria-hidden className="text-ink-500">
                   ·
                 </span>
-                <span>ใช้เวลาอ่าน {minutes} นาที</span>
+                <span>
+                  <Ed at={atLabel("article", "readTime")} tone="light">
+                    {labels.article.readTime}
+                  </Ed>{" "}
+                  {minutes}{" "}
+                  <Ed at={atLabel("article", "minutes")} tone="light">
+                    {labels.article.minutes}
+                  </Ed>
+                </span>
               </div>
             </div>
           </div>
@@ -137,14 +153,18 @@ export default async function ArticlePage({ params }: PageProps) {
               />
             ) : null}
             <div className="flex flex-col gap-2">
-              <p className="text-xs font-semibold tracking-label text-leaf-600">เกี่ยวกับผู้เขียน</p>
+              <p className="text-xs font-semibold tracking-label text-leaf-600">
+                <Ed at={atLabel("article", "aboutAuthor")}>{labels.article.aboutAuthor}</Ed>
+              </p>
               <h2 className="font-serif text-lg font-semibold text-ink-800">{t(article.author)}</h2>
               <p className="text-sm leading-relaxed text-river-500">
                 {artisan ? t(artisan.bio) : t(site.aboutSummary)}
               </p>
               <div className="mt-2">
                 <ButtonLink href="/about" variant="secondary" className="px-4 py-2 text-sm">
-                  รู้จักชุมชนและครูช่างทั้งหมด
+                  <Ed at={atLabel("article", "aboutCommunityButton")}>
+                    {labels.article.aboutCommunityButton}
+                  </Ed>
                 </ButtonLink>
               </div>
             </div>
@@ -158,10 +178,15 @@ export default async function ArticlePage({ params }: PageProps) {
           <Container size="wide">
             <OrnamentDivider />
             <div className="mt-12">
-              <SectionHeading eyebrow="อ่านต่อ" title="บทความที่เกี่ยวข้อง" />
+              <SectionHeading
+                atEyebrow={atLabel("article", "relatedEyebrow")}
+                atTitle={atLabel("article", "relatedTitle")}
+                eyebrow={labels.article.relatedEyebrow}
+                title={labels.article.relatedTitle}
+              />
               <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {related.map((item) => (
-                  <ArticleCard key={item.slug} article={item} />
+                  <ArticleCard key={item.slug} article={item} labels={labels.article} />
                 ))}
               </div>
             </div>

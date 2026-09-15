@@ -12,6 +12,8 @@ import { Categories } from "@/collections/Categories";
 import { Enquiries } from "@/collections/Enquiries";
 import { Media } from "@/collections/Media";
 import { Places } from "@/collections/Places";
+import { Redirects } from "@/collections/Redirects";
+import { Pages } from "@/collections/Pages";
 import { Products } from "@/collections/Products";
 import { Users } from "@/collections/Users";
 import { Workshops } from "@/collections/Workshops";
@@ -28,6 +30,7 @@ import {
 } from "@/globals/SimplePages";
 import { SiteSettings } from "@/globals/SiteSettings";
 import { Theme } from "@/globals/Theme";
+import { UiLabels } from "@/globals/UiLabels";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -66,7 +69,7 @@ export default buildConfig({
         { name: "tablet", label: "แท็บเล็ต", width: 834, height: 1112 },
         { name: "desktop", label: "คอมพิวเตอร์", width: 1440, height: 900 },
       ],
-      collections: ["products", "articles"],
+      collections: ["products", "articles", "pages"],
       globals: [
         "home-page",
         "about-page",
@@ -98,13 +101,16 @@ export default buildConfig({
     Articles,
     Workshops,
     Places,
+    Pages,
     Enquiries,
+    Redirects,
   ],
 
   globals: [
     SiteSettings,
     Navigation,
     Theme,
+    UiLabels,
     SeoSettings,
     HomePage,
     AboutPage,
