@@ -10,9 +10,21 @@ import {
   TempleIcon,
   UsersIcon,
 } from "@/components/icons";
+import { EditToolbar } from "@/components/edit-mode";
 import { ProductCard } from "@/components/product-card";
 import { ArrowLink, ButtonLink, buttonClass, Container, EyebrowLabel, SectionHeading } from "@/components/ui";
-import { hero, link, media, rowsOf, section, stats, titleBody } from "@/lib/cms/page-content";
+import {
+  COLUMN_CLASS,
+  hero,
+  link,
+  media,
+  readSections,
+  sectionSkin,
+  rowsOf,
+  section,
+  stats,
+  titleBody,
+} from "@/lib/cms/page-content";
 import {
   getArticle,
   getFeaturedProducts,
@@ -23,6 +35,8 @@ import {
 } from "@/lib/cms/queries";
 import { loc } from "@/lib/cms/map";
 import { formatPrice } from "@/lib/format";
+import { isDraftMode } from "@/lib/cms/draft";
+import { adminDoc, editLinksFor } from "@/lib/cms/edit-links";
 import { t } from "@/lib/i18n";
 import { telUrl } from "@/lib/line";
 
@@ -36,20 +50,6 @@ const DEFAULT_SECTIONS = [
   "cta",
 ];
 
-/** แปลงตัวเลือกพื้นหลังเป็นคลาสจริง */
-const BACKGROUND_CLASS: Record<string, string> = {
-  page: "",
-  dark: "bg-ink-800",
-  tint: "bg-rice-200",
-};
-
-/** แปลงจำนวนคอลัมน์เป็นคลาสกริด — ต้องเขียนเต็มคลาสเพราะ Tailwind อ่านคลาสตอน build */
-const COLUMN_CLASS: Record<string, string> = {
-  "2": "grid-cols-1 sm:grid-cols-2",
-  "3": "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
-  "4": "grid-cols-2 lg:grid-cols-4",
-};
-
 /** ไอคอนที่เลือกได้ในหลังบ้าน — จำกัดไว้เพื่อให้เข้าชุดกับดีไซน์เสมอ */
 const ICONS = {
   leaf: LeafIcon,
@@ -60,6 +60,7 @@ const ICONS = {
 } as const;
 
 export default async function HomePage() {
+  const editing = await isDraftMode();
   const [page, site, featuredProducts, latestArticles, workshops] = await Promise.all([
     getPageGlobal("home-page"),
     getSite(),
@@ -85,18 +86,7 @@ export default async function HomePage() {
     body: loc(row.body as never),
   }));
 
-  /** ลำดับและตัวเลือกของแต่ละส่วน มาจากหลังบ้าน ถ้ายังไม่ได้ตั้งจะใช้ลำดับมาตรฐาน */
-  const sections = rowsOf(page, "sections", (row) => ({
-    type: String(row.type ?? ""),
-    enabled: row.enabled !== false,
-    background: String(row.background ?? "page"),
-    columns: String(row.columns ?? "auto"),
-    limit: typeof row.limit === "number" ? row.limit : undefined,
-  })).filter((item) => item.enabled && item.type);
-
-  const visibleSections = sections.length
-    ? sections
-    : DEFAULT_SECTIONS.map((type) => ({ type, enabled: true, background: "page", columns: "auto", limit: undefined }));
+  const visibleSections = readSections(page, DEFAULT_SECTIONS);
 
   const spotlightGroup = (page.spotlight ?? {}) as Record<string, unknown>;
   const spotlightSlug =
@@ -125,7 +115,7 @@ export default async function HomePage() {
                 ภาษาไทยไม่มีช่องว่างระหว่างคำ เบราว์เซอร์จึงเดาจุดตัดบรรทัดเอง
                 และตัดคำวิสามานยนามผิดตำแหน่งได้ จึงให้ผู้ดูแลกำหนดบรรทัดเองจากหลังบ้าน
               */}
-              <h1 className="font-serif text-[1.75rem] leading-[1.4] font-bold text-rice-100 sm:text-[2.25rem] lg:text-[2.75rem] lg:leading-[1.35]">
+              <h1 className="font-serif text-display-sm leading-[1.4] font-bold text-rice-100 sm:text-display-md lg:text-display-lg lg:leading-[1.35]">
                 {titleLines.map((line, index) => (
                   <span
                     key={index}
@@ -188,14 +178,14 @@ export default async function HomePage() {
       </section>
 
       {visibleSections.map((item, index) => {
-        const background = BACKGROUND_CLASS[item.background] ?? "";
+        const skin = sectionSkin(item);
         const columns = COLUMN_CLASS[item.columns];
         const key = `${item.type}-${index}`;
 
         switch (item.type) {
           case "highlights":
             return highlights.length > 0 ? (
-              <section key={key} className={`py-16 sm:py-20 ${background}`}>
+              <section key={key} className={`py-16 sm:py-20 ${skin.className}`} style={skin.style}>
                 <Container size="wide">
                   <div className={`grid gap-5 ${columns ?? "md:grid-cols-3"}`}>
                     {highlights.map((highlight) => {
@@ -222,22 +212,27 @@ export default async function HomePage() {
 
           case "featured-products":
             return (
-              <section key={key} className={`py-12 sm:py-16 ${background}`}>
+              <section key={key} className={`py-12 sm:py-16 ${skin.className}`} style={skin.style}>
                 <Container size="wide">
                   <SectionHeading
                     eyebrow={t(section(page, "featuredSection").eyebrow)}
                     title={t(section(page, "featuredSection").title)}
                     description={t(section(page, "featuredSection").description)}
-                    tone={item.background === "dark" ? "light" : "dark"}
+                    tone={skin.onDark ? "light" : "dark"}
                     action={
-                      <ArrowLink href="/shop" tone={item.background === "dark" ? "light" : "dark"}>
+                      <ArrowLink href="/shop" tone={skin.onDark ? "light" : "dark"}>
                         ดูสินค้าทั้งหมด
                       </ArrowLink>
                     }
                   />
                   <div className={`mt-8 grid gap-4 lg:gap-5 ${columns ?? "grid-cols-2 lg:grid-cols-4"}`}>
                     {featuredProducts.slice(0, item.limit ?? featuredProducts.length).map((product) => (
-                      <ProductCard key={product.slug} product={product} showQuickOrder />
+                      <ProductCard
+                        key={product.slug}
+                        product={product}
+                        showQuickOrder
+                        editHref={editing ? adminDoc("products", product.id) : undefined}
+                      />
                     ))}
                   </div>
                 </Container>
@@ -267,7 +262,7 @@ export default async function HomePage() {
                         <h2 className="font-serif text-2xl leading-snug font-semibold text-rice-100 sm:text-3xl">
                           {t(spotlight.title)}
                         </h2>
-                        <p className="text-[0.9375rem] leading-relaxed text-ink-200">
+                        <p className="text-md leading-relaxed text-ink-200">
                           {t(spotlight.excerpt)}
                         </p>
                         {t(loc(spotlightGroup.quote as never)) ? (
@@ -292,15 +287,15 @@ export default async function HomePage() {
 
           case "workshops":
             return (
-              <section key={key} className={`py-12 sm:py-16 ${background}`}>
+              <section key={key} className={`py-12 sm:py-16 ${skin.className}`} style={skin.style}>
                 <Container size="wide">
                   <SectionHeading
                     eyebrow={t(section(page, "experienceSection").eyebrow)}
                     title={t(section(page, "experienceSection").title)}
                     description={t(section(page, "experienceSection").description)}
-                    tone={item.background === "dark" ? "light" : "dark"}
+                    tone={skin.onDark ? "light" : "dark"}
                     action={
-                      <ArrowLink href="/tourism" tone={item.background === "dark" ? "light" : "dark"}>
+                      <ArrowLink href="/tourism" tone={skin.onDark ? "light" : "dark"}>
                         ดูกิจกรรมทั้งหมด
                       </ArrowLink>
                     }
@@ -344,21 +339,25 @@ export default async function HomePage() {
 
           case "latest-articles":
             return (
-              <section key={key} className={`py-16 sm:py-20 ${background}`}>
+              <section key={key} className={`py-16 sm:py-20 ${skin.className}`} style={skin.style}>
                 <Container size="wide">
                   <SectionHeading
                     eyebrow={t(section(page, "storiesSection").eyebrow)}
                     title={t(section(page, "storiesSection").title)}
-                    tone={item.background === "dark" ? "light" : "dark"}
+                    tone={skin.onDark ? "light" : "dark"}
                     action={
-                      <ArrowLink href="/stories" tone={item.background === "dark" ? "light" : "dark"}>
+                      <ArrowLink href="/stories" tone={skin.onDark ? "light" : "dark"}>
                         ดูบทความทั้งหมด
                       </ArrowLink>
                     }
                   />
                   <div className={`mt-8 grid gap-5 ${columns ?? "md:grid-cols-3"}`}>
                     {latestArticles.slice(0, item.limit ?? latestArticles.length).map((article) => (
-                      <ArticleCard key={article.slug} article={article} />
+                      <ArticleCard
+                        key={article.slug}
+                        article={article}
+                        editHref={editing ? adminDoc("articles", article.id) : undefined}
+                      />
                     ))}
                   </div>
                 </Container>
@@ -381,7 +380,7 @@ export default async function HomePage() {
                       <h2 className="font-serif text-2xl leading-snug font-semibold text-rice-100 sm:text-3xl">
                         {t(cta.title)}
                       </h2>
-                      <p className="text-[0.9375rem] leading-relaxed text-ink-200">{t(cta.body)}</p>
+                      <p className="text-md leading-relaxed text-ink-200">{t(cta.body)}</p>
                       <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
                         <a
                           href={site.lineUrl}
@@ -412,6 +411,7 @@ export default async function HomePage() {
         }
       })}
 
+      {editing ? <EditToolbar {...editLinksFor("home")} /> : null}
     </>
   );
 }

@@ -4,6 +4,7 @@ import { productStatusLabels } from "@/lib/product-labels";
 import type { Product } from "@/content/types";
 import { formatPrice } from "@/lib/format";
 import { t } from "@/lib/i18n";
+import { EditButton } from "./edit-mode";
 import { QuickOrderButton } from "./line-order-button";
 import { Badge } from "./ui";
 
@@ -17,10 +18,13 @@ export function ProductCard({
   product,
   showQuickOrder = false,
   priority = false,
+  editHref,
 }: {
   product: Product;
   showQuickOrder?: boolean;
   priority?: boolean;
+  /** ส่งมาเฉพาะตอนอยู่ในโหมดแก้ไข เพื่อไม่ให้ลิงก์หลังบ้านหลุดไปหาผู้เข้าชมทั่วไป */
+  editHref?: string;
 }) {
   const category = product.category;
   const [cover, hoverImage] = product.gallery;
@@ -28,6 +32,8 @@ export function ProductCard({
 
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-card border border-rice-300 bg-rice-50 transition duration-300 ease-craft hover:-translate-y-1 hover:border-rice-400 hover:shadow-lift">
+      {editHref ? <EditButton href={editHref} label="แก้สินค้านี้" /> : null}
+
       <div className="relative aspect-square overflow-hidden bg-ink-800">
         <Image
           src={cover.url}
@@ -52,7 +58,7 @@ export function ProductCard({
         ) : null}
 
         <span
-          className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-[0.6875rem] font-semibold text-white ${
+          className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-2xs font-semibold text-white ${
             STATUS_TONE[product.status]
           }`}
         >
@@ -62,7 +68,7 @@ export function ProductCard({
 
       <div className="flex flex-1 flex-col gap-3 p-4">
         {category ? (
-          <p className="text-[0.6875rem] font-semibold tracking-wide text-river-500">{t(category.title)}</p>
+          <p className="text-2xs font-semibold tracking-wide text-river-500">{t(category.title)}</p>
         ) : null}
 
         <h3 className="font-serif text-base leading-snug font-semibold text-ink-800">

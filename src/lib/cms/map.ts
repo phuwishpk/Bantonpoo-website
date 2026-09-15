@@ -117,13 +117,14 @@ export function mapProduct(doc: Record<string, unknown>): Product {
   const shelfLife = loc(doc.shelfLife as LocaleMap);
 
   return {
+    id: (doc.id as string | number) ?? "",
     slug: String(doc.slug),
     sku: String(doc.sku),
     name: loc(doc.name as LocaleMap),
     category,
     artisan,
     price: typeof doc.price === "number" ? doc.price : null,
-    status: (doc.status as Product["status"]) ?? "in-stock",
+    status: (doc.availability as Product["status"]) ?? "in-stock",
     form: (doc.form as Product["form"]) ?? "other",
     netContent: loc(doc.netContent as LocaleMap),
     mainHerbs: locList(doc.mainHerbs),
@@ -189,6 +190,7 @@ export function mapArticle(doc: Record<string, unknown>): Article {
   const artisan = mapArtisan(doc.artisan);
 
   return {
+    id: (doc.id as string | number) ?? "",
     slug: String(doc.slug),
     title: loc(doc.title as LocaleMap),
     category,

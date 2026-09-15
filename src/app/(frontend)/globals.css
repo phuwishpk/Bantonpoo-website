@@ -55,6 +55,22 @@
   --font-sans: var(--font-plex-thai), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-serif-thai), ui-serif, Georgia, serif;
 
+  /*
+    ขนาดตัวอักษรที่ดีไซน์นี้ใช้บ่อยแต่ Tailwind ไม่มีให้
+    ตั้งเป็นโทเคนแทนการเขียน text-md ตรง ๆ เพราะคลาสที่อ้างโทเคนจะถูก
+    ย่อ-ขยายตามการตั้งค่า "ขนาดตัวอักษร" ของแต่ละส่วนได้ ส่วนค่าที่เขียนตายตัวจะไม่ขยับ
+  */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: calc(1 / 0.6875);
+  --text-md: 0.9375rem;
+  --text-md--line-height: calc(1.5 / 0.9375);
+  --text-display-sm: 1.75rem;
+  --text-display-sm--line-height: 1.4;
+  --text-display-md: 2.25rem;
+  --text-display-md--line-height: 1.35;
+  --text-display-lg: 2.75rem;
+  --text-display-lg--line-height: 1.35;
+
   /* จอมือถือแคบมาก (iPhone SE ~375px) ต้องซ่อนรายละเอียดบางอย่าง */
   --breakpoint-xs: 23rem;
 
@@ -206,4 +222,73 @@
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ------------------------------------------------------------------
+   การจัดวางรายส่วน (ตั้งจากหลังบ้าน)
+
+   อยู่นอก @layer โดยตั้งใจ — สไตล์ที่ไม่อยู่ในเลเยอร์ชนะคลาสของ Tailwind
+   ที่อยู่ใน @layer utilities เสมอ จึงเขียนทับความกว้างมาตรฐานได้โดยไม่ต้องใช้ !important
+   ------------------------------------------------------------------ */
+.measure {
+  max-width: var(--section-measure, var(--measure-default, 80rem));
+}
+
+/* กล่องข้อความที่กำลังแก้อยู่บนหน้าเว็บ — เห็นขอบเฉพาะตอนเปิดโหมดแก้ไขเท่านั้น */
+.inline-edit {
+  border-radius: 3px;
+  outline: 1px dashed rgb(201 162 39 / 0.55);
+  outline-offset: 3px;
+  transition: outline-color 150ms var(--ease-craft), background-color 150ms var(--ease-craft);
+  cursor: text;
+}
+.inline-edit:hover {
+  outline-color: rgb(201 162 39 / 0.95);
+  background-color: rgb(201 162 39 / 0.1);
+}
+.inline-edit:focus {
+  outline: 2px solid var(--color-ochre-400);
+  outline-offset: 3px;
+  background-color: rgb(201 162 39 / 0.12);
+}
+.inline-edit[data-state="saving"] {
+  outline-color: var(--color-ochre-500);
+}
+.inline-edit[data-state="saved"] {
+  outline-color: var(--color-leaf-500);
+}
+.inline-edit[data-state="error"] {
+  outline: 2px solid #b91c1c;
+  background-color: rgb(185 28 28 / 0.12);
+}
+/* ช่องที่ยังไม่มีข้อความต้องมีที่ให้คลิก ไม่งั้นกดเข้าไปพิมพ์ไม่ได้ */
+.inline-edit:empty::before {
+  content: attr(data-placeholder);
+  opacity: 0.55;
+}
+
+/* บนพื้นเข้ม เส้นขอบสีเหลืองเข้มจะจมหายไป ต้องใช้สีอ่อนแทน */
+.inline-edit-light {
+  outline-color: rgb(250 248 245 / 0.45);
+}
+.inline-edit-light:hover {
+  outline-color: rgb(250 248 245 / 0.9);
+  background-color: rgb(250 248 245 / 0.12);
+}
+
+/*
+  ช่องแก้ไขแบบทั้งย่อหน้าต้องเป็นบล็อก ไม่งั้นกดตรงพื้นที่ว่างข้าง ๆ ข้อความไม่โดน
+  ส่วนช่องแบบแทรกในบรรทัดปล่อยให้ไหลไปกับข้อความรอบ ๆ ตามเดิม
+*/
+p.inline-edit,
+div.inline-edit,
+li.inline-edit,
+dd.inline-edit,
+dt.inline-edit,
+h1.inline-edit,
+h2.inline-edit,
+h3.inline-edit,
+h4.inline-edit,
+blockquote.inline-edit {
+  display: block;
 }

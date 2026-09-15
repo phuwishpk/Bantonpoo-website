@@ -54,7 +54,7 @@ export function SiteLogo({
         <span className={`whitespace-nowrap font-serif text-base font-semibold sm:text-lg ${title}`}>
           {t(site.communityShortName)}
         </span>
-        <span className={`hidden whitespace-nowrap text-[0.6875rem] tracking-wide xs:block ${subtitle}`}>
+        <span className={`hidden whitespace-nowrap text-2xs tracking-wide xs:block ${subtitle}`}>
           {t(site.tagline)}
         </span>
       </span>

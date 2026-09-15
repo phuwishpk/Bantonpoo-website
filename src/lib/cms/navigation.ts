@@ -1,6 +1,7 @@
 import { cache } from "react";
 import type { Localized } from "@/content/types";
 import { ALL_LOCALES, getCms } from "./client";
+import { isDraftMode } from "./draft";
 import { loc } from "./map";
 
 export type NavLink = {
@@ -43,8 +44,9 @@ function mapLink(raw: RawLink): NavLink {
 }
 
 export const getNavigation = cache(async (): Promise<NavData> => {
-  const cms = await getCms();
+  const [cms, draft] = await Promise.all([getCms(), isDraftMode()]);
   const doc = (await cms.findGlobal({
+    draft,
     slug: "navigation",
     locale: ALL_LOCALES,
     depth: 0,

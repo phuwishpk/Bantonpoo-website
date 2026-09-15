@@ -34,7 +34,56 @@ const dirname = path.dirname(fileURLToPath(import.meta.url));
 export default buildConfig({
   admin: {
     user: Users.slug,
+    /**
+     * ดูตัวอย่างก่อนเผยแพร่
+     *
+     * หน้าแอดมินจะเปิดเว็บจริงไว้ข้าง ๆ ฟอร์ม ผ่าน /api/preview ซึ่งเปิดโหมดฉบับร่าง
+     * ผู้ดูแลกด "บันทึกฉบับร่าง" แล้วเห็นผลทันที โดยที่ผู้เข้าชมทั่วไปยังไม่เห็น
+     * จนกว่าจะกด "เผยแพร่"
+     */
+    livePreview: {
+      url: ({ data, collectionConfig, globalConfig }) => {
+        const previewOf = (path: string) => `/api/preview?path=${encodeURIComponent(path)}`;
+
+        if (collectionConfig?.slug === "products") return previewOf(`/shop/${data?.slug ?? ""}`);
+        if (collectionConfig?.slug === "articles") return previewOf(`/stories/${data?.slug ?? ""}`);
+
+        const byGlobal: Record<string, string> = {
+          "home-page": "/",
+          "about-page": "/about",
+          "shop-page": "/shop",
+          "stories-page": "/stories",
+          "tourism-page": "/tourism",
+          "contact-page": "/contact",
+          navigation: "/",
+          "site-settings": "/",
+          theme: "/",
+        };
+        return previewOf(byGlobal[globalConfig?.slug ?? ""] ?? "/");
+      },
+      breakpoints: [
+        { name: "mobile", label: "มือถือ", width: 390, height: 844 },
+        { name: "tablet", label: "แท็บเล็ต", width: 834, height: 1112 },
+        { name: "desktop", label: "คอมพิวเตอร์", width: 1440, height: 900 },
+      ],
+      collections: ["products", "articles"],
+      globals: [
+        "home-page",
+        "about-page",
+        "shop-page",
+        "stories-page",
+        "tourism-page",
+        "contact-page",
+        "navigation",
+        "site-settings",
+        "theme",
+      ],
+    },
     importMap: { baseDir: path.resolve(dirname) },
+    components: {
+      // ปุ่มเปิดเว็บไซต์ในโหมดแก้ไข วางไว้เหนือเมนูหลังบ้าน
+      beforeNavLinks: ["/components/admin/OpenSiteButton#OpenSiteButton"],
+    },
     meta: {
       titleSuffix: " — หลังบ้านบ้านต้นโพธิ์",
     },
@@ -70,6 +119,13 @@ export default buildConfig({
 
   db: postgresAdapter({
     pool: { connectionString: process.env.DATABASE_URI || "" },
+    /**
+     * push ปรับโครงฐานข้อมูลให้อัตโนมัติ สะดวกตอนพัฒนา
+     * แต่บนเซิร์ฟเวอร์จริงต้องปิด เพราะเมื่อมันไม่แน่ใจว่าคอลัมน์ถูก "สร้างใหม่"
+     * หรือ "เปลี่ยนชื่อ" มันจะถามคำถามในเทอร์มินัลแล้วค้างรอคำตอบ
+     * ทำให้เว็บขึ้นไม่ได้ — บนเซิร์ฟเวอร์ให้ใช้ไฟล์ migration แทน
+     */
+    push: process.env.NODE_ENV !== "production",
   }),
 
   /**

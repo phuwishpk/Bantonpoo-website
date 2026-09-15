@@ -1,7 +1,12 @@
 import Link from "next/link";
-import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps, CSSProperties, ReactNode } from "react";
 
-/** ความกว้างมาตรฐานของเนื้อหา พร้อมกันขอบซ้ายขวาอย่างน้อย 20px บนมือถือ */
+/**
+ * ความกว้างมาตรฐานของเนื้อหา พร้อมกันขอบซ้ายขวาอย่างน้อย 20px บนมือถือ
+ *
+ * ความกว้างมาจาก --section-measure ถ้ามีการตั้งค่า "ความกว้างของเนื้อหา" ไว้ที่ส่วนนั้น
+ * ไม่งั้นตกกลับเป็น --measure-default ของขนาดที่เรียกใช้ (ดูคลาส .measure ใน globals.css)
+ */
 export function Container({
   children,
   className = "",
@@ -12,11 +17,18 @@ export function Container({
   size?: "default" | "narrow" | "wide";
 }) {
   const width = {
-    narrow: "max-w-3xl",
-    default: "max-w-6xl",
-    wide: "max-w-7xl",
+    narrow: "48rem",
+    default: "72rem",
+    wide: "80rem",
   }[size];
-  return <div className={`mx-auto w-full ${width} px-5 sm:px-6 lg:px-8 ${className}`}>{children}</div>;
+  return (
+    <div
+      className={`measure mx-auto w-full px-5 sm:px-6 lg:px-8 ${className}`}
+      style={{ "--measure-default": width } as CSSProperties}
+    >
+      {children}
+    </div>
+  );
 }
 
 /** ป้ายหมวดเล็ก ๆ สีไฟ ใช้นำหน้าหัวข้อ section */
@@ -58,7 +70,7 @@ export function SectionHeading({
       <div className={`flex max-w-2xl flex-col gap-3 ${alignment}`}>
         {eyebrow ? <EyebrowLabel tone={tone === "dark" ? "ember" : "light"}>{eyebrow}</EyebrowLabel> : null}
         <h2 className={`font-serif text-2xl leading-snug font-semibold sm:text-3xl ${titleColor}`}>{title}</h2>
-        {description ? <p className={`text-[0.9375rem] ${descColor}`}>{description}</p> : null}
+        {description ? <p className={`text-md ${descColor}`}>{description}</p> : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>
@@ -68,7 +80,7 @@ export function SectionHeading({
 type ButtonVariant = "primary" | "secondary" | "ghost" | "onDark";
 
 const BUTTON_BASE =
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg px-5 py-3 text-[0.9375rem] font-semibold transition duration-200 ease-craft disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg px-5 py-3 text-md font-semibold transition duration-200 ease-craft disabled:cursor-not-allowed disabled:opacity-50";
 
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
   primary: "bg-leaf-500 text-white shadow-lift hover:bg-leaf-600 active:translate-y-px",

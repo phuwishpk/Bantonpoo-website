@@ -66,6 +66,8 @@ export type ProductForm =
   | "other";
 
 export type Product = {
+  /** id ในฐานข้อมูล ใช้ทำลิงก์ไปหน้าแก้ไขในหลังบ้าน */
+  id: string | number;
   slug: string;
   /** รหัสสินค้าที่ใช้อ้างอิงเวลาสั่งซื้อทางไลน์ */
   sku: string;
@@ -106,6 +108,7 @@ export type Product = {
 };
 
 export type Article = {
+  id: string | number;
   slug: string;
   title: Localized;
   category: Category;

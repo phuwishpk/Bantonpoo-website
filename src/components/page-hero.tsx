@@ -27,7 +27,7 @@ export function PageHero({
           <Breadcrumbs items={crumbs} tone="light" />
           <div className="flex max-w-3xl flex-col gap-4">
             {eyebrow ? <EyebrowLabel tone="light">{eyebrow}</EyebrowLabel> : null}
-            <h1 className="font-serif text-[1.75rem] leading-snug font-bold text-rice-100 sm:text-4xl">{title}</h1>
+            <h1 className="font-serif text-display-sm leading-snug font-bold text-rice-100 sm:text-4xl">{title}</h1>
             {description ? (
               <p className="text-base leading-relaxed text-ink-200">{description}</p>
             ) : null}

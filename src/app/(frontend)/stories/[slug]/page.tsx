@@ -65,7 +65,7 @@ export default async function ArticlePage({ params }: PageProps) {
             <div className="flex flex-col gap-5">
               <p className="text-xs font-semibold tracking-label text-leaf-300">{t(category.title)}</p>
 
-              <h1 className="font-serif text-[1.75rem] leading-snug font-bold text-rice-100 sm:text-[2.25rem] sm:leading-[1.35]">
+              <h1 className="font-serif text-display-sm leading-snug font-bold text-rice-100 sm:text-display-md sm:leading-[1.35]">
                 {t(article.title)}
               </h1>
 

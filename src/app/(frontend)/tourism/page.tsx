@@ -1,15 +1,27 @@
 import Image from "next/image";
 import type { Metadata } from "next";
 import { ClockIcon, LineIcon, MapPinIcon, PhoneIcon, UsersIcon } from "@/components/icons";
+import { CtaBand } from "@/components/cta-band";
 import { JsonLd } from "@/components/json-ld";
 import { WorkshopBookingButton } from "@/components/line-order-button";
 import { directionsUrl, MapEmbed } from "@/components/map-embed";
+import { EditToolbar } from "@/components/edit-mode";
 import { PageHero } from "@/components/page-hero";
 import { buttonClass, Container, OrnamentDivider, SectionHeading } from "@/components/ui";
-import { hero, rowsOf, section, titleBody } from "@/lib/cms/page-content";
+import {
+  COLUMN_CLASS,
+  hero,
+  readSections,
+  sectionSkin,
+  rowsOf,
+  section,
+  titleBody,
+} from "@/lib/cms/page-content";
 import { getPageGlobal, getPlaces, getSite, getWorkshops } from "@/lib/cms/queries";
 import { loc } from "@/lib/cms/map";
 import { formatPrice } from "@/lib/format";
+import { isDraftMode } from "@/lib/cms/draft";
+import { editLinksFor } from "@/lib/cms/edit-links";
 import { t } from "@/lib/i18n";
 import { telUrl } from "@/lib/line";
 import { breadcrumbJsonLd, buildMetadata, workshopJsonLd } from "@/lib/seo";
@@ -25,6 +37,11 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
+/** ส่วนที่ใช้พื้นเข้มเป็นค่าเริ่มต้น จึงต้องใช้ตัวอักษรสีอ่อนเมื่อยังไม่ได้เลือกสีเอง */
+const DARK_BY_DEFAULT = new Set(["places"]);
+
+const DEFAULT_SECTIONS = ["workshops", "places", "travel"];
+
 const CRUMBS = [
   { name: "หน้าแรก", path: "/" },
   { name: "ท่องเที่ยวและกิจกรรม", path: "/tourism" },
@@ -38,6 +55,7 @@ const PLACE_KIND_LABELS = {
 } as const;
 
 export default async function TourismPage() {
+  const editing = await isDraftMode();
   const [page, site, workshops, places] = await Promise.all([
     getPageGlobal("tourism-page"),
     getSite(),
@@ -51,6 +69,8 @@ export default async function TourismPage() {
     body: loc(row.body as never),
   }));
   const notice = titleBody(page, "notice");
+  const visibleSections = readSections(page, DEFAULT_SECTIONS);
+  const cta = (page.cta ?? {}) as Record<string, unknown>;
 
   return (
     <>
@@ -72,8 +92,16 @@ export default async function TourismPage() {
         </div>
       </PageHero>
 
-      {/* ---------------- เวิร์กช็อป ---------------- */}
-      <section className="py-14 sm:py-20">
+      {visibleSections.map((item, index) => {
+        const skin = sectionSkin(item, DARK_BY_DEFAULT.has(item.type));
+        const columns = COLUMN_CLASS[item.columns];
+        const key = `${item.type}-${index}`;
+
+        switch (item.type) {
+          case "workshops":
+            return (
+              <section key={key} className={`py-14 sm:py-20 ${skin.className}`} style={skin.style}>
+
         <Container size="wide">
           <SectionHeading
             eyebrow={t(section(page, "workshopsSection").eyebrow)}
@@ -82,18 +110,18 @@ export default async function TourismPage() {
           />
 
           <div className="mt-10 flex flex-col gap-8">
-            {workshops.map((workshop, index) => (
+            {workshops.slice(0, item.limit ?? workshops.length).map((workshop, workshopIndex) => (
               <article
                 key={workshop.slug}
                 className="grid overflow-hidden rounded-2xl border border-rice-300 bg-rice-50 lg:grid-cols-[1fr_1.2fr]"
               >
-                <div className={`relative aspect-3/2 lg:aspect-auto ${index % 2 === 1 ? "lg:order-2" : ""}`}>
+                <div className={`relative aspect-3/2 lg:aspect-auto ${workshopIndex % 2 === 1 ? "lg:order-2" : ""}`}>
                   <Image
                     src={workshop.image.url}
                     alt={t(workshop.image.alt)}
                     width={workshop.image.width}
                     height={workshop.image.height}
-                    priority={index === 0}
+                    priority={workshopIndex === 0}
                     sizes="(max-width: 1024px) 100vw, 45vw"
                     className="h-full w-full object-cover"
                   />
@@ -104,7 +132,7 @@ export default async function TourismPage() {
                     <h3 className="font-serif text-xl leading-snug font-semibold text-ink-800 sm:text-2xl">
                       {t(workshop.title)}
                     </h3>
-                    <p className="text-[0.9375rem] leading-relaxed text-river-500">{t(workshop.summary)}</p>
+                    <p className="text-md leading-relaxed text-river-500">{t(workshop.summary)}</p>
                   </div>
 
                   <dl className="grid grid-cols-2 gap-4 border-y border-rice-300 py-4 sm:grid-cols-3">
@@ -166,10 +194,13 @@ export default async function TourismPage() {
             ))}
           </div>
         </Container>
-      </section>
+              </section>
+            );
 
-      {/* ---------------- จุดเช็กอินในชุมชน ---------------- */}
-      <section className="bg-ink-800 py-14 sm:py-20">
+          case "places":
+            return (
+              <section key={key} className={`py-14 sm:py-20 ${skin.className || "bg-ink-800"}`} style={skin.style}>
+
         <Container size="wide">
           <SectionHeading
             eyebrow={t(section(page, "placesSection").eyebrow)}
@@ -177,8 +208,8 @@ export default async function TourismPage() {
             description={t(section(page, "placesSection").description)}
             tone="light"
           />
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {places.map((place) => (
+          <div className={`mt-10 grid gap-5 ${columns ?? "sm:grid-cols-2 lg:grid-cols-4"}`}>
+            {places.slice(0, item.limit ?? places.length).map((place) => (
               <article
                 key={place.slug}
                 className="flex flex-col overflow-hidden rounded-card border border-white/10 bg-white/[0.03] transition duration-300 ease-craft hover:border-leaf-500/50"
@@ -192,7 +223,7 @@ export default async function TourismPage() {
                     sizes="(max-width: 640px) 100vw, 25vw"
                     className="h-full w-full object-cover"
                   />
-                  <span className="absolute left-3 top-3 rounded-full bg-ink-950/80 px-2.5 py-1 text-[0.6875rem] font-semibold text-leaf-300">
+                  <span className="absolute left-3 top-3 rounded-full bg-ink-950/80 px-2.5 py-1 text-2xs font-semibold text-leaf-300">
                     {PLACE_KIND_LABELS[place.kind]}
                   </span>
                 </div>
@@ -210,10 +241,13 @@ export default async function TourismPage() {
             ))}
           </div>
         </Container>
-      </section>
+              </section>
+            );
 
-      {/* ---------------- การเดินทาง ---------------- */}
-      <section className="py-14 sm:py-20">
+          case "travel":
+            return (
+              <section key={key} className={`py-14 sm:py-20 ${skin.className}`} style={skin.style}>
+
         <Container size="wide">
           <SectionHeading
             eyebrow={t(section(page, "travelSection").eyebrow)}
@@ -258,7 +292,26 @@ export default async function TourismPage() {
             <OrnamentDivider />
           </div>
         </Container>
-      </section>
+              </section>
+            );
+
+          case "cta":
+            return (
+              <CtaBand
+                key={key}
+                site={site}
+                eyebrow={loc(cta.eyebrow as never)}
+                title={loc(cta.title as never)}
+                body={loc(cta.body as never)}
+              />
+            );
+
+          default:
+            return null;
+        }
+      })}
+
+      {editing ? <EditToolbar {...editLinksFor("tourism")} /> : null}
 
       <JsonLd data={[...workshops.map((w) => workshopJsonLd(w, site)), breadcrumbJsonLd(CRUMBS)]} />
     </>

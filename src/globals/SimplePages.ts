@@ -1,6 +1,6 @@
 import type { GlobalConfig } from "payload";
 import { anyone, isEditor } from "@/access";
-import { heroFields, linkFields, sectionHeadingField, textListField } from "@/fields";
+import { heroFields, linkFields, sectionHeadingField, sectionsField, textListField } from "@/fields";
 import { revalidatePage } from "@/hooks/revalidate";
 
 /** ข้อความตอนที่ตัวกรองไม่เจอผลลัพธ์ */
@@ -14,14 +14,39 @@ const emptyStateField = {
   ],
 };
 
+/** กล่องชวนติดต่อท้ายหน้า ใช้ได้หลายหน้า */
+const ctaField = {
+  name: "cta",
+  type: "group" as const,
+  label: "กล่องชวนติดต่อ",
+  admin: { description: 'แสดงเมื่อเพิ่มส่วน "กล่องชวนติดต่อ" ไว้ในลำดับด้านบน' },
+  fields: [
+    { name: "eyebrow", type: "text" as const, localized: true, label: "ข้อความนำ" },
+    { name: "title", type: "text" as const, localized: true, label: "หัวเรื่อง" },
+    { name: "body", type: "textarea" as const, localized: true, label: "เนื้อหา" },
+  ],
+};
+
 export const ShopPage: GlobalConfig = {
   slug: "shop-page",
   label: "หน้าสินค้าชุมชน",
   admin: { group: "เนื้อหาประจำหน้า" },
   access: { read: anyone, update: isEditor },
-  versions: { max: 20 },
+  // drafts เปิดไว้เพื่อให้ดูตัวอย่างก่อนเผยแพร่ได้ — บันทึกฉบับร่างจะยังไม่ขึ้นเว็บจริง
+  versions: { max: 20, drafts: true },
   hooks: { afterChange: [revalidatePage("/shop")] },
-  fields: [heroFields(), emptyStateField],
+  fields: [
+    heroFields(),
+    sectionsField({
+      types: [
+        { label: "ตัวกรองและรายการสินค้า", value: "catalogue" },
+        { label: "กล่องชวนติดต่อ", value: "cta" },
+      ],
+      description: "หน้าสินค้ามีส่วนหลักคือรายการสินค้า เพิ่มกล่องชวนติดต่อท้ายหน้าได้",
+    }),
+    emptyStateField,
+    ctaField,
+  ],
 };
 
 export const StoriesPage: GlobalConfig = {
@@ -29,9 +54,20 @@ export const StoriesPage: GlobalConfig = {
   label: "หน้าเรื่องเล่า",
   admin: { group: "เนื้อหาประจำหน้า" },
   access: { read: anyone, update: isEditor },
-  versions: { max: 20 },
+  // drafts เปิดไว้เพื่อให้ดูตัวอย่างก่อนเผยแพร่ได้ — บันทึกฉบับร่างจะยังไม่ขึ้นเว็บจริง
+  versions: { max: 20, drafts: true },
   hooks: { afterChange: [revalidatePage("/stories")] },
-  fields: [heroFields(), emptyStateField],
+  fields: [
+    heroFields(),
+    sectionsField({
+      types: [
+        { label: "ตัวกรองและรายการบทความ", value: "list" },
+        { label: "กล่องชวนติดต่อ", value: "cta" },
+      ],
+    }),
+    emptyStateField,
+    ctaField,
+  ],
 };
 
 export const TourismPage: GlobalConfig = {
@@ -39,10 +75,21 @@ export const TourismPage: GlobalConfig = {
   label: "หน้าท่องเที่ยว",
   admin: { group: "เนื้อหาประจำหน้า" },
   access: { read: anyone, update: isEditor },
-  versions: { max: 20 },
+  // drafts เปิดไว้เพื่อให้ดูตัวอย่างก่อนเผยแพร่ได้ — บันทึกฉบับร่างจะยังไม่ขึ้นเว็บจริง
+  versions: { max: 20, drafts: true },
   hooks: { afterChange: [revalidatePage("/tourism")] },
   fields: [
     heroFields(),
+    sectionsField({
+      types: [
+        { label: "ฐานเรียนรู้และกิจกรรม", value: "workshops" },
+        { label: "จุดเช็กอินในชุมชน", value: "places" },
+        { label: "แผนที่และการเดินทาง", value: "travel" },
+        { label: "กล่องชวนติดต่อ", value: "cta" },
+      ],
+      gridTypes: ["places"],
+      limitTypes: ["workshops", "places"],
+    }),
     sectionHeadingField("workshopsSection", "หัวข้อส่วนฐานเรียนรู้"),
     sectionHeadingField("placesSection", "หัวข้อส่วนจุดเช็กอิน"),
     sectionHeadingField("travelSection", "หัวข้อส่วนการเดินทาง"),
@@ -56,6 +103,7 @@ export const TourismPage: GlobalConfig = {
         { name: "body", type: "textarea", required: true, localized: true, label: "รายละเอียด" },
       ],
     },
+    ctaField,
     {
       name: "notice",
       type: "group",
@@ -73,10 +121,18 @@ export const ContactPage: GlobalConfig = {
   label: "หน้าติดต่อเรา",
   admin: { group: "เนื้อหาประจำหน้า" },
   access: { read: anyone, update: isEditor },
-  versions: { max: 20 },
+  // drafts เปิดไว้เพื่อให้ดูตัวอย่างก่อนเผยแพร่ได้ — บันทึกฉบับร่างจะยังไม่ขึ้นเว็บจริง
+  versions: { max: 20, drafts: true },
   hooks: { afterChange: [revalidatePage("/contact")] },
   fields: [
     heroFields(),
+    sectionsField({
+      types: [
+        { label: "การ์ดช่องทางติดต่อ", value: "channels" },
+        { label: "ฟอร์มและแผนที่", value: "form" },
+      ],
+      gridTypes: ["channels"],
+    }),
     {
       name: "channels",
       type: "array",

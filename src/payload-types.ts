@@ -340,7 +340,7 @@ export interface Product {
    * เว้นว่างไว้ถ้าต้องการให้ขึ้นว่า "สอบถามราคา"
    */
   price?: number | null;
-  status: 'in-stock' | 'made-to-order' | 'sold-out';
+  availability: 'in-stock' | 'made-to-order' | 'sold-out';
   /**
    * เช่น "แจ้งล่วงหน้าอย่างน้อย 7 วัน"
    */
@@ -386,6 +386,7 @@ export interface Product {
   sku: string;
   updatedAt: string;
   createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -460,6 +461,7 @@ export interface Article {
   featured?: boolean | null;
   updatedAt: string;
   createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -776,7 +778,7 @@ export interface ProductsSelect<T extends boolean = true> {
         id?: T;
       };
   price?: T;
-  status?: T;
+  availability?: T;
   leadTime?: T;
   featured?: T;
   order?: T;
@@ -808,6 +810,7 @@ export interface ProductsSelect<T extends boolean = true> {
   sku?: T;
   updatedAt?: T;
   createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -880,6 +883,7 @@ export interface ArticlesSelect<T extends boolean = true> {
   featured?: T;
   updatedAt?: T;
   createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1019,6 +1023,7 @@ export interface SiteSetting {
    * ใช้ในที่แคบ เช่น เมนูบนมือถือและแถบท้ายเว็บ
    */
   openingHoursShort: string;
+  _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1092,6 +1097,7 @@ export interface Navigation {
         id?: string | null;
       }[]
     | null;
+  _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1126,6 +1132,7 @@ export interface Theme {
    * ระบบจะกรอง @import, url() ที่ชี้ออกนอกเว็บ และแท็ก HTML ออกก่อนใช้งานเสมอ · จำกัด 8,000 ตัวอักษร · ถ้าเว็บเพี้ยน ให้ลบข้อความในช่องนี้แล้วบันทึกใหม่
    */
   customCss?: string | null;
+  _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1195,6 +1202,20 @@ export interface HomePage {
           id?: string | null;
         }[]
       | null;
+    /**
+     * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
+     */
+    fontFamily?: ('theme' | 'plex-noto' | 'sarabun-trirong' | 'prompt') | null;
+    /**
+     * ย่อ-ขยายตัวอักษรทุกขนาดในส่วนนี้พร้อมกัน สัดส่วนหัวเรื่องกับเนื้อหาจึงไม่เพี้ยน
+     */
+    textScale?: ('0.9' | '0.95' | '1' | '1.1' | '1.2') | null;
+    textAlign?: ('default' | 'left' | 'center' | 'right') | null;
+    contentWidth?: ('default' | 'narrow' | 'medium' | 'full') | null;
+    /**
+     * ปรับระยะห่างบน-ล่างและช่องไฟระหว่างการ์ดในส่วนนี้
+     */
+    spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
   };
   highlights?:
     | {
@@ -1205,18 +1226,41 @@ export interface HomePage {
       }[]
     | null;
   /**
-   * ส่วนที่ไม่ได้อยู่ในรายการนี้จะไม่แสดงบนหน้าเว็บ · แบนเนอร์บนสุดอยู่ที่ตำแหน่งแรกเสมอ แก้ลำดับไม่ได้
+   * ลากเพื่อสลับลำดับ ติ๊กออกเพื่อซ่อน · แบนเนอร์บนสุดอยู่ตำแหน่งแรกเสมอ แก้ลำดับไม่ได้
    */
   sections?:
     | {
         type: 'highlights' | 'featured-products' | 'spotlight' | 'workshops' | 'latest-articles' | 'cta';
         enabled?: boolean | null;
-        background?: ('page' | 'dark' | 'tint') | null;
+        background?: ('page' | 'dark' | 'tint' | 'custom') | null;
+        /**
+         * ใส่เป็นรหัสสีแบบ #rrggbb
+         */
+        backgroundColor?: string | null;
+        textTone?: ('auto' | 'light' | 'dark') | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่ม ป้าย และหัวข้อเล็กเฉพาะในส่วนนี้
+         */
+        accentColor?: string | null;
         columns?: ('auto' | '2' | '3' | '4') | null;
         /**
-         * เว้นว่างไว้เพื่อใช้ค่าเริ่มต้น
+         * เว้นว่างไว้เพื่อแสดงทั้งหมด
          */
         limit?: number | null;
+        /**
+         * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
+         */
+        fontFamily?: ('theme' | 'plex-noto' | 'sarabun-trirong' | 'prompt') | null;
+        /**
+         * ย่อ-ขยายตัวอักษรทุกขนาดในส่วนนี้พร้อมกัน สัดส่วนหัวเรื่องกับเนื้อหาจึงไม่เพี้ยน
+         */
+        textScale?: ('0.9' | '0.95' | '1' | '1.1' | '1.2') | null;
+        textAlign?: ('default' | 'left' | 'center' | 'right') | null;
+        contentWidth?: ('default' | 'narrow' | 'medium' | 'full') | null;
+        /**
+         * ปรับระยะห่างบน-ล่างและช่องไฟระหว่างการ์ดในส่วนนี้
+         */
+        spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
         id?: string | null;
       }[]
     | null;
@@ -1249,6 +1293,7 @@ export interface HomePage {
     title: string;
     body?: string | null;
   };
+  _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1262,7 +1307,60 @@ export interface AboutPage {
     eyebrow?: string | null;
     title: string;
     description?: string | null;
+    /**
+     * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
+     */
+    fontFamily?: ('theme' | 'plex-noto' | 'sarabun-trirong' | 'prompt') | null;
+    /**
+     * ย่อ-ขยายตัวอักษรทุกขนาดในส่วนนี้พร้อมกัน สัดส่วนหัวเรื่องกับเนื้อหาจึงไม่เพี้ยน
+     */
+    textScale?: ('0.9' | '0.95' | '1' | '1.1' | '1.2') | null;
+    textAlign?: ('default' | 'left' | 'center' | 'right') | null;
+    contentWidth?: ('default' | 'narrow' | 'medium' | 'full') | null;
+    /**
+     * ปรับระยะห่างบน-ล่างและช่องไฟระหว่างการ์ดในส่วนนี้
+     */
+    spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
   };
+  /**
+   * ลากเพื่อสลับลำดับ ติ๊กออกเพื่อซ่อน · ส่วนที่ไม่ได้อยู่ในรายการนี้จะไม่แสดงบนหน้าเว็บ
+   */
+  sections?:
+    | {
+        type: 'history' | 'assets' | 'artisans' | 'closing' | 'references';
+        enabled?: boolean | null;
+        background?: ('page' | 'dark' | 'tint' | 'custom') | null;
+        /**
+         * ใส่เป็นรหัสสีแบบ #rrggbb
+         */
+        backgroundColor?: string | null;
+        textTone?: ('auto' | 'light' | 'dark') | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่ม ป้าย และหัวข้อเล็กเฉพาะในส่วนนี้
+         */
+        accentColor?: string | null;
+        columns?: ('auto' | '2' | '3' | '4') | null;
+        /**
+         * เว้นว่างไว้เพื่อแสดงทั้งหมด
+         */
+        limit?: number | null;
+        /**
+         * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
+         */
+        fontFamily?: ('theme' | 'plex-noto' | 'sarabun-trirong' | 'prompt') | null;
+        /**
+         * ย่อ-ขยายตัวอักษรทุกขนาดในส่วนนี้พร้อมกัน สัดส่วนหัวเรื่องกับเนื้อหาจึงไม่เพี้ยน
+         */
+        textScale?: ('0.9' | '0.95' | '1' | '1.1' | '1.2') | null;
+        textAlign?: ('default' | 'left' | 'center' | 'right') | null;
+        contentWidth?: ('default' | 'narrow' | 'medium' | 'full') | null;
+        /**
+         * ปรับระยะห่างบน-ล่างและช่องไฟระหว่างการ์ดในส่วนนี้
+         */
+        spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
+        id?: string | null;
+      }[]
+    | null;
   historySection: {
     eyebrow?: string | null;
     title: string;
@@ -1344,6 +1442,7 @@ export interface AboutPage {
         id?: string | null;
       }[]
     | null;
+  _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1357,11 +1456,73 @@ export interface ShopPage {
     eyebrow?: string | null;
     title: string;
     description?: string | null;
+    /**
+     * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
+     */
+    fontFamily?: ('theme' | 'plex-noto' | 'sarabun-trirong' | 'prompt') | null;
+    /**
+     * ย่อ-ขยายตัวอักษรทุกขนาดในส่วนนี้พร้อมกัน สัดส่วนหัวเรื่องกับเนื้อหาจึงไม่เพี้ยน
+     */
+    textScale?: ('0.9' | '0.95' | '1' | '1.1' | '1.2') | null;
+    textAlign?: ('default' | 'left' | 'center' | 'right') | null;
+    contentWidth?: ('default' | 'narrow' | 'medium' | 'full') | null;
+    /**
+     * ปรับระยะห่างบน-ล่างและช่องไฟระหว่างการ์ดในส่วนนี้
+     */
+    spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
   };
+  /**
+   * หน้าสินค้ามีส่วนหลักคือรายการสินค้า เพิ่มกล่องชวนติดต่อท้ายหน้าได้
+   */
+  sections?:
+    | {
+        type: 'catalogue' | 'cta';
+        enabled?: boolean | null;
+        background?: ('page' | 'dark' | 'tint' | 'custom') | null;
+        /**
+         * ใส่เป็นรหัสสีแบบ #rrggbb
+         */
+        backgroundColor?: string | null;
+        textTone?: ('auto' | 'light' | 'dark') | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่ม ป้าย และหัวข้อเล็กเฉพาะในส่วนนี้
+         */
+        accentColor?: string | null;
+        columns?: ('auto' | '2' | '3' | '4') | null;
+        /**
+         * เว้นว่างไว้เพื่อแสดงทั้งหมด
+         */
+        limit?: number | null;
+        /**
+         * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
+         */
+        fontFamily?: ('theme' | 'plex-noto' | 'sarabun-trirong' | 'prompt') | null;
+        /**
+         * ย่อ-ขยายตัวอักษรทุกขนาดในส่วนนี้พร้อมกัน สัดส่วนหัวเรื่องกับเนื้อหาจึงไม่เพี้ยน
+         */
+        textScale?: ('0.9' | '0.95' | '1' | '1.1' | '1.2') | null;
+        textAlign?: ('default' | 'left' | 'center' | 'right') | null;
+        contentWidth?: ('default' | 'narrow' | 'medium' | 'full') | null;
+        /**
+         * ปรับระยะห่างบน-ล่างและช่องไฟระหว่างการ์ดในส่วนนี้
+         */
+        spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
+        id?: string | null;
+      }[]
+    | null;
   emptyState: {
     title: string;
     body?: string | null;
   };
+  /**
+   * แสดงเมื่อเพิ่มส่วน "กล่องชวนติดต่อ" ไว้ในลำดับด้านบน
+   */
+  cta?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    body?: string | null;
+  };
+  _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1375,11 +1536,73 @@ export interface StoriesPage {
     eyebrow?: string | null;
     title: string;
     description?: string | null;
+    /**
+     * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
+     */
+    fontFamily?: ('theme' | 'plex-noto' | 'sarabun-trirong' | 'prompt') | null;
+    /**
+     * ย่อ-ขยายตัวอักษรทุกขนาดในส่วนนี้พร้อมกัน สัดส่วนหัวเรื่องกับเนื้อหาจึงไม่เพี้ยน
+     */
+    textScale?: ('0.9' | '0.95' | '1' | '1.1' | '1.2') | null;
+    textAlign?: ('default' | 'left' | 'center' | 'right') | null;
+    contentWidth?: ('default' | 'narrow' | 'medium' | 'full') | null;
+    /**
+     * ปรับระยะห่างบน-ล่างและช่องไฟระหว่างการ์ดในส่วนนี้
+     */
+    spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
   };
+  /**
+   * ลากเพื่อสลับลำดับ ติ๊กออกเพื่อซ่อน · ส่วนที่ไม่ได้อยู่ในรายการนี้จะไม่แสดงบนหน้าเว็บ
+   */
+  sections?:
+    | {
+        type: 'list' | 'cta';
+        enabled?: boolean | null;
+        background?: ('page' | 'dark' | 'tint' | 'custom') | null;
+        /**
+         * ใส่เป็นรหัสสีแบบ #rrggbb
+         */
+        backgroundColor?: string | null;
+        textTone?: ('auto' | 'light' | 'dark') | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่ม ป้าย และหัวข้อเล็กเฉพาะในส่วนนี้
+         */
+        accentColor?: string | null;
+        columns?: ('auto' | '2' | '3' | '4') | null;
+        /**
+         * เว้นว่างไว้เพื่อแสดงทั้งหมด
+         */
+        limit?: number | null;
+        /**
+         * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
+         */
+        fontFamily?: ('theme' | 'plex-noto' | 'sarabun-trirong' | 'prompt') | null;
+        /**
+         * ย่อ-ขยายตัวอักษรทุกขนาดในส่วนนี้พร้อมกัน สัดส่วนหัวเรื่องกับเนื้อหาจึงไม่เพี้ยน
+         */
+        textScale?: ('0.9' | '0.95' | '1' | '1.1' | '1.2') | null;
+        textAlign?: ('default' | 'left' | 'center' | 'right') | null;
+        contentWidth?: ('default' | 'narrow' | 'medium' | 'full') | null;
+        /**
+         * ปรับระยะห่างบน-ล่างและช่องไฟระหว่างการ์ดในส่วนนี้
+         */
+        spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
+        id?: string | null;
+      }[]
+    | null;
   emptyState: {
     title: string;
     body?: string | null;
   };
+  /**
+   * แสดงเมื่อเพิ่มส่วน "กล่องชวนติดต่อ" ไว้ในลำดับด้านบน
+   */
+  cta?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    body?: string | null;
+  };
+  _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1393,7 +1616,60 @@ export interface TourismPage {
     eyebrow?: string | null;
     title: string;
     description?: string | null;
+    /**
+     * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
+     */
+    fontFamily?: ('theme' | 'plex-noto' | 'sarabun-trirong' | 'prompt') | null;
+    /**
+     * ย่อ-ขยายตัวอักษรทุกขนาดในส่วนนี้พร้อมกัน สัดส่วนหัวเรื่องกับเนื้อหาจึงไม่เพี้ยน
+     */
+    textScale?: ('0.9' | '0.95' | '1' | '1.1' | '1.2') | null;
+    textAlign?: ('default' | 'left' | 'center' | 'right') | null;
+    contentWidth?: ('default' | 'narrow' | 'medium' | 'full') | null;
+    /**
+     * ปรับระยะห่างบน-ล่างและช่องไฟระหว่างการ์ดในส่วนนี้
+     */
+    spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
   };
+  /**
+   * ลากเพื่อสลับลำดับ ติ๊กออกเพื่อซ่อน · ส่วนที่ไม่ได้อยู่ในรายการนี้จะไม่แสดงบนหน้าเว็บ
+   */
+  sections?:
+    | {
+        type: 'workshops' | 'places' | 'travel' | 'cta';
+        enabled?: boolean | null;
+        background?: ('page' | 'dark' | 'tint' | 'custom') | null;
+        /**
+         * ใส่เป็นรหัสสีแบบ #rrggbb
+         */
+        backgroundColor?: string | null;
+        textTone?: ('auto' | 'light' | 'dark') | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่ม ป้าย และหัวข้อเล็กเฉพาะในส่วนนี้
+         */
+        accentColor?: string | null;
+        columns?: ('auto' | '2' | '3' | '4') | null;
+        /**
+         * เว้นว่างไว้เพื่อแสดงทั้งหมด
+         */
+        limit?: number | null;
+        /**
+         * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
+         */
+        fontFamily?: ('theme' | 'plex-noto' | 'sarabun-trirong' | 'prompt') | null;
+        /**
+         * ย่อ-ขยายตัวอักษรทุกขนาดในส่วนนี้พร้อมกัน สัดส่วนหัวเรื่องกับเนื้อหาจึงไม่เพี้ยน
+         */
+        textScale?: ('0.9' | '0.95' | '1' | '1.1' | '1.2') | null;
+        textAlign?: ('default' | 'left' | 'center' | 'right') | null;
+        contentWidth?: ('default' | 'narrow' | 'medium' | 'full') | null;
+        /**
+         * ปรับระยะห่างบน-ล่างและช่องไฟระหว่างการ์ดในส่วนนี้
+         */
+        spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
+        id?: string | null;
+      }[]
+    | null;
   workshopsSection: {
     eyebrow?: string | null;
     title: string;
@@ -1416,10 +1692,19 @@ export interface TourismPage {
         id?: string | null;
       }[]
     | null;
+  /**
+   * แสดงเมื่อเพิ่มส่วน "กล่องชวนติดต่อ" ไว้ในลำดับด้านบน
+   */
+  cta?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    body?: string | null;
+  };
   notice: {
     title: string;
     body: string;
   };
+  _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1433,7 +1718,60 @@ export interface ContactPage {
     eyebrow?: string | null;
     title: string;
     description?: string | null;
+    /**
+     * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
+     */
+    fontFamily?: ('theme' | 'plex-noto' | 'sarabun-trirong' | 'prompt') | null;
+    /**
+     * ย่อ-ขยายตัวอักษรทุกขนาดในส่วนนี้พร้อมกัน สัดส่วนหัวเรื่องกับเนื้อหาจึงไม่เพี้ยน
+     */
+    textScale?: ('0.9' | '0.95' | '1' | '1.1' | '1.2') | null;
+    textAlign?: ('default' | 'left' | 'center' | 'right') | null;
+    contentWidth?: ('default' | 'narrow' | 'medium' | 'full') | null;
+    /**
+     * ปรับระยะห่างบน-ล่างและช่องไฟระหว่างการ์ดในส่วนนี้
+     */
+    spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
   };
+  /**
+   * ลากเพื่อสลับลำดับ ติ๊กออกเพื่อซ่อน · ส่วนที่ไม่ได้อยู่ในรายการนี้จะไม่แสดงบนหน้าเว็บ
+   */
+  sections?:
+    | {
+        type: 'channels' | 'form';
+        enabled?: boolean | null;
+        background?: ('page' | 'dark' | 'tint' | 'custom') | null;
+        /**
+         * ใส่เป็นรหัสสีแบบ #rrggbb
+         */
+        backgroundColor?: string | null;
+        textTone?: ('auto' | 'light' | 'dark') | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่ม ป้าย และหัวข้อเล็กเฉพาะในส่วนนี้
+         */
+        accentColor?: string | null;
+        columns?: ('auto' | '2' | '3' | '4') | null;
+        /**
+         * เว้นว่างไว้เพื่อแสดงทั้งหมด
+         */
+        limit?: number | null;
+        /**
+         * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
+         */
+        fontFamily?: ('theme' | 'plex-noto' | 'sarabun-trirong' | 'prompt') | null;
+        /**
+         * ย่อ-ขยายตัวอักษรทุกขนาดในส่วนนี้พร้อมกัน สัดส่วนหัวเรื่องกับเนื้อหาจึงไม่เพี้ยน
+         */
+        textScale?: ('0.9' | '0.95' | '1' | '1.1' | '1.2') | null;
+        textAlign?: ('default' | 'left' | 'center' | 'right') | null;
+        contentWidth?: ('default' | 'narrow' | 'medium' | 'full') | null;
+        /**
+         * ปรับระยะห่างบน-ล่างและช่องไฟระหว่างการ์ดในส่วนนี้
+         */
+        spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
+        id?: string | null;
+      }[]
+    | null;
   channels?:
     | {
         channel: 'line' | 'phone' | 'facebook' | 'email';
@@ -1456,6 +1794,7 @@ export interface ContactPage {
     title: string;
     body: string;
   };
+  _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1504,6 +1843,7 @@ export interface SiteSettingsSelect<T extends boolean = true> {
   mapLongitude?: T;
   openingHours?: T;
   openingHoursShort?: T;
+  _status?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -1561,6 +1901,7 @@ export interface NavigationSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  _status?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -1578,6 +1919,7 @@ export interface ThemeSelect<T extends boolean = true> {
   radius?: T;
   density?: T;
   customCss?: T;
+  _status?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -1637,6 +1979,11 @@ export interface HomePageSelect<T extends boolean = true> {
               label?: T;
               id?: T;
             };
+        fontFamily?: T;
+        textScale?: T;
+        textAlign?: T;
+        contentWidth?: T;
+        spacing?: T;
       };
   highlights?:
     | T
@@ -1652,8 +1999,16 @@ export interface HomePageSelect<T extends boolean = true> {
         type?: T;
         enabled?: T;
         background?: T;
+        backgroundColor?: T;
+        textTone?: T;
+        accentColor?: T;
         columns?: T;
         limit?: T;
+        fontFamily?: T;
+        textScale?: T;
+        textAlign?: T;
+        contentWidth?: T;
+        spacing?: T;
         id?: T;
       };
   featuredSection?:
@@ -1692,6 +2047,7 @@ export interface HomePageSelect<T extends boolean = true> {
         title?: T;
         body?: T;
       };
+  _status?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -1707,6 +2063,29 @@ export interface AboutPageSelect<T extends boolean = true> {
         eyebrow?: T;
         title?: T;
         description?: T;
+        fontFamily?: T;
+        textScale?: T;
+        textAlign?: T;
+        contentWidth?: T;
+        spacing?: T;
+      };
+  sections?:
+    | T
+    | {
+        type?: T;
+        enabled?: T;
+        background?: T;
+        backgroundColor?: T;
+        textTone?: T;
+        accentColor?: T;
+        columns?: T;
+        limit?: T;
+        fontFamily?: T;
+        textScale?: T;
+        textAlign?: T;
+        contentWidth?: T;
+        spacing?: T;
+        id?: T;
       };
   historySection?:
     | T
@@ -1793,6 +2172,7 @@ export interface AboutPageSelect<T extends boolean = true> {
         value?: T;
         id?: T;
       };
+  _status?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -1808,6 +2188,29 @@ export interface ShopPageSelect<T extends boolean = true> {
         eyebrow?: T;
         title?: T;
         description?: T;
+        fontFamily?: T;
+        textScale?: T;
+        textAlign?: T;
+        contentWidth?: T;
+        spacing?: T;
+      };
+  sections?:
+    | T
+    | {
+        type?: T;
+        enabled?: T;
+        background?: T;
+        backgroundColor?: T;
+        textTone?: T;
+        accentColor?: T;
+        columns?: T;
+        limit?: T;
+        fontFamily?: T;
+        textScale?: T;
+        textAlign?: T;
+        contentWidth?: T;
+        spacing?: T;
+        id?: T;
       };
   emptyState?:
     | T
@@ -1815,6 +2218,14 @@ export interface ShopPageSelect<T extends boolean = true> {
         title?: T;
         body?: T;
       };
+  cta?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        body?: T;
+      };
+  _status?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -1830,6 +2241,29 @@ export interface StoriesPageSelect<T extends boolean = true> {
         eyebrow?: T;
         title?: T;
         description?: T;
+        fontFamily?: T;
+        textScale?: T;
+        textAlign?: T;
+        contentWidth?: T;
+        spacing?: T;
+      };
+  sections?:
+    | T
+    | {
+        type?: T;
+        enabled?: T;
+        background?: T;
+        backgroundColor?: T;
+        textTone?: T;
+        accentColor?: T;
+        columns?: T;
+        limit?: T;
+        fontFamily?: T;
+        textScale?: T;
+        textAlign?: T;
+        contentWidth?: T;
+        spacing?: T;
+        id?: T;
       };
   emptyState?:
     | T
@@ -1837,6 +2271,14 @@ export interface StoriesPageSelect<T extends boolean = true> {
         title?: T;
         body?: T;
       };
+  cta?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        body?: T;
+      };
+  _status?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -1852,6 +2294,29 @@ export interface TourismPageSelect<T extends boolean = true> {
         eyebrow?: T;
         title?: T;
         description?: T;
+        fontFamily?: T;
+        textScale?: T;
+        textAlign?: T;
+        contentWidth?: T;
+        spacing?: T;
+      };
+  sections?:
+    | T
+    | {
+        type?: T;
+        enabled?: T;
+        background?: T;
+        backgroundColor?: T;
+        textTone?: T;
+        accentColor?: T;
+        columns?: T;
+        limit?: T;
+        fontFamily?: T;
+        textScale?: T;
+        textAlign?: T;
+        contentWidth?: T;
+        spacing?: T;
+        id?: T;
       };
   workshopsSection?:
     | T
@@ -1881,12 +2346,20 @@ export interface TourismPageSelect<T extends boolean = true> {
         body?: T;
         id?: T;
       };
+  cta?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        body?: T;
+      };
   notice?:
     | T
     | {
         title?: T;
         body?: T;
       };
+  _status?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -1902,6 +2375,29 @@ export interface ContactPageSelect<T extends boolean = true> {
         eyebrow?: T;
         title?: T;
         description?: T;
+        fontFamily?: T;
+        textScale?: T;
+        textAlign?: T;
+        contentWidth?: T;
+        spacing?: T;
+      };
+  sections?:
+    | T
+    | {
+        type?: T;
+        enabled?: T;
+        background?: T;
+        backgroundColor?: T;
+        textTone?: T;
+        accentColor?: T;
+        columns?: T;
+        limit?: T;
+        fontFamily?: T;
+        textScale?: T;
+        textAlign?: T;
+        contentWidth?: T;
+        spacing?: T;
+        id?: T;
       };
   channels?:
     | T
@@ -1931,6 +2427,7 @@ export interface ContactPageSelect<T extends boolean = true> {
         title?: T;
         body?: T;
       };
+  _status?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

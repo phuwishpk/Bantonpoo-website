@@ -7,6 +7,7 @@ import { t } from "@/lib/i18n";
 import { FilterGroup } from "./filter-group";
 import { CloseIcon, FilterIcon, GridIcon, SearchIcon, SlidesIcon } from "./icons";
 import { ProductCard } from "./product-card";
+import { adminDoc } from "@/lib/cms/edit-links";
 import { ProductCatalog } from "./product-catalog";
 import { buttonClass } from "./ui";
 
@@ -55,11 +56,14 @@ export function ShopBrowser({
   categories,
   initial,
   emptyState,
+  editing = false,
 }: {
   products: Product[];
   categories: Category[];
   initial: ShopFilters;
   emptyState: { title: string; body: string };
+  /** อยู่ในโหมดแก้ไขหรือไม่ — ตัดสินใจฝั่งเซิร์ฟเวอร์แล้วส่งมา */
+  editing?: boolean;
 }) {
   const [filters, setFilters] = useState<ShopFilters>(initial);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -219,7 +223,7 @@ export function ShopBrowser({
               <FilterIcon className="h-[18px] w-[18px]" />
               ตัวกรอง
               {activeCount > 0 ? (
-                <span className="ml-1 rounded-full bg-leaf-500 px-1.5 py-0.5 text-[0.6875rem] text-white">
+                <span className="ml-1 rounded-full bg-leaf-500 px-1.5 py-0.5 text-2xs text-white">
                   {activeCount}
                 </span>
               ) : null}
@@ -283,11 +287,19 @@ export function ShopBrowser({
         {visible.length > 0 ? (
           filters.view === "slide" ? (
             // key ผูกกับเงื่อนไขการกรอง เพื่อให้สไลด์เริ่มที่ชิ้นแรกทุกครั้งที่ผลลัพธ์เปลี่ยน
-            <ProductCatalog key={visible.map((product) => product.slug).join("-")} products={visible} />
+            <ProductCatalog
+              key={visible.map((product) => product.slug).join("-")}
+              products={visible}
+              editing={editing}
+            />
           ) : (
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 lg:gap-5">
               {visible.map((product) => (
-                <ProductCard key={product.slug} product={product} />
+                <ProductCard
+                  key={product.slug}
+                  product={product}
+                  editHref={editing ? adminDoc("products", product.id) : undefined}
+                />
               ))}
             </div>
           )

@@ -52,7 +52,8 @@ export const Navigation: GlobalConfig = {
   label: "เมนูนำทาง",
   admin: { group: "ตั้งค่าเว็บไซต์", description: "แก้เมนูบน ปุ่มติดต่อ และเมนูท้ายเว็บ" },
   access: { read: anyone, update: isEditor },
-  versions: { max: 20 },
+  // drafts เปิดไว้เพื่อให้ดูตัวอย่างก่อนเผยแพร่ได้ — บันทึกฉบับร่างจะยังไม่ขึ้นเว็บจริง
+  versions: { max: 20, drafts: true },
   hooks: { afterChange: [revalidateGlobal] },
   fields: [
     {

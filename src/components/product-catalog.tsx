@@ -13,6 +13,8 @@ import {
   PauseIcon,
   PlayIcon,
 } from "./icons";
+import { adminDoc } from "@/lib/cms/edit-links";
+import { EditButton } from "./edit-mode";
 import { QuickOrderButton } from "./line-order-button";
 import { Badge, buttonClass } from "./ui";
 
@@ -37,7 +39,13 @@ const STATUS_TONE = {
  * การเคลื่อนไหวทั้งหมดใช้ CSS transition ล้วน ไม่มีไลบรารีเพิ่ม และถูกปิดอัตโนมัติ
  * เมื่อผู้ใช้ตั้งค่า prefers-reduced-motion (ดูกฎรวมใน globals.css)
  */
-export function ProductCatalog({ products }: { products: Product[] }) {
+export function ProductCatalog({
+  products,
+  editing = false,
+}: {
+  products: Product[];
+  editing?: boolean;
+}) {
   const [rawIndex, setIndex] = useState(0);
   const [dragX, setDragX] = useState(0);
   const [dragging, setDragging] = useState(false);
@@ -139,6 +147,7 @@ export function ProductCatalog({ products }: { products: Product[] }) {
               active={slideIndex === index}
               position={slideIndex + 1}
               total={total}
+              editing={editing}
             />
           ))}
         </div>
@@ -259,11 +268,13 @@ function CatalogSlide({
   active,
   position,
   total,
+  editing,
 }: {
   product: Product;
   active: boolean;
   position: number;
   total: number;
+  editing: boolean;
 }) {
   const category = product.category;
   const cover = product.gallery[0];
@@ -271,13 +282,15 @@ function CatalogSlide({
 
   return (
     <article
-      className="grid w-full shrink-0 lg:grid-cols-[1.05fr_1fr]"
+      className="relative grid w-full shrink-0 lg:grid-cols-[1.05fr_1fr]"
       aria-roledescription="สไลด์"
       aria-label={`${position} จาก ${total}: ${t(product.name)}`}
       // inert ทำให้สไลด์ที่ไม่ได้แสดงอยู่กด Tab เข้าไปไม่ได้
       // ถ้าใช้แค่ aria-hidden ลิงก์ข้างในจะยังโฟกัสได้ ซึ่งผิดหลัก accessibility
       inert={!active}
     >
+      {editing ? <EditButton href={adminDoc("products", product.id)} label="แก้สินค้านี้" /> : null}
+
       {/* ---- ภาพสินค้า ---- */}
       <div className="relative aspect-4/3 overflow-hidden lg:aspect-auto lg:min-h-[28rem]">
         <Image
@@ -325,24 +338,24 @@ function CatalogSlide({
         </Reveal>
 
         <Reveal active={active} delay={200}>
-          <p className="text-[0.9375rem] leading-relaxed text-ink-200">{t(product.excerpt)}</p>
+          <p className="text-md leading-relaxed text-ink-200">{t(product.excerpt)}</p>
         </Reveal>
 
         {/* ข้อมูลเบื้องต้นแบบย่อ */}
         <Reveal active={active} delay={260} as="dl" className="grid grid-cols-2 gap-4 border-y border-white/10 py-5">
           <div>
-            <dt className="text-[0.6875rem] text-ink-400">รูปแบบ</dt>
+            <dt className="text-2xs text-ink-400">รูปแบบ</dt>
             <dd className="mt-1 text-sm font-medium text-rice-100">
               {t(productFormLabels[product.form])}
             </dd>
           </div>
           <div>
-            <dt className="text-[0.6875rem] text-ink-400">ปริมาณสุทธิ</dt>
+            <dt className="text-2xs text-ink-400">ปริมาณสุทธิ</dt>
             <dd className="mt-1 text-sm font-medium text-rice-100">{t(product.netContent)}</dd>
           </div>
           {herbs.length > 0 ? (
             <div className="col-span-2">
-              <dt className="text-[0.6875rem] text-ink-400">สมุนไพรหลัก</dt>
+              <dt className="text-2xs text-ink-400">สมุนไพรหลัก</dt>
               <dd className="mt-1 text-sm font-medium text-rice-100">{herbs.join(" · ")}</dd>
             </div>
           ) : null}

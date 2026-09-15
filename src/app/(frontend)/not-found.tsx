@@ -20,7 +20,7 @@ export default async function NotFound() {
         <h1 className="font-serif text-2xl font-semibold text-ink-800">
           {t(loc(page.title as never))}
         </h1>
-        <p className="max-w-md text-[0.9375rem] leading-relaxed text-river-500">
+        <p className="max-w-md text-md leading-relaxed text-river-500">
           {t(loc(page.description as never))}
         </p>
         <div className="flex flex-col gap-3 sm:flex-row">

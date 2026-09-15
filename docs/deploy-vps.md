@@ -270,6 +270,7 @@ journalctl -u bantonpoo -n 50 --no-pager
 | รูปที่อัปโหลดหายหลัง deploy | เก็บรูปไว้ใน `current/` — ต้องอยู่ใน `uploads/` (หัวข้อ 4) |
 | `502 Bad Gateway` | บริการไม่ได้รัน — `journalctl -u bantonpoo -n 50` |
 | เครื่องค้างตอน deploy | เผลอ build บนเซิร์ฟเวอร์ — ต้อง build ที่เครื่องตัวเอง |
+| เว็บขึ้นไม่ได้หลังแก้ฟิลด์ใน CMS | ยังไม่ได้รัน migration — ดูหัวข้อ "การเปลี่ยนโครงฐานข้อมูล" |
 | เนื้อหาบนเว็บไม่ตรงกับที่แก้ในหลังบ้าน | build ด้วยฐานข้อมูลผิดตัว — ตรวจว่าตั้ง `DB_PASSWORD` แล้วและอุโมงค์ SSH เปิดได้ |
 | แก้เนื้อหาแล้วเว็บไม่เปลี่ยน | hook revalidate ไม่ทำงาน — ดู `journalctl -u bantonpoo` |
 | `robots.txt` ยังขึ้น `Allow: /` | ตั้ง `SITE_NOINDEX` แล้วแต่ไม่ได้ build ใหม่ — รัน `npm run deploy` อีกครั้ง |

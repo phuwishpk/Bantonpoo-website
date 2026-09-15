@@ -113,6 +113,7 @@ async function main() {
     await payload.create({
       collection: "products",
       data: {
+        _status: "published",
         name: th(product.name),
         slug: product.slug,
         sku: product.sku,
@@ -123,7 +124,7 @@ async function main() {
         story: rows(th(product.story)),
         badges: rows(th(product.badges)),
         price: product.price ?? undefined,
-        status: product.status,
+        availability: product.status,
         leadTime: product.leadTime ? th(product.leadTime) : undefined,
         featured: product.featured,
         order: index,
@@ -145,6 +146,7 @@ async function main() {
     await payload.create({
       collection: "articles",
       data: {
+        _status: "published",
         title: th(article.title),
         slug: article.slug,
         excerpt: th(article.excerpt),
@@ -219,6 +221,7 @@ async function main() {
   await payload.updateGlobal({
     slug: "site-settings",
     data: {
+      _status: "published",
       communityName: th(site.communityName),
       communityShortName: th(site.communityShortName),
       tagline: th(site.tagline),
@@ -243,6 +246,7 @@ async function main() {
   await payload.updateGlobal({
     slug: "navigation",
     data: {
+      _status: "published",
       mainMenu: [
         { label: "หน้าแรก", linkType: "page", page: "/" },
         { label: "เกี่ยวกับชุมชน", linkType: "page", page: "/about" },
@@ -282,6 +286,7 @@ async function main() {
   await payload.updateGlobal({
     slug: "home-page",
     data: {
+      _status: "published",
       hero: {
         eyebrow: "หมู่ที่ 1 ตำบลบางขะแยง · อำเภอเมืองปทุมธานี",
         titleLines: [
@@ -362,11 +367,19 @@ async function main() {
   await payload.updateGlobal({
     slug: "about-page",
     data: {
+      _status: "published",
       hero: {
         eyebrow: "เกี่ยวกับชุมชน",
         title: "บ้านต้นโพธิ์ — ชุมชนมอญที่ตั้งถิ่นฐานริมเจ้าพระยามาหลายร้อยปี",
         description: th(site.aboutSummary),
       },
+      sections: [
+        { type: "history", enabled: true },
+        { type: "assets", enabled: true, background: "dark", columns: "auto", textTone: "auto" },
+        { type: "artisans", enabled: true, background: "page", columns: "auto" },
+        { type: "closing", enabled: true },
+        { type: "references", enabled: true },
+      ],
       historySection: {
         eyebrow: "ประวัติความเป็นมาและรากเหง้าชุมชน",
         title: "จากเมืองเมาะตะมะ สู่ริมฝั่งแม่น้ำเจ้าพระยา",
@@ -455,11 +468,21 @@ async function main() {
   await payload.updateGlobal({
     slug: "shop-page",
     data: {
+      _status: "published",
       hero: {
         eyebrow: "สินค้าชุมชน",
         title: "ผลิตภัณฑ์สมุนไพรจากบ้านต้นโพธิ์",
         description:
           "ทุกชิ้นระบุรูปแบบ ปริมาณสุทธิ และสมุนไพรหลักในตำรับ สั่งซื้อได้โดยตรงกับกลุ่มวิสาหกิจชุมชนผ่าน LINE หรือโทรศัพท์",
+      },
+      sections: [
+        { type: "catalogue", enabled: true },
+        { type: "cta", enabled: true },
+      ],
+      cta: {
+        eyebrow: "สั่งซื้อ · สอบถาม",
+        title: "สนใจสินค้าชิ้นไหน ทักมาถามได้เลย",
+        body: "กลุ่มวิสาหกิจชุมชนตอบกลับในเวลาทำการ สอบถามค่าจัดส่งหรือขอใบเสนอราคาจำนวนมากได้",
       },
       emptyState: {
         title: "ไม่พบสินค้าที่ตรงกับเงื่อนไข",
@@ -471,11 +494,21 @@ async function main() {
   await payload.updateGlobal({
     slug: "stories-page",
     data: {
+      _status: "published",
       hero: {
         eyebrow: "เรื่องเล่าและข่าวกิจกรรม",
         title: "เรื่องเล่าจากชุมชนมอญริมเจ้าพระยา",
         description:
           "รวมประวัติความเป็นมา เรื่องราวของวัดเจตวงศ์ ภูมิปัญญาสมุนไพร และข่าวกิจกรรมที่ชุมชนเปิดให้เข้าร่วม",
+      },
+      sections: [
+        { type: "list", enabled: true },
+        { type: "cta", enabled: true },
+      ],
+      cta: {
+        eyebrow: "อยากรู้จักชุมชนมากขึ้น",
+        title: "มาเยือนบ้านต้นโพธิ์ด้วยตัวเอง",
+        body: "ติดต่อนัดหมายเข้าชมชุมชน เข้าร่วมฐานเรียนรู้ หรือสอบถามข้อมูลเพิ่มเติมได้ทุกช่องทาง",
       },
       emptyState: {
         title: "ไม่พบบทความที่ตรงกับคำค้น",
@@ -487,11 +520,23 @@ async function main() {
   await payload.updateGlobal({
     slug: "tourism-page",
     data: {
+      _status: "published",
       hero: {
         eyebrow: "การท่องเที่ยวและกิจกรรม",
         title: "มาถึงบ้านต้นโพธิ์แล้วได้ลงมือทำจริง",
         description:
           "ชุมชนเปิดฐานเรียนรู้ให้ผู้มาเยือนลงมือทำยาหม่องน้ำและลูกประคบสมุนไพรด้วยตัวเอง พร้อมเส้นทางเดินชมวัดเจตวงศ์และจุดชมวิวริมเจ้าพระยา",
+      },
+      sections: [
+        { type: "workshops", enabled: true, background: "page" },
+        { type: "places", enabled: true, background: "dark", columns: "auto" },
+        { type: "travel", enabled: true, background: "page" },
+        { type: "cta", enabled: false },
+      ],
+      cta: {
+        eyebrow: "นัดหมายล่วงหน้า",
+        title: "พาคณะมาศึกษาดูงาน",
+        body: "แจ้งจำนวนคนและวันที่ต้องการล่วงหน้า ชุมชนจะจัดผู้นำชมและเตรียมฐานเรียนรู้ไว้รอ",
       },
       workshopsSection: {
         eyebrow: "กิจกรรมสาธิตและเวิร์กช็อป",
@@ -532,12 +577,17 @@ async function main() {
   await payload.updateGlobal({
     slug: "contact-page",
     data: {
+      _status: "published",
       hero: {
         eyebrow: "ติดต่อเรา",
         title: "คุยกับชุมชนโดยตรง",
         description:
           "ไม่ว่าจะสั่งซื้อผลิตภัณฑ์สมุนไพร ขอใบเสนอราคาชุดของฝาก หรือนัดหมายพาคณะเข้าศึกษาดูงาน ทักมาได้ทุกช่องทาง",
       },
+      sections: [
+        { type: "channels", enabled: true, background: "page", columns: "auto" },
+        { type: "form", enabled: true },
+      ],
       channels: [
         {
           channel: "line",
@@ -597,6 +647,7 @@ async function main() {
   await payload.updateGlobal({
     slug: "theme",
     data: {
+      _status: "published",
       palette: "leaf",
       surface: "rice",
       fontPair: "plex-noto",

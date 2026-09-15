@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Article, Category } from "@/content/types";
 import { t } from "@/lib/i18n";
+import { adminDoc } from "@/lib/cms/edit-links";
 import { ArticleCard } from "./article-card";
 import { SearchIcon } from "./icons";
 import { buttonClass } from "./ui";
@@ -17,12 +18,14 @@ export function StoriesBrowser({
   initialCategory,
   initialQuery,
   emptyState,
+  editing = false,
 }: {
   articles: Article[];
   categories: Category[];
   initialCategory: string | null;
   initialQuery: string;
   emptyState: { title: string; body: string };
+  editing?: boolean;
 }) {
   const [category, setCategory] = useState<string | null>(initialCategory);
   const [query, setQuery] = useState(initialQuery);
@@ -95,7 +98,12 @@ export function StoriesBrowser({
       {visible.length > 0 ? (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {visible.map((article, index) => (
-            <ArticleCard key={article.slug} article={article} priority={index < 3} />
+            <ArticleCard
+              key={article.slug}
+              article={article}
+              priority={index < 3}
+              editHref={editing ? adminDoc("articles", article.id) : undefined}
+            />
           ))}
         </div>
       ) : (

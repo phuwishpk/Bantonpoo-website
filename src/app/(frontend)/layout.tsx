@@ -4,8 +4,10 @@ import { JsonLd } from "@/components/json-ld";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { SiteProvider } from "@/components/site-context";
+import { PreviewBar } from "@/components/preview-bar";
 import { ThemeStyle } from "@/components/theme-style";
 import { getNavigation } from "@/lib/cms/navigation";
+import { isDraftMode } from "@/lib/cms/draft";
 import { getPageGlobal, getSite, getTheme } from "@/lib/cms/queries";
 import { locList } from "@/lib/cms/map";
 import { t } from "@/lib/i18n";
@@ -94,7 +96,12 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [site, nav, theme] = await Promise.all([getSite(), getNavigation(), getTheme()]);
+  const [site, nav, theme, draft] = await Promise.all([
+    getSite(),
+    getNavigation(),
+    getTheme(),
+    isDraftMode(),
+  ]);
 
   return (
     <html lang="th" className={FONT_VARIABLES}>
@@ -107,6 +114,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           >
             ข้ามไปยังเนื้อหาหลัก
           </a>
+          {draft ? <PreviewBar path="/" /> : null}
           <SiteHeader nav={nav} />
           <main id="main" className="flex-1">
             {children}

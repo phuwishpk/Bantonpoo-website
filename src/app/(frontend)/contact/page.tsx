@@ -4,10 +4,22 @@ import { ClockIcon, FacebookIcon, LineIcon, MailIcon, MapPinIcon, PhoneIcon } fr
 import { JsonLd } from "@/components/json-ld";
 import { directionsUrl, MapEmbed } from "@/components/map-embed";
 import { PageHero } from "@/components/page-hero";
+import { EditToolbar } from "@/components/edit-mode";
 import { Container, SectionHeading } from "@/components/ui";
 import { loc } from "@/lib/cms/map";
-import { hero, rowsOf, section, textList, titleBody } from "@/lib/cms/page-content";
+import {
+  COLUMN_CLASS,
+  hero,
+  readSections,
+  sectionSkin,
+  rowsOf,
+  section,
+  textList,
+  titleBody,
+} from "@/lib/cms/page-content";
 import { getPageGlobal, getSite } from "@/lib/cms/queries";
+import { isDraftMode } from "@/lib/cms/draft";
+import { editLinksFor } from "@/lib/cms/edit-links";
 import { t } from "@/lib/i18n";
 import { telUrl } from "@/lib/line";
 import { breadcrumbJsonLd, buildMetadata, localBusinessJsonLd } from "@/lib/seo";
@@ -22,6 +34,8 @@ export async function generateMetadata(): Promise<Metadata> {
     siteName: t(site.communityName),
   });
 }
+
+const DEFAULT_SECTIONS = ["channels", "form"];
 
 const CRUMBS = [
   { name: "หน้าแรก", path: "/" },
@@ -39,11 +53,13 @@ const CHANNEL_META = {
 type ChannelKey = keyof typeof CHANNEL_META;
 
 export default async function ContactPage() {
+  const editing = await isDraftMode();
   const [page, site] = await Promise.all([getPageGlobal("contact-page"), getSite()]);
 
   const content = hero(page);
   const formSuccess = titleBody(page, "formSuccess");
   const topics = t(textList(page, "formTopics"));
+  const visibleSections = readSections(page, DEFAULT_SECTIONS);
 
   const channelValue: Record<ChannelKey, string> = {
     line: site.lineId,
@@ -81,10 +97,18 @@ export default async function ContactPage() {
         crumbs={CRUMBS}
       />
 
-      {/* ---------------- ช่องทางติดต่อ ---------------- */}
-      <section className="py-14 sm:py-16">
+      {visibleSections.map((item, index) => {
+        const skin = sectionSkin(item);
+        const columns = COLUMN_CLASS[item.columns];
+        const key = `${item.type}-${index}`;
+
+        switch (item.type) {
+          case "channels":
+            return (
+              <section key={key} className={`py-14 sm:py-16 ${skin.className}`} style={skin.style}>
+
         <Container size="wide">
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className={`grid gap-4 ${columns ?? "sm:grid-cols-2"}`}>
             {channels.map((channel) => {
               const Icon = channel.icon;
               return (
@@ -115,10 +139,13 @@ export default async function ContactPage() {
             })}
           </div>
         </Container>
-      </section>
+              </section>
+            );
 
-      {/* ---------------- ฟอร์ม + ข้อมูลที่ตั้ง ---------------- */}
-      <section className="pb-16 sm:pb-20">
+          case "form":
+            return (
+              <section key={key} className="pb-16 sm:pb-20">
+
         <Container size="wide">
           <div className="grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-14">
             <div className="flex flex-col gap-7">
@@ -172,7 +199,15 @@ export default async function ContactPage() {
             </div>
           </div>
         </Container>
-      </section>
+              </section>
+            );
+
+          default:
+            return null;
+        }
+      })}
+
+      {editing ? <EditToolbar {...editLinksFor("contact")} /> : null}
 
       <JsonLd data={[localBusinessJsonLd(site), breadcrumbJsonLd(CRUMBS)]} />
     </>

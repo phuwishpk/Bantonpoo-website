@@ -5,6 +5,7 @@ import {
   linkFields,
   proseBlocksField,
   sectionHeadingField,
+  sectionsField,
   statsField,
   textListField,
 } from "@/fields";
@@ -15,13 +16,30 @@ export const AboutPage: GlobalConfig = {
   label: "หน้าเกี่ยวกับชุมชน",
   admin: { group: "เนื้อหาประจำหน้า" },
   access: { read: anyone, update: isEditor },
-  versions: { max: 20 },
+  // drafts เปิดไว้เพื่อให้ดูตัวอย่างก่อนเผยแพร่ได้ — บันทึกฉบับร่างจะยังไม่ขึ้นเว็บจริง
+  versions: { max: 20, drafts: true },
   hooks: { afterChange: [revalidatePage("/about")] },
   fields: [
     {
       type: "tabs",
       tabs: [
-        { label: "หัวหน้าเพจ", fields: [heroFields()] },
+        {
+          label: "หัวหน้าเพจและลำดับส่วน",
+          fields: [
+            heroFields(),
+            sectionsField({
+              types: [
+                { label: "ประวัติชุมชนและตัวเลข", value: "history" },
+                { label: "ทุนชุมชน", value: "assets" },
+                { label: "ทำเนียบปราชญ์ชุมชน", value: "artisans" },
+                { label: "กล่องปิดท้าย", value: "closing" },
+                { label: "แหล่งอ้างอิง", value: "references" },
+              ],
+              gridTypes: ["assets", "artisans"],
+              limitTypes: ["assets", "artisans"],
+            }),
+          ],
+        },
         {
           label: "ประวัติชุมชน",
           fields: [

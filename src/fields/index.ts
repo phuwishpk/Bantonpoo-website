@@ -117,6 +117,7 @@ export function heroFields(): Field {
       { name: "eyebrow", type: "text", localized: true, label: "ข้อความนำ (ตัวเล็ก)" },
       { name: "title", type: "text", required: true, localized: true, label: "หัวเรื่อง" },
       { name: "description", type: "textarea", localized: true, label: "คำโปรย" },
+      typographyCollapsible("ตัวอักษรและการจัดวางของแถบหัวหน้าเพจ"),
     ],
   };
 }
@@ -155,6 +156,213 @@ export function statsField(name: string, label: string, rows: number): ArrayFiel
     fields: [
       { name: "value", type: "text", required: true, localized: true, label: "ตัวเลข" },
       { name: "label", type: "text", required: true, localized: true, label: "คำอธิบาย" },
+    ],
+  };
+}
+
+/**
+ * ตัวอักษรและการจัดวางของกล่องเนื้อหาหนึ่งกล่อง
+ *
+ * ทุกช่องเป็น "ตัวเลือกจำกัด" ไม่ใช่ช่องพิมพ์อิสระ เพื่อให้ทุกส่วนของเว็บยังเข้าชุดกัน
+ * แม้ผู้ดูแลจะปรับหลายส่วนต่างกัน — ค่าที่เลือกถูกแปลงเป็นตัวแปร CSS ที่ประกาศบนตัว
+ * <section> จึงมีผลเฉพาะภายในกล่องนั้น ไม่กระทบส่วนอื่นและทำ layout พังไม่ได้
+ * (ดู sectionSkin ใน src/lib/cms/page-content.ts)
+ */
+export function typographyCollapsible(label = "ตัวอักษรและการจัดวางของส่วนนี้"): Field {
+  return {
+    type: "collapsible",
+    label,
+    admin: { initCollapsed: true, description: "เว้นไว้ตามค่าเริ่มต้นได้ทั้งหมด ถ้ายังไม่ต้องการปรับ" },
+    fields: typographyFields(),
+  };
+}
+
+/** ชุดฟิลด์ตัวอักษรและการจัดวาง — แยกไว้เพื่อใช้ทั้งในแถว section และในกลุ่มแบนเนอร์ */
+export function typographyFields(): Field[] {
+  return [
+    {
+      name: "fontFamily",
+      type: "select",
+      defaultValue: "theme",
+      label: "ฟอนต์",
+      options: [
+        { label: "ตามธีมของเว็บ", value: "theme" },
+        { label: "IBM Plex Sans Thai + Noto Serif Thai", value: "plex-noto" },
+        { label: "Sarabun + Trirong — ทางการ อ่านง่าย", value: "sarabun-trirong" },
+        { label: "Prompt — โมเดิร์น เรียบ", value: "prompt" },
+      ],
+      admin: { description: "เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง" },
+    },
+    {
+      name: "textScale",
+      type: "select",
+      defaultValue: "1",
+      label: "ขนาดตัวอักษร",
+      options: [
+        { label: "เล็กลงมาก", value: "0.9" },
+        { label: "เล็กลง", value: "0.95" },
+        { label: "ปกติ", value: "1" },
+        { label: "ใหญ่ขึ้น", value: "1.1" },
+        { label: "ใหญ่มาก", value: "1.2" },
+      ],
+      admin: { description: "ย่อ-ขยายตัวอักษรทุกขนาดในส่วนนี้พร้อมกัน สัดส่วนหัวเรื่องกับเนื้อหาจึงไม่เพี้ยน" },
+    },
+    {
+      name: "textAlign",
+      type: "select",
+      defaultValue: "default",
+      label: "การจัดวางข้อความ",
+      options: [
+        { label: "ตามค่าเริ่มต้น", value: "default" },
+        { label: "ชิดซ้าย", value: "left" },
+        { label: "กึ่งกลาง", value: "center" },
+        { label: "ชิดขวา", value: "right" },
+      ],
+    },
+    {
+      name: "contentWidth",
+      type: "select",
+      defaultValue: "default",
+      label: "ความกว้างของเนื้อหา",
+      options: [
+        { label: "ตามค่าเริ่มต้น", value: "default" },
+        { label: "แคบ — อ่านง่ายที่สุด", value: "narrow" },
+        { label: "ปานกลาง", value: "medium" },
+        { label: "กว้างเต็มพื้นที่", value: "full" },
+      ],
+    },
+    {
+      name: "spacing",
+      type: "select",
+      defaultValue: "default",
+      label: "ความโปร่งของส่วนนี้",
+      options: [
+        { label: "ตามธีมของเว็บ", value: "default" },
+        { label: "กระชับ", value: "compact" },
+        { label: "มาตรฐาน", value: "normal" },
+        { label: "โปร่ง", value: "roomy" },
+      ],
+      admin: { description: "ปรับระยะห่างบน-ล่างและช่องไฟระหว่างการ์ดในส่วนนี้" },
+    },
+  ];
+}
+
+/** ตรวจรหัสสี — เว้นว่างได้ */
+const hexOrEmpty = (value: unknown) => {
+  if (value === undefined || value === null || value === "") return true;
+  if (typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value)) return true;
+  return "ต้องเป็นรหัสสีแบบ #rrggbb เช่น #2e7d52";
+};
+
+/**
+ * รายการ section ของหน้าหนึ่ง ๆ — ลากสลับลำดับ ซ่อน/แสดง และปรับรูปแบบการวางได้
+ *
+ * ชนิดของ section ผูกกับคอมโพเนนต์ในโค้ด จึงเป็นตัวเลือกไม่ใช่ช่องพิมพ์
+ * ถ้าจะเพิ่มชนิดใหม่ต้องเพิ่มทั้งที่นี่และใน switch ของหน้านั้น
+ *
+ * @param gridTypes ชนิดที่วางเป็นกริด จึงเลือกจำนวนคอลัมน์และพื้นหลังได้
+ * @param limitTypes ชนิดที่จำกัดจำนวนรายการที่แสดงได้
+ */
+export function sectionsField(options: {
+  types: { label: string; value: string }[];
+  gridTypes?: string[];
+  limitTypes?: string[];
+  description?: string;
+}): ArrayField {
+  const grid = options.gridTypes ?? [];
+  const limited = options.limitTypes ?? [];
+  const inGroup = (list: string[]) => (_: unknown, sibling: { type?: string }) =>
+    list.includes(sibling?.type ?? "");
+
+  return {
+    name: "sections",
+    type: "array",
+    label: "ลำดับและการแสดงส่วนต่าง ๆ",
+    labels: { singular: "ส่วน", plural: "ส่วนต่าง ๆ" },
+    admin: {
+      description:
+        options.description ??
+        "ลากเพื่อสลับลำดับ ติ๊กออกเพื่อซ่อน · ส่วนที่ไม่ได้อยู่ในรายการนี้จะไม่แสดงบนหน้าเว็บ",
+    },
+    fields: [
+      { name: "type", type: "select", required: true, label: "ส่วนไหน", options: options.types },
+      { name: "enabled", type: "checkbox", defaultValue: true, label: "แสดงส่วนนี้" },
+      {
+        name: "background",
+        type: "select",
+        defaultValue: "page",
+        label: "พื้นหลัง",
+        options: [
+          { label: "สีพื้นของหน้า", value: "page" },
+          { label: "พื้นเข้ม", value: "dark" },
+          { label: "พื้นอ่อนตัดกัน", value: "tint" },
+          { label: "กำหนดสีเอง", value: "custom" },
+        ],
+        admin: { condition: inGroup(grid) },
+      },
+      {
+        name: "backgroundColor",
+        type: "text",
+        label: "สีพื้นหลัง (รหัสสี)",
+        admin: {
+          condition: (_: unknown, sibling: { type?: string; background?: string }) =>
+            grid.includes(sibling?.type ?? "") && sibling?.background === "custom",
+          description: "ใส่เป็นรหัสสีแบบ #rrggbb",
+        },
+        validate: hexOrEmpty,
+      },
+      {
+        name: "textTone",
+        type: "select",
+        defaultValue: "auto",
+        label: "สีตัวอักษรบนพื้นนี้",
+        options: [
+          { label: "เลือกให้อัตโนมัติจากความสว่างของพื้น", value: "auto" },
+          { label: "ตัวอักษรสีอ่อน", value: "light" },
+          { label: "ตัวอักษรสีเข้ม", value: "dark" },
+        ],
+        admin: {
+          condition: (_: unknown, sibling: { type?: string; background?: string }) =>
+            grid.includes(sibling?.type ?? "") && sibling?.background === "custom",
+        },
+      },
+      {
+        name: "accentColor",
+        type: "text",
+        label: "สีเน้นเฉพาะส่วนนี้ (รหัสสี)",
+        admin: {
+          condition: inGroup(grid),
+          description:
+            "เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่ม ป้าย และหัวข้อเล็กเฉพาะในส่วนนี้",
+        },
+        validate: hexOrEmpty,
+      },
+      {
+        name: "columns",
+        type: "select",
+        defaultValue: "auto",
+        label: "จำนวนคอลัมน์",
+        options: [
+          { label: "ตามค่าเริ่มต้น", value: "auto" },
+          { label: "2 คอลัมน์", value: "2" },
+          { label: "3 คอลัมน์", value: "3" },
+          { label: "4 คอลัมน์", value: "4" },
+        ],
+        admin: { condition: inGroup(grid) },
+      },
+      {
+        name: "limit",
+        type: "number",
+        min: 1,
+        max: 12,
+        label: "จำนวนรายการที่แสดง",
+        admin: {
+          condition: inGroup(limited),
+          description: "เว้นว่างไว้เพื่อแสดงทั้งหมด",
+        },
+      },
+      // ตัวอักษรและการจัดวางใช้ได้กับทุกชนิดส่วน ไม่ใช่เฉพาะส่วนที่วางเป็นกริด
+      typographyCollapsible(),
     ],
   };
 }

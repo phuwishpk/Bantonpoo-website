@@ -108,7 +108,7 @@ export default async function ProductPage({ params }: PageProps) {
                   {t(product.name)}
                 </h1>
 
-                <p className="text-[0.9375rem] leading-relaxed text-river-500">{t(product.excerpt)}</p>
+                <p className="text-md leading-relaxed text-river-500">{t(product.excerpt)}</p>
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -201,7 +201,7 @@ export default async function ProductPage({ params }: PageProps) {
                     className="h-16 w-16 shrink-0 rounded-full object-cover"
                   />
                   <div className="flex flex-col gap-1.5">
-                    <p className="text-[0.6875rem] font-semibold tracking-label text-leaf-300">ผลิตโดย</p>
+                    <p className="text-2xs font-semibold tracking-label text-leaf-300">ผลิตโดย</p>
                     <p className="font-serif text-base font-semibold text-rice-100">{t(artisan.name)}</p>
                     <p className="text-xs text-ink-300">{t(artisan.title)}</p>
                     <Link

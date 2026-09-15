@@ -11,6 +11,7 @@ import type {
   Workshop,
 } from "@/content/types";
 import { ALL_LOCALES, getCms } from "./client";
+import { isDraftMode } from "./draft";
 import { loc, mapArticle, mapArtisan, mapCategory, mapMedia, mapPlace, mapProduct, mapWorkshop } from "./map";
 
 /**
@@ -23,8 +24,9 @@ import { loc, mapArticle, mapArtisan, mapCategory, mapMedia, mapPlace, mapProduc
 const LIMIT = 200;
 
 export const getProducts = cache(async (): Promise<Product[]> => {
-  const cms = await getCms();
+  const [cms, draft] = await Promise.all([getCms(), isDraftMode()]);
   const { docs } = await cms.find({
+    draft,
     collection: "products",
     locale: ALL_LOCALES,
     depth: 2,
@@ -60,8 +62,9 @@ export async function getRelatedProducts(product: Product, limit = 3): Promise<P
 }
 
 export const getArticles = cache(async (): Promise<Article[]> => {
-  const cms = await getCms();
+  const [cms, draft] = await Promise.all([getCms(), isDraftMode()]);
   const { docs } = await cms.find({
+    draft,
     collection: "articles",
     locale: ALL_LOCALES,
     depth: 2,
@@ -89,8 +92,9 @@ export async function getRelatedArticles(article: Article, limit = 3): Promise<A
 }
 
 export const getArtisans = cache(async (): Promise<Artisan[]> => {
-  const cms = await getCms();
+  const [cms, draft] = await Promise.all([getCms(), isDraftMode()]);
   const { docs } = await cms.find({
+    draft,
     collection: "artisans",
     locale: ALL_LOCALES,
     depth: 1,
@@ -103,8 +107,9 @@ export const getArtisans = cache(async (): Promise<Artisan[]> => {
 });
 
 export const getWorkshops = cache(async (): Promise<Workshop[]> => {
-  const cms = await getCms();
+  const [cms, draft] = await Promise.all([getCms(), isDraftMode()]);
   const { docs } = await cms.find({
+    draft,
     collection: "workshops",
     locale: ALL_LOCALES,
     depth: 1,
@@ -115,8 +120,9 @@ export const getWorkshops = cache(async (): Promise<Workshop[]> => {
 });
 
 export const getPlaces = cache(async (): Promise<PlaceOfInterest[]> => {
-  const cms = await getCms();
+  const [cms, draft] = await Promise.all([getCms(), isDraftMode()]);
   const { docs } = await cms.find({
+    draft,
     collection: "places",
     locale: ALL_LOCALES,
     depth: 1,
@@ -127,8 +133,9 @@ export const getPlaces = cache(async (): Promise<PlaceOfInterest[]> => {
 });
 
 export const getCategories = cache(async (type: Category["type"]): Promise<Category[]> => {
-  const cms = await getCms();
+  const [cms, draft] = await Promise.all([getCms(), isDraftMode()]);
   const { docs } = await cms.find({
+    draft,
     collection: "categories",
     locale: ALL_LOCALES,
     where: { type: { equals: type } },
@@ -139,8 +146,9 @@ export const getCategories = cache(async (type: Category["type"]): Promise<Categ
 });
 
 export const getSite = cache(async (): Promise<SiteSettings> => {
-  const cms = await getCms();
+  const [cms, draft] = await Promise.all([getCms(), isDraftMode()]);
   const doc = (await cms.findGlobal({
+    draft,
     slug: "site-settings",
     locale: ALL_LOCALES,
     depth: 1,
@@ -172,8 +180,9 @@ export const getSite = cache(async (): Promise<SiteSettings> => {
 
 /** Global ประจำหน้า — คืนข้อมูลดิบให้หน้านั้นตีความเอง */
 export const getPageGlobal = cache(async (slug: string): Promise<Record<string, unknown>> => {
-  const cms = await getCms();
+  const [cms, draft] = await Promise.all([getCms(), isDraftMode()]);
   return (await cms.findGlobal({
+    draft,
     slug: slug as never,
     locale: ALL_LOCALES,
     depth: 2,
@@ -182,8 +191,9 @@ export const getPageGlobal = cache(async (slug: string): Promise<Record<string, 
 
 /** ค่าธีมสำหรับฉีดตัวแปร CSS ใน layout */
 export const getTheme = cache(async (): Promise<ThemeSettings> => {
-  const cms = await getCms();
-  const doc = (await cms.findGlobal({ slug: "theme", depth: 0 })) as unknown as Record<string, unknown>;
+  const [cms, draft] = await Promise.all([getCms(), isDraftMode()]);
+  const doc = (await cms.findGlobal({
+    draft, slug: "theme", depth: 0 })) as unknown as Record<string, unknown>;
   const pick = (key: keyof ThemeSettings) =>
     typeof doc[key] === "string" && doc[key] ? (doc[key] as string) : DEFAULT_THEME[key];
 

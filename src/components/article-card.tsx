@@ -3,15 +3,19 @@ import Link from "next/link";
 import type { Article } from "@/content/types";
 import { estimateReadingMinutes, formatThaiDateShort } from "@/lib/format";
 import { t } from "@/lib/i18n";
+import { EditButton } from "./edit-mode";
 
 export function ArticleCard({
   article,
   layout = "vertical",
   priority = false,
+  editHref,
 }: {
   article: Article;
   layout?: "vertical" | "horizontal";
   priority?: boolean;
+  /** ส่งมาเฉพาะตอนอยู่ในโหมดแก้ไข */
+  editHref?: string;
 }) {
   const category = article.category;
   const minutes = estimateReadingMinutes(article);
@@ -31,9 +35,9 @@ export function ArticleCard({
         </div>
         <div className="flex min-w-0 flex-col justify-center gap-1.5">
           {category ? (
-            <p className="text-[0.6875rem] font-semibold text-leaf-600">{t(category.title)}</p>
+            <p className="text-2xs font-semibold text-leaf-600">{t(category.title)}</p>
           ) : null}
-          <h3 className="font-serif text-[0.9375rem] leading-snug font-semibold text-ink-800">
+          <h3 className="font-serif text-md leading-snug font-semibold text-ink-800">
             <Link href={`/stories/${article.slug}`} className="after:absolute after:inset-0 after:content-['']">
               {t(article.title)}
             </Link>
@@ -48,6 +52,8 @@ export function ArticleCard({
 
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-card border border-rice-300 bg-rice-50 transition duration-300 ease-craft hover:-translate-y-1 hover:border-rice-400 hover:shadow-lift">
+      {editHref ? <EditButton href={editHref} label="แก้บทความนี้" /> : null}
+
       <div className="relative aspect-[16/10] overflow-hidden bg-ink-800">
         <Image
           src={article.coverImage.url}
@@ -60,7 +66,7 @@ export function ArticleCard({
         />
       </div>
       <div className="flex flex-1 flex-col gap-3 p-5">
-        <div className="flex items-center gap-2 text-[0.6875rem] font-semibold">
+        <div className="flex items-center gap-2 text-2xs font-semibold">
           {category ? <span className="text-leaf-600">{t(category.title)}</span> : null}
           <span aria-hidden className="text-rice-400">
             ·

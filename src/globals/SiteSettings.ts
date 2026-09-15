@@ -7,7 +7,8 @@ export const SiteSettings: GlobalConfig = {
   label: "ข้อมูลชุมชน",
   admin: { group: "ตั้งค่าเว็บไซต์", description: "ชื่อ ข้อมูลติดต่อ ที่ตั้ง และเวลาทำการ ใช้ทั้งเว็บ" },
   access: { read: anyone, update: isEditor },
-  versions: { max: 20 },
+  // drafts เปิดไว้เพื่อให้ดูตัวอย่างก่อนเผยแพร่ได้ — บันทึกฉบับร่างจะยังไม่ขึ้นเว็บจริง
+  versions: { max: 20, drafts: true },
   hooks: { afterChange: [revalidateGlobal] },
   fields: [
     {

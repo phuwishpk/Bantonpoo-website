@@ -8,10 +8,11 @@ export const Products: CollectionConfig = {
   labels: { singular: "สินค้า", plural: "สินค้าชุมชน" },
   admin: {
     useAsTitle: "name",
-    defaultColumns: ["name", "category", "price", "status", "featured"],
+    defaultColumns: ["name", "category", "price", "availability", "featured"],
     group: "เนื้อหา",
   },
   access: { read: anyone, create: isEditor, update: isEditor, delete: isAdmin },
+  versions: { maxPerDoc: 20, drafts: true },
   defaultSort: "order",
   hooks: { afterChange: [revalidateProducts], afterDelete: [revalidateProducts] },
   fields: [
@@ -82,11 +83,13 @@ export const Products: CollectionConfig = {
               admin: { description: 'เว้นว่างไว้ถ้าต้องการให้ขึ้นว่า "สอบถามราคา"' },
             },
             {
-              name: "status",
+              // ตั้งชื่อ availability ไม่ใช่ status เพราะ Payload จองชื่อ _status
+              // ไว้ให้สถานะฉบับร่าง/เผยแพร่ แล้วชื่อ enum บน Postgres จะชนกัน
+              name: "availability",
               type: "select",
               required: true,
               defaultValue: "in-stock",
-              label: "สถานะ",
+              label: "สถานะสินค้า",
               options: [
                 { label: "พร้อมส่ง", value: "in-stock" },
                 { label: "สั่งทำล่วงหน้า", value: "made-to-order" },
@@ -99,7 +102,7 @@ export const Products: CollectionConfig = {
               localized: true,
               label: "ระยะเวลาสั่งทำ",
               admin: {
-                condition: (data) => data?.status === "made-to-order",
+                condition: (data) => data?.availability === "made-to-order",
                 description: 'เช่น "แจ้งล่วงหน้าอย่างน้อย 7 วัน"',
               },
             },

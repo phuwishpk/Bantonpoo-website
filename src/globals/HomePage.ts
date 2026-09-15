@@ -1,6 +1,12 @@
 import type { GlobalConfig } from "payload";
 import { anyone, isEditor } from "@/access";
-import { linkFields, sectionHeadingField, statsField } from "@/fields";
+import {
+  linkFields,
+  sectionHeadingField,
+  sectionsField,
+  statsField,
+  typographyCollapsible,
+} from "@/fields";
 import { revalidatePage } from "@/hooks/revalidate";
 
 export const HomePage: GlobalConfig = {
@@ -8,7 +14,8 @@ export const HomePage: GlobalConfig = {
   label: "หน้าแรก",
   admin: { group: "เนื้อหาประจำหน้า" },
   access: { read: anyone, update: isEditor },
-  versions: { max: 20 },
+  // drafts เปิดไว้เพื่อให้ดูตัวอย่างก่อนเผยแพร่ได้ — บันทึกฉบับร่างจะยังไม่ขึ้นเว็บจริง
+  versions: { max: 20, drafts: true },
   hooks: { afterChange: [revalidatePage("/")] },
   fields: [
     {
@@ -47,6 +54,7 @@ export const HomePage: GlobalConfig = {
                 { name: "image", type: "upload", relationTo: "media", label: "ภาพด้านขวา" },
                 { name: "imageCaption", type: "text", localized: true, label: "คำบรรยายใต้ภาพ" },
                 statsField("stats", "ตัวเลขใต้ปุ่ม", 3),
+                typographyCollapsible("ตัวอักษรและการจัดวางของแบนเนอร์"),
               ],
             },
           ],
@@ -93,81 +101,20 @@ export const HomePage: GlobalConfig = {
           label: "ลำดับและการแสดงส่วนต่าง ๆ",
           description: "ลากเพื่อสลับลำดับ ติ๊กออกเพื่อซ่อน และเลือกรูปแบบการวางของแต่ละส่วน",
           fields: [
-            {
-              name: "sections",
-              type: "array",
-              label: "ส่วนต่าง ๆ ของหน้าแรก",
-              labels: { singular: "ส่วน", plural: "ส่วนต่าง ๆ" },
-              admin: {
-                description:
-                  "ส่วนที่ไม่ได้อยู่ในรายการนี้จะไม่แสดงบนหน้าเว็บ · แบนเนอร์บนสุดอยู่ที่ตำแหน่งแรกเสมอ แก้ลำดับไม่ได้",
-              },
-              fields: [
-                {
-                  name: "type",
-                  type: "select",
-                  required: true,
-                  label: "ส่วนไหน",
-                  // ค่าเหล่านี้ผูกกับคอมโพเนนต์ในโค้ด จึงเป็นตัวเลือกไม่ใช่ช่องพิมพ์
-                  options: [
-                    { label: "การ์ดจุดเด่นชุมชน", value: "highlights" },
-                    { label: "สินค้าแนะนำ", value: "featured-products" },
-                    { label: "เรื่องเล่าเด่น", value: "spotlight" },
-                    { label: "ฐานเรียนรู้และกิจกรรม", value: "workshops" },
-                    { label: "บทความล่าสุด", value: "latest-articles" },
-                    { label: "กล่องชวนติดต่อ", value: "cta" },
-                  ],
-                },
-                { name: "enabled", type: "checkbox", defaultValue: true, label: "แสดงส่วนนี้" },
-                {
-                  name: "background",
-                  type: "select",
-                  defaultValue: "page",
-                  label: "พื้นหลัง",
-                  options: [
-                    { label: "สีพื้นของหน้า", value: "page" },
-                    { label: "พื้นเข้ม", value: "dark" },
-                    { label: "พื้นอ่อนตัดกัน", value: "tint" },
-                  ],
-                  admin: {
-                    condition: (_, sibling) =>
-                      ["highlights", "featured-products", "workshops", "latest-articles"].includes(
-                        sibling?.type
-                      ),
-                  },
-                },
-                {
-                  name: "columns",
-                  type: "select",
-                  defaultValue: "auto",
-                  label: "จำนวนคอลัมน์",
-                  options: [
-                    { label: "ตามค่าเริ่มต้น", value: "auto" },
-                    { label: "2 คอลัมน์", value: "2" },
-                    { label: "3 คอลัมน์", value: "3" },
-                    { label: "4 คอลัมน์", value: "4" },
-                  ],
-                  admin: {
-                    condition: (_, sibling) =>
-                      ["highlights", "featured-products", "workshops", "latest-articles"].includes(
-                        sibling?.type
-                      ),
-                  },
-                },
-                {
-                  name: "limit",
-                  type: "number",
-                  min: 1,
-                  max: 12,
-                  label: "จำนวนรายการที่แสดง",
-                  admin: {
-                    condition: (_, sibling) =>
-                      ["featured-products", "latest-articles", "workshops"].includes(sibling?.type),
-                    description: "เว้นว่างไว้เพื่อใช้ค่าเริ่มต้น",
-                  },
-                },
+            sectionsField({
+              types: [
+                { label: "การ์ดจุดเด่นชุมชน", value: "highlights" },
+                { label: "สินค้าแนะนำ", value: "featured-products" },
+                { label: "เรื่องเล่าเด่น", value: "spotlight" },
+                { label: "ฐานเรียนรู้และกิจกรรม", value: "workshops" },
+                { label: "บทความล่าสุด", value: "latest-articles" },
+                { label: "กล่องชวนติดต่อ", value: "cta" },
               ],
-            },
+              gridTypes: ["highlights", "featured-products", "workshops", "latest-articles"],
+              limitTypes: ["featured-products", "latest-articles", "workshops"],
+              description:
+                "ลากเพื่อสลับลำดับ ติ๊กออกเพื่อซ่อน · แบนเนอร์บนสุดอยู่ตำแหน่งแรกเสมอ แก้ลำดับไม่ได้",
+            }),
           ],
         },
         {

@@ -22,6 +22,7 @@ export const Articles: CollectionConfig = {
     group: "เนื้อหา",
   },
   access: { read: anyone, create: isEditor, update: isEditor, delete: isAdmin },
+  versions: { maxPerDoc: 20, drafts: true },
   defaultSort: "-publishedAt",
   hooks: { afterChange: [revalidateArticles], afterDelete: [revalidateArticles] },
   fields: [

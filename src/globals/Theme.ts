@@ -20,7 +20,7 @@ export const Theme: GlobalConfig = {
     description: "เปลี่ยนสี ตัวอักษร ความมน และความโปร่งของเว็บทั้งหมดจากที่นี่",
   },
   access: { read: anyone, update: isEditor },
-  versions: { max: 30 },
+  versions: { max: 30, drafts: true },
   hooks: { afterChange: [revalidateGlobal] },
   fields: [
     {
