@@ -70,7 +70,7 @@ export type Product = {
   /** รหัสสินค้าที่ใช้อ้างอิงเวลาสั่งซื้อทางไลน์ */
   sku: string;
   name: Localized;
-  categorySlug: string;
+  category: Category;
   /** ราคาเป็นบาท — ถ้าเป็น null หน้าเว็บจะขึ้น "สอบถามราคา" แทนตัวเลข */
   price: number | null;
   status: ProductStatus;
@@ -88,7 +88,10 @@ export type Product = {
    * เป็นข้อมูลความปลอดภัย ต้องแสดงชัดเจนในหน้าสินค้า
    */
   externalUseOnly: boolean;
-  artisanSlug: string;
+  /** ประเภทการจดแจ้ง — ถ้าไม่ใช่ none ต้องแสดงเลขที่บนหน้าสินค้า */
+  registrationType: "none" | "fda-cosmetic" | "fda-herbal" | "tcps";
+  registrationNo?: string;
+  artisan: Artisan;
   /** สรุปสั้นสำหรับการ์ดสินค้าและ meta description */
   excerpt: Localized;
   /** Product Story — เล่าที่มาของผลิตภัณฑ์ */
@@ -105,12 +108,12 @@ export type Product = {
 export type Article = {
   slug: string;
   title: Localized;
-  categorySlug: string;
+  category: Category;
   excerpt: Localized;
   coverImage: Media;
-  /** ชื่อผู้เขียน — ถ้าเป็นช่างในชุมชนให้ใส่ artisanSlug คู่กัน */
+  /** ชื่อผู้เขียน — ถ้าเป็นคนในทำเนียบให้ผูก artisan ไว้ด้วย */
   author: Localized;
-  artisanSlug?: string;
+  artisan?: Artisan;
   publishedAt: string;
   /** เนื้อหาแบบ block — ตรงกับ Rich Text ของ Payload (Lexical) */
   content: ContentBlock[];
@@ -163,8 +166,6 @@ export type SiteSettings = {
   communityName: Localized;
   communityShortName: Localized;
   tagline: Localized;
-  heroTitle: Localized;
-  heroSubtitle: Localized;
   aboutSummary: Localized;
   phone: string;
   phoneDisplay: string;
@@ -182,6 +183,7 @@ export type SiteSettings = {
   openingHours: Localized;
   /** เวอร์ชันสั้นสำหรับที่แคบ เช่น drawer บนมือถือ */
   openingHoursShort: Localized;
-  /** โดเมนจริงตอน deploy — ใช้ประกอบ canonical URL, sitemap, OG image */
-  siteUrl: string;
+  logo?: Media;
+  // โดเมนไม่ได้อยู่ที่นี่ — อ่านจาก NEXT_PUBLIC_SITE_URL ใน src/lib/site-url.ts
+  // เพราะเป็นค่าที่ต่างกันระหว่างเครื่องทดสอบกับเครื่องจริง ไม่ใช่เนื้อหาที่แอดมินแก้
 };

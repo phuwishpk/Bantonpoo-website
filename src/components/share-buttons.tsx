@@ -11,9 +11,9 @@ const BUTTON =
 /**
  * ปุ่มแชร์บทความไปยัง Facebook, LINE และคัดลอกลิงก์
  *
- * ใช้ URL แบบ canonical (ประกอบจาก site.siteUrl) ไม่ใช่ URL ของหน้าที่เปิดอยู่
+ * ใช้ URL แบบ canonical (ประกอบจาก NEXT_PUBLIC_SITE_URL) ไม่ใช่ URL ของหน้าที่เปิดอยู่
  * เพราะสิ่งที่ควรถูกแชร์ออกไปคือลิงก์ของโดเมนจริงเสมอ ไม่ใช่ลิงก์ preview
- * หรือ localhost — จึงต้องตั้งค่า siteUrl ใน src/content/site.ts ให้ถูกก่อน deploy
+ * หรือ localhost — จึงต้องตั้ง NEXT_PUBLIC_SITE_URL ให้ถูกก่อน deploy
  */
 export function ShareButtons({ path, title }: { path: string; title: string }) {
   const [copied, setCopied] = useState(false);

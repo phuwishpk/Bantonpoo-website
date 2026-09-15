@@ -1,21 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { site } from "@/content/site";
-import type { Product, Workshop } from "@/content/types";
-import { buildProductOrderMessage, buildWorkshopBookingMessage, lineChatUrl } from "@/lib/line";
+import type { Product, SiteSettings, Workshop } from "@/content/types";
+import { buildProductOrderMessage, buildWorkshopBookingMessage } from "@/lib/line";
+import { siteUrl } from "@/lib/site-url";
+import { useSite } from "./site-context";
 
 /**
  * ตรรกะกลางของปุ่ม "สั่งซื้อ/จองผ่าน LINE"
  *
  * เมื่อกด: เปิดห้องแชท LINE Official Account ของชุมชน แล้วคัดลอกข้อความ
  * รายละเอียด (ชื่อ รหัส ราคา ลิงก์) ไปยังคลิปบอร์ด ผู้ใช้เพียงกดวางในแชท
- *
- * เหตุผลที่ไม่ส่งข้อความอัตโนมัติ: LINE ไม่เปิดให้เว็บส่งข้อความเข้าห้องแชท
- * ของ OA โดยตรง ต้องทำผ่าน Messaging API (บอท) ซึ่งอยู่นอกขอบเขต prototype
- * ถ้าภายหลังชุมชนทำบอทแล้ว แก้เฉพาะไฟล์นี้กับ src/lib/line.ts
  */
-export function useCopyAndOpenLine(buildMessage: (url: string) => string) {
+export function useCopyAndOpenLine(buildMessage: (url: string, site: SiteSettings) => string) {
+  const site = useSite();
   const [copied, setCopied] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -24,11 +22,11 @@ export function useCopyAndOpenLine(buildMessage: (url: string) => string) {
   }, []);
 
   const handleClick = useCallback(async () => {
-    const url = typeof window === "undefined" ? site.siteUrl : window.location.href;
-    const message = buildMessage(url);
+    const url = typeof window === "undefined" ? siteUrl : window.location.href;
+    const message = buildMessage(url, site);
 
     // เปิดแชทก่อน เพื่อไม่ให้เบราว์เซอร์บล็อกป๊อปอัปหลังจบ await
-    window.open(lineChatUrl, "_blank", "noopener,noreferrer");
+    window.open(site.lineUrl, "_blank", "noopener,noreferrer");
 
     try {
       await navigator.clipboard.writeText(message);
@@ -38,17 +36,22 @@ export function useCopyAndOpenLine(buildMessage: (url: string) => string) {
     } catch {
       // บางเบราว์เซอร์ไม่อนุญาต clipboard (เช่น เปิดผ่าน http) — แชทยังเปิดได้ตามปกติ
     }
-  }, [buildMessage]);
+  }, [buildMessage, site]);
 
   return { copied, handleClick };
 }
 
 export function useProductOrder(product: Product) {
-  return useCopyAndOpenLine(useCallback((url: string) => buildProductOrderMessage(product, url), [product]));
+  return useCopyAndOpenLine(
+    useCallback((url: string, site: SiteSettings) => buildProductOrderMessage(product, url, site), [product])
+  );
 }
 
 export function useWorkshopBooking(workshop: Workshop) {
   return useCopyAndOpenLine(
-    useCallback((url: string) => buildWorkshopBookingMessage(workshop, url), [workshop])
+    useCallback(
+      (url: string, site: SiteSettings) => buildWorkshopBookingMessage(workshop, url, site),
+      [workshop]
+    )
   );
 }

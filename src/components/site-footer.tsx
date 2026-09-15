@@ -1,20 +1,20 @@
 import Link from "next/link";
-import { site } from "@/content/site";
+import type { NavData } from "@/lib/cms/navigation";
+import type { SiteSettings } from "@/content/types";
 import { t } from "@/lib/i18n";
 import { telUrl } from "@/lib/line";
-import { mainNav } from "@/lib/nav";
 import { FacebookIcon, LineIcon, MailIcon, MapPinIcon, PhoneIcon } from "./icons";
 import { directionsUrl, MapEmbed } from "./map-embed";
 import { SiteLogo } from "./site-logo";
 import { Container } from "./ui";
 
-export function SiteFooter() {
+export function SiteFooter({ site, nav }: { site: SiteSettings; nav: NavData }) {
   return (
     <footer className="mt-24 bg-ink-800 text-ink-200">
       <Container size="wide" className="py-14">
         <div className="grid gap-12 lg:grid-cols-[1.4fr_1fr_1.3fr]">
           <div className="flex flex-col gap-5">
-            <SiteLogo />
+            <SiteLogo site={site} />
             <p className="max-w-sm text-sm leading-relaxed text-ink-300">{t(site.aboutSummary)}</p>
             <div className="flex gap-2">
               <a
@@ -45,18 +45,28 @@ export function SiteFooter() {
             </div>
           </div>
 
-          <nav aria-label="เมนูท้ายเว็บ" className="flex flex-col gap-4">
-            <h2 className="text-xs font-semibold tracking-label text-leaf-300">เมนู</h2>
-            <ul className="flex flex-col gap-2.5">
-              {mainNav.map((item) => (
-                <li key={item.href}>
-                  <Link href={item.href} className="text-sm text-ink-300 transition-colors hover:text-white">
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          <div className="flex flex-col gap-8">
+            {nav.footerColumns.map((column) => (
+              <nav key={t(column.heading)} aria-label={t(column.heading)} className="flex flex-col gap-4">
+                <h2 className="text-xs font-semibold tracking-label text-leaf-300">
+                  {t(column.heading)}
+                </h2>
+                <ul className="flex flex-col gap-2.5">
+                  {column.links.map((item) => (
+                    <li key={`${item.href}-${t(item.label)}`}>
+                      <Link
+                        href={item.href}
+                        {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                        className="text-sm text-ink-300 transition-colors hover:text-white"
+                      >
+                        {t(item.label)}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            ))}
+          </div>
 
           <div className="flex flex-col gap-4">
             <h2 className="text-xs font-semibold tracking-label text-leaf-300">ติดต่อชุมชน</h2>
@@ -67,7 +77,7 @@ export function SiteFooter() {
               </li>
               <li className="flex gap-3">
                 <PhoneIcon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-ink-400" />
-                <a href={telUrl} className="text-ink-300 transition-colors hover:text-white">
+                <a href={telUrl(site)} className="text-ink-300 transition-colors hover:text-white">
                   {site.phoneDisplay}
                 </a>
               </li>
@@ -86,10 +96,10 @@ export function SiteFooter() {
 
             <div className="mt-1 overflow-hidden rounded-xl border border-white/10">
               <div className="h-40">
-                <MapEmbed title="แผนที่ย่อชุมชนบ้านต้นโพธิ์" />
+                <MapEmbed site={site} title="แผนที่ย่อชุมชนบ้านต้นโพธิ์" />
               </div>
               <a
-                href={directionsUrl}
+                href={directionsUrl(site)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 bg-white/5 py-2.5 text-xs font-semibold text-rice-100 transition-colors hover:bg-white/10"

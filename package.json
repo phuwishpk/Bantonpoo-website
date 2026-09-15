@@ -2,18 +2,32 @@
   "name": "bantonpoo-website",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --port ${PORT:-3100}",
     "build": "next build",
     "start": "next start --port ${PORT:-3100}",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "placeholders": "node scripts/generate-placeholders.mjs"
+    "placeholders": "node scripts/generate-placeholders.mjs",
+    "deploy": "./scripts/deploy.sh",
+    "db:start": "docker start bantonpoo-pg || docker run -d --name bantonpoo-pg -e POSTGRES_USER=bantonpoo -e POSTGRES_PASSWORD=devpassword -e POSTGRES_DB=bantonpoo -p 5433:5432 postgres:16-alpine",
+    "db:stop": "docker stop bantonpoo-pg",
+    "payload": "payload",
+    "cms:types": "payload generate:types && payload generate:importmap",
+    "seed": "tsx --env-file=.env.local scripts/seed.ts"
   },
   "dependencies": {
+    "@payloadcms/db-postgres": "^3.89.0",
+    "@payloadcms/next": "^3.89.0",
+    "@payloadcms/richtext-lexical": "^3.89.0",
+    "@payloadcms/translations": "^3.89.0",
+    "graphql": "^16.14.2",
     "next": "^16.3.5",
+    "payload": "^3.89.0",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.0",
+    "sharp": "^0.35.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",

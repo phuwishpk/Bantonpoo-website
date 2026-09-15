@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getCategory } from "@/content/categories";
 import type { Article } from "@/content/types";
 import { estimateReadingMinutes, formatThaiDateShort } from "@/lib/format";
 import { t } from "@/lib/i18n";
@@ -14,7 +13,7 @@ export function ArticleCard({
   layout?: "vertical" | "horizontal";
   priority?: boolean;
 }) {
-  const category = getCategory(article.categorySlug, "article");
+  const category = article.category;
   const minutes = estimateReadingMinutes(article);
 
   if (layout === "horizontal") {

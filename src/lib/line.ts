@@ -1,5 +1,4 @@
-import { site } from "@/content/site";
-import type { Product, Workshop } from "@/content/types";
+import type { Product, SiteSettings, Workshop } from "@/content/types";
 import { formatPrice } from "./format";
 import { t } from "./i18n";
 
@@ -13,7 +12,11 @@ import { t } from "./i18n";
  * ถ้าภายหลังชุมชนทำ LINE Messaging API (บอท) จะเปลี่ยนไปใช้ลิงก์พร้อม
  * พารามิเตอร์แล้วให้บอทตอบกลับอัตโนมัติได้ โดยแก้เฉพาะไฟล์นี้
  */
-export function buildProductOrderMessage(product: Product, url: string): string {
+export function buildProductOrderMessage(
+  product: Product,
+  url: string,
+  site: SiteSettings
+): string {
   const price = product.price === null ? "สอบถามราคา" : formatPrice(product.price);
   return [
     `สวัสดีครับ/ค่ะ สนใจสั่งซื้อสินค้าจากเว็บไซต์${t(site.communityShortName)}`,
@@ -27,7 +30,11 @@ export function buildProductOrderMessage(product: Product, url: string): string 
   ].join("\n");
 }
 
-export function buildWorkshopBookingMessage(workshop: Workshop, url: string): string {
+export function buildWorkshopBookingMessage(
+  workshop: Workshop,
+  url: string,
+  site: SiteSettings
+): string {
   const price =
     workshop.pricePerPerson === null ? "สอบถามราคา" : `${formatPrice(workshop.pricePerPerson)} / คน`;
   return [
@@ -42,11 +49,8 @@ export function buildWorkshopBookingMessage(workshop: Workshop, url: string): st
   ].join("\n");
 }
 
-/** ลิงก์เปิดห้องแชท LINE Official Account ของชุมชน */
-export const lineChatUrl = site.lineUrl;
-
 /** ลิงก์โทรออก */
-export const telUrl = `tel:${site.phone}`;
+export const telUrl = (site: SiteSettings) => `tel:${site.phone}`;
 
 /** ลิงก์แชร์ไปยัง LINE (ใช้กับปุ่มแชร์บทความ) */
 export function lineShareUrl(url: string): string {

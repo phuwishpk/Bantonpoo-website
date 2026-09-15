@@ -1,10 +1,11 @@
+import Image from "next/image";
 import Link from "next/link";
-import { site } from "@/content/site";
+import type { SiteSettings } from "@/content/types";
 import { t } from "@/lib/i18n";
 
 /**
- * โลโก้ชั่วคราวของชุมชน — ใบโพธิ์ในวงกลม สื่อถึงต้นโพธิ์ใหญ่ที่เป็นที่มาของชื่อชุมชน
- * เมื่อชุมชนมีโลโก้จริงแล้ว ให้แทนที่ <svg> ด้วย next/image
+ * เครื่องหมายสำรอง — ใบโพธิ์ในวงกลม สื่อถึงต้นโพธิ์ใหญ่ที่เป็นที่มาของชื่อชุมชน
+ * ใช้เมื่อยังไม่ได้อัปโหลดโลโก้จริงในหน้า "ข้อมูลชุมชน"
  */
 export function LogoMark({ className = "" }: { className?: string }) {
   return (
@@ -25,19 +26,36 @@ export function LogoMark({ className = "" }: { className?: string }) {
   );
 }
 
-export function SiteLogo({ tone = "light" }: { tone?: "light" | "dark" }) {
+/** รับข้อมูลชุมชนเป็น prop เพราะใช้ทั้งใน header (client) และ footer (server) */
+export function SiteLogo({
+  site,
+  tone = "light",
+}: {
+  site: SiteSettings;
+  tone?: "light" | "dark";
+}) {
   const title = tone === "light" ? "text-rice-100" : "text-ink-800";
   const subtitle = tone === "light" ? "text-ink-300" : "text-river-500";
 
   return (
     <Link href="/" className="flex items-center gap-3" aria-label={`${t(site.communityShortName)} — หน้าแรก`}>
-      <LogoMark className="h-9 w-9 shrink-0 sm:h-10 sm:w-10" />
+      {site.logo ? (
+        <Image
+          src={site.logo.url}
+          alt={t(site.logo.alt)}
+          width={site.logo.width}
+          height={site.logo.height}
+          className="h-9 w-9 shrink-0 rounded-full object-cover sm:h-10 sm:w-10"
+        />
+      ) : (
+        <LogoMark className="h-9 w-9 shrink-0 sm:h-10 sm:w-10" />
+      )}
       <span className="flex flex-col leading-tight">
         <span className={`whitespace-nowrap font-serif text-base font-semibold sm:text-lg ${title}`}>
           {t(site.communityShortName)}
         </span>
         <span className={`hidden whitespace-nowrap text-[0.6875rem] tracking-wide xs:block ${subtitle}`}>
-          สมุนไพรชุมชนมอญ · ปทุมธานี
+          {t(site.tagline)}
         </span>
       </span>
     </Link>

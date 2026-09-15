@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { articleCategories } from "@/content/categories";
-import type { Article } from "@/content/types";
+import type { Article, Category } from "@/content/types";
 import { t } from "@/lib/i18n";
 import { ArticleCard } from "./article-card";
 import { SearchIcon } from "./icons";
@@ -14,12 +13,16 @@ import { buttonClass } from "./ui";
  */
 export function StoriesBrowser({
   articles,
+  categories,
   initialCategory,
   initialQuery,
+  emptyState,
 }: {
   articles: Article[];
+  categories: Category[];
   initialCategory: string | null;
   initialQuery: string;
+  emptyState: { title: string; body: string };
 }) {
   const [category, setCategory] = useState<string | null>(initialCategory);
   const [query, setQuery] = useState(initialQuery);
@@ -37,7 +40,7 @@ export function StoriesBrowser({
   const visible = useMemo(
     () =>
       articles.filter((article) => {
-        if (category && article.categorySlug !== category) return false;
+        if (category && article.category.slug !== category) return false;
         if (!searchText) return true;
         const haystack = [t(article.title), t(article.excerpt), t(article.author)].join(" ").toLowerCase();
         return haystack.includes(searchText);
@@ -45,7 +48,7 @@ export function StoriesBrowser({
     [articles, category, searchText]
   );
 
-  const tabs = [{ slug: null, label: "ทั้งหมด" }, ...articleCategories.map((c) => ({ slug: c.slug, label: t(c.title) }))];
+  const tabs = [{ slug: null, label: "ทั้งหมด" }, ...categories.map((c) => ({ slug: c.slug, label: t(c.title) }))];
 
   return (
     <div className="flex flex-col gap-8">
@@ -97,8 +100,8 @@ export function StoriesBrowser({
         </div>
       ) : (
         <div className="rounded-card border border-dashed border-rice-400 bg-rice-50 px-6 py-16 text-center">
-          <p className="font-serif text-lg text-ink-800">ไม่พบบทความที่ตรงกับคำค้น</p>
-          <p className="mt-2 text-sm text-river-500">ลองใช้คำที่สั้นลง หรือเลือกดูจากหมวดหมู่ทั้งหมด</p>
+          <p className="font-serif text-lg text-ink-800">{emptyState.title}</p>
+          <p className="mt-2 text-sm text-river-500">{emptyState.body}</p>
           <button
             type="button"
             onClick={() => {

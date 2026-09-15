@@ -6,3 +6,6 @@ out
 .DS_Store
 *.tsbuildinfo
 next-env.d.ts
+
+# รูปที่อัปโหลดผ่าน CMS — ไม่เก็บใน Git
+uploads/

@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getCategory } from "@/content/categories";
-import { productStatusLabels } from "@/content/products";
+import { productStatusLabels } from "@/lib/product-labels";
 import type { Product } from "@/content/types";
 import { formatPrice } from "@/lib/format";
 import { t } from "@/lib/i18n";
@@ -23,7 +22,7 @@ export function ProductCard({
   showQuickOrder?: boolean;
   priority?: boolean;
 }) {
-  const category = getCategory(product.categorySlug, "product");
+  const category = product.category;
   const [cover, hoverImage] = product.gallery;
   const badge = t(product.badges)[0];
 

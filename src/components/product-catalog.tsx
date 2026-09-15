@@ -3,8 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getCategory } from "@/content/categories";
-import { productFormLabels, productStatusLabels } from "@/content/products";
+import { productFormLabels, productStatusLabels } from "@/lib/product-labels";
 import type { Product } from "@/content/types";
 import { formatPrice } from "@/lib/format";
 import { t } from "@/lib/i18n";
@@ -266,7 +265,7 @@ function CatalogSlide({
   position: number;
   total: number;
 }) {
-  const category = getCategory(product.categorySlug, "product");
+  const category = product.category;
   const cover = product.gallery[0];
   const herbs = t(product.mainHerbs);
 

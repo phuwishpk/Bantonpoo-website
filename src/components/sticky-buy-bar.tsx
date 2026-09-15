@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { productStatusLabels } from "@/content/products";
+import { productStatusLabels } from "@/lib/product-labels";
 import type { Product } from "@/content/types";
 import { formatPrice } from "@/lib/format";
 import { t } from "@/lib/i18n";

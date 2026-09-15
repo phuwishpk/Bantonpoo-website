@@ -10,7 +10,14 @@ const config = [
   ...nextTypescript,
   {
     // ไฟล์ที่สร้างอัตโนมัติ ไม่ต้องตรวจ
-    ignores: [".next/**", "node_modules/**", "src/content/placeholders.ts"],
+    ignores: [
+      ".next/**",
+      "node_modules/**",
+      "scripts/seed-data/placeholders.ts",
+      // ไฟล์ที่ Payload สร้างอัตโนมัติ
+      "src/payload-types.ts",
+      "src/app/(payload)/admin/importMap.js",
+    ],
   },
 ];
 

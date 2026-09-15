@@ -359,7 +359,7 @@ MANIFEST.forEach(([name, variant, label, w, h, shape]) => {
  * เขียนทะเบียนภาพเป็นไฟล์ TypeScript ด้วย เพื่อให้ขนาดภาพ (width/height)
  * ที่ next/image ใช้ ตรงกับไฟล์จริงเสมอ ไม่ต้องมาไล่แก้สองที่
  */
-const TS_OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "src", "content", "placeholders.ts");
+const TS_OUT = join(dirname(fileURLToPath(import.meta.url)), "seed-data", "placeholders.ts");
 const entries = MANIFEST.map(
   ([name, , label, w, h]) =>
     `  "${name}": { url: "/placeholder/${name}.svg", width: ${w}, height: ${h}, label: ${JSON.stringify(label)} },`
@@ -379,4 +379,4 @@ ${entries}
 `
 );
 
-console.log(`สร้างภาพ placeholder ${MANIFEST.length} ไฟล์ ที่ public/placeholder/ และทะเบียนภาพที่ src/content/placeholders.ts`);
+console.log(`สร้างภาพ placeholder ${MANIFEST.length} ไฟล์ ที่ public/placeholder/ และทะเบียนภาพที่ scripts/seed-data/placeholders.ts`);

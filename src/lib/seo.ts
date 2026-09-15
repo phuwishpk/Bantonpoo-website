@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { site } from "@/content/site";
-import { productFormLabels, productStatusLabels } from "@/content/products";
-import type { Article, Product, Workshop } from "@/content/types";
+import type { Article, Product, SiteSettings, Workshop } from "@/content/types";
 import { formatThaiDate, truncate } from "./format";
 import { t } from "./i18n";
+import { productFormLabels, productStatusLabels } from "./product-labels";
+import { siteUrl } from "./site-url";
 
-export const siteUrl = site.siteUrl;
+export { siteUrl };
 
 export function absoluteUrl(path: string): string {
   return new URL(path, siteUrl).toString();
@@ -16,6 +16,7 @@ export function buildMetadata(options: {
   title: string;
   description: string;
   path: string;
+  siteName: string;
   image?: string;
   type?: "website" | "article";
   publishedTime?: string;
@@ -32,7 +33,7 @@ export function buildMetadata(options: {
       title: options.title,
       description,
       url,
-      siteName: t(site.communityName),
+      siteName: options.siteName,
       locale: "th_TH",
       type: options.type ?? "website",
       images: [{ url: image }],
@@ -51,7 +52,7 @@ export function buildMetadata(options: {
    JSON-LD — ช่วยให้ Google เข้าใจว่าหน้าไหนคือสินค้า บทความ หรือสถานที่
    ------------------------------------------------------------------ */
 
-export function localBusinessJsonLd() {
+export function localBusinessJsonLd(site: SiteSettings) {
   return {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
@@ -83,7 +84,7 @@ const STATUS_TO_SCHEMA: Record<Product["status"], string> = {
   "sold-out": "https://schema.org/OutOfStock",
 };
 
-export function productJsonLd(product: Product) {
+export function productJsonLd(product: Product, site: SiteSettings) {
   return {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -117,7 +118,7 @@ export function productJsonLd(product: Product) {
   };
 }
 
-export function articleJsonLd(article: Article) {
+export function articleJsonLd(article: Article, site: SiteSettings) {
   return {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -133,7 +134,7 @@ export function articleJsonLd(article: Article) {
   };
 }
 
-export function workshopJsonLd(workshop: Workshop) {
+export function workshopJsonLd(workshop: Workshop, site: SiteSettings) {
   return {
     "@context": "https://schema.org",
     "@type": "TouristAttraction",

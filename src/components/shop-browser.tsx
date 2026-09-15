@@ -1,9 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { productCategories } from "@/content/categories";
-import { productFormLabels, productStatusLabels } from "@/content/products";
-import type { Product, ProductForm, ProductStatus } from "@/content/types";
+import { productFormLabels, productStatusLabels } from "@/lib/product-labels";
+import type { Category, Product, ProductForm, ProductStatus } from "@/content/types";
 import { t } from "@/lib/i18n";
 import { FilterGroup } from "./filter-group";
 import { CloseIcon, FilterIcon, GridIcon, SearchIcon, SlidesIcon } from "./icons";
@@ -51,7 +50,17 @@ const STATUS_ORDER: ProductStatus[] = ["in-stock", "made-to-order", "sold-out"];
  * ผลการกรองไปส่งต่อได้ ค่าเริ่มต้นอ่านจาก query string ฝั่งเซิร์ฟเวอร์
  * จึงไม่มีอาการกระพริบตอนเปิดลิงก์ที่มีตัวกรองอยู่แล้ว
  */
-export function ShopBrowser({ products, initial }: { products: Product[]; initial: ShopFilters }) {
+export function ShopBrowser({
+  products,
+  categories,
+  initial,
+  emptyState,
+}: {
+  products: Product[];
+  categories: Category[];
+  initial: ShopFilters;
+  emptyState: { title: string; body: string };
+}) {
   const [filters, setFilters] = useState<ShopFilters>(initial);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -91,13 +100,13 @@ export function ShopBrowser({ products, initial }: { products: Product[]; initia
   const countBy = useCallback(
     (dimension: "category" | "form" | "status", value: string) =>
       products.filter((product) => {
-        if (dimension !== "category" && filters.categories.length && !filters.categories.includes(product.categorySlug))
+        if (dimension !== "category" && filters.categories.length && !filters.categories.includes(product.category.slug))
           return false;
         if (dimension !== "form" && filters.forms.length && !filters.forms.includes(product.form)) return false;
         if (dimension !== "status" && filters.statuses.length && !filters.statuses.includes(product.status))
           return false;
 
-        if (dimension === "category") return product.categorySlug === value;
+        if (dimension === "category") return product.category.slug === value;
         if (dimension === "form") return product.form === value;
         return product.status === value;
       }).length,
@@ -106,7 +115,7 @@ export function ShopBrowser({ products, initial }: { products: Product[]; initia
 
   const visible = useMemo(() => {
     const filtered = products.filter((product) => {
-      if (filters.categories.length && !filters.categories.includes(product.categorySlug)) return false;
+      if (filters.categories.length && !filters.categories.includes(product.category.slug)) return false;
       if (filters.forms.length && !filters.forms.includes(product.form)) return false;
       if (filters.statuses.length && !filters.statuses.includes(product.status)) return false;
       if (searchText) {
@@ -141,7 +150,7 @@ export function ShopBrowser({ products, initial }: { products: Product[]; initia
         legend="หมวดหมู่สินค้า"
         selected={filters.categories}
         onToggle={(value) => toggle("categories", value)}
-        options={productCategories.map((category) => ({
+        options={categories.map((category) => ({
           value: category.slug,
           label: t(category.title),
           count: countBy("category", category.slug),
@@ -284,10 +293,8 @@ export function ShopBrowser({ products, initial }: { products: Product[]; initia
           )
         ) : (
           <div className="rounded-card border border-dashed border-rice-400 bg-rice-50 px-6 py-16 text-center">
-            <p className="font-serif text-lg text-ink-800">ไม่พบสินค้าที่ตรงกับเงื่อนไข</p>
-            <p className="mt-2 text-sm text-river-500">
-              ลองลดตัวกรองลง หรือทักมาสอบถามกลุ่มวิสาหกิจชุมชนโดยตรงได้เลย
-            </p>
+            <p className="font-serif text-lg text-ink-800">{emptyState.title}</p>
+            <p className="mt-2 text-sm text-river-500">{emptyState.body}</p>
             <button type="button" onClick={resetFilters} className={buttonClass("secondary", "mt-5")}>
               ล้างตัวกรองทั้งหมด
             </button>

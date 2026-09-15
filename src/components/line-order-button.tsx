@@ -1,14 +1,15 @@
 "use client";
 
-import { site } from "@/content/site";
 import type { Product, Workshop } from "@/content/types";
 import { t } from "@/lib/i18n";
 import { CheckIcon, LineIcon } from "./icons";
+import { useSite } from "./site-context";
 import { buttonClass } from "./ui";
 import { useProductOrder, useWorkshopBooking } from "./use-line-order";
 
 /** ปุ่มหลักในหน้ารายละเอียดสินค้า */
 export function ProductOrderButton({ product, className = "" }: { product: Product; className?: string }) {
+  const site = useSite();
   const { copied, handleClick } = useProductOrder(product);
 
   return (

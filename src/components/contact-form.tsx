@@ -1,18 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { site } from "@/content/site";
 import { CheckIcon, LineIcon } from "./icons";
+import { useSite } from "./site-context";
 import { buttonClass } from "./ui";
-
-const TOPICS = ["สั่งซื้อสินค้า", "สั่งทำชุดของฝาก/ของชำร่วย", "จองกิจกรรม/เข้าศึกษาดูงาน", "ขายส่ง/ตัวแทนจำหน่าย", "อื่น ๆ"];
 
 type FieldErrors = Partial<Record<"name" | "phone" | "topic" | "message", string>>;
 
 const FIELD_BASE =
   "w-full rounded-lg border bg-rice-50 px-4 py-3 text-sm text-ink-800 placeholder:text-river-400 focus:outline-none";
 
-export function ContactForm() {
+export function ContactForm({
+  topics,
+  success,
+}: {
+  topics: string[];
+  success: { title: string; body: string };
+}) {
+  const site = useSite();
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [errors, setErrors] = useState<FieldErrors>({});
 
@@ -51,11 +56,8 @@ export function ContactForm() {
         <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-leaf-600 text-white">
           <CheckIcon className="h-6 w-6" />
         </span>
-        <h3 className="font-serif text-lg font-semibold text-ink-800">ได้รับข้อความแล้ว</h3>
-        <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-river-500">
-          ผู้ประสานงานชุมชนจะติดต่อกลับภายในเวลาทำการ หากต้องการคำตอบเร็วกว่านี้
-          ทักมาทาง LINE หรือโทรหาได้เลย
-        </p>
+        <h3 className="font-serif text-lg font-semibold text-ink-800">{success.title}</h3>
+        <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-river-500">{success.body}</p>
         <div className="mt-5 flex flex-col justify-center gap-3 sm:flex-row">
           <a
             href={site.lineUrl}
@@ -112,7 +114,7 @@ export function ContactForm() {
           <option value="" disabled>
             เลือกหัวข้อ
           </option>
-          {TOPICS.map((topic) => (
+          {topics.map((topic) => (
             <option key={topic} value={topic}>
               {topic}
             </option>
