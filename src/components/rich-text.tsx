@@ -37,7 +37,7 @@ function Block({ block }: { block: ContentBlock }) {
     case "image":
       return (
         <figure className="!mt-10">
-          <div className="overflow-hidden rounded-xl bg-steel-800">
+          <div className="overflow-hidden rounded-xl bg-ink-800">
             <Image
               src={block.media.url}
               alt={t(block.media.alt)}
@@ -48,7 +48,7 @@ function Block({ block }: { block: ContentBlock }) {
             />
           </div>
           {block.media.caption ? (
-            <figcaption className="mt-3 text-sm leading-relaxed text-forged-500">
+            <figcaption className="mt-3 text-sm leading-relaxed text-river-500">
               {t(block.media.caption)}
             </figcaption>
           ) : null}
@@ -60,7 +60,7 @@ function Block({ block }: { block: ContentBlock }) {
         <figure className="!mt-10">
           <blockquote>{t(block.text)}</blockquote>
           {block.attribution ? (
-            <figcaption className="mt-3 pl-6 text-sm text-forged-500">— {t(block.attribution)}</figcaption>
+            <figcaption className="mt-3 pl-6 text-sm text-river-500">— {t(block.attribution)}</figcaption>
           ) : null}
         </figure>
       );
@@ -68,7 +68,7 @@ function Block({ block }: { block: ContentBlock }) {
     case "youtube":
       return (
         <figure className="!mt-10">
-          <div className="aspect-video overflow-hidden rounded-xl bg-steel-900">
+          <div className="aspect-video overflow-hidden rounded-xl bg-ink-900">
             <iframe
               // youtube-nocookie ไม่ตั้งคุกกี้ติดตามจนกว่าผู้ใช้จะกดเล่น
               src={`https://www.youtube-nocookie.com/embed/${block.videoId}`}
@@ -79,7 +79,7 @@ function Block({ block }: { block: ContentBlock }) {
               className="h-full w-full border-0"
             />
           </div>
-          <figcaption className="mt-3 text-sm text-forged-500">{t(block.title)}</figcaption>
+          <figcaption className="mt-3 text-sm text-river-500">{t(block.title)}</figcaption>
         </figure>
       );
   }

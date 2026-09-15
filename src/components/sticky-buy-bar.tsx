@@ -46,8 +46,8 @@ export function StickyBuyBar({ product, anchorId }: { product: Product; anchorId
     >
       <div className="flex items-center gap-3 px-4 py-3">
         <div className="min-w-0 flex-1">
-          <p className="truncate text-xs text-forged-500">{t(productStatusLabels[product.status])}</p>
-          <p className="font-serif text-lg font-semibold text-steel-800">
+          <p className="truncate text-xs text-river-500">{t(productStatusLabels[product.status])}</p>
+          <p className="font-serif text-lg font-semibold text-ink-800">
             {product.price === null ? (
               <span className="text-base">สอบถามราคา</span>
             ) : (
@@ -59,7 +59,7 @@ export function StickyBuyBar({ product, anchorId }: { product: Product; anchorId
           type="button"
           onClick={handleClick}
           tabIndex={visible ? 0 : -1}
-          className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-ember-500 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-ember-600"
+          className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-leaf-500 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-leaf-600"
         >
           {copied ? <CheckIcon className="h-[18px] w-[18px]" /> : <LineIcon className="h-[18px] w-[18px]" />}
           {copied ? "คัดลอกแล้ว" : "แอดไลน์สั่งซื้อ"}

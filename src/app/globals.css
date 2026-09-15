@@ -5,32 +5,41 @@
    ปรับสีทั้งเว็บได้จากที่เดียวตรงนี้
    ------------------------------------------------------------------ */
 @theme {
-  /* Charcoal Steel — เหล็กกล้า/เตาเผา : ตัวอักษรหลัก, Header, Footer */
-  --color-steel-50: #f5f6f7;
-  --color-steel-100: #e6e8ea;
-  --color-steel-200: #c9cdd3;
-  --color-steel-300: #9aa2ac;
-  --color-steel-400: #6b7581;
-  --color-steel-500: #47505b;
-  --color-steel-600: #333b45;
-  --color-steel-700: #272d35;
-  --color-steel-800: #1e232a;
-  --color-steel-900: #15191e;
-  --color-steel-950: #0d1014;
+  /* Deep Ink — โทนเข้มของงานไม้และเงาใต้ถุนเรือนริมน้ำ : ตัวอักษรหลัก, Header, Footer */
+  --color-ink-50: #f5f6f7;
+  --color-ink-100: #e6e8ea;
+  --color-ink-200: #c9cdd3;
+  --color-ink-300: #9aa2ac;
+  --color-ink-400: #6b7581;
+  --color-ink-500: #47505b;
+  --color-ink-600: #333b45;
+  --color-ink-700: #272d35;
+  --color-ink-800: #1e232a;
+  --color-ink-900: #15191e;
+  --color-ink-950: #0d1014;
 
-  /* Ember Flame — ประกายไฟจากเตาตีเหล็ก : ปุ่ม CTA, ป้าย, จุดเน้น */
-  --color-ember-50: #fff5ed;
-  --color-ember-100: #ffe6d1;
-  --color-ember-200: #ffc8a3;
-  --color-ember-300: #ffa26b;
-  --color-ember-400: #fb7a37;
-  --color-ember-500: #e65100;
-  --color-ember-600: #d84315;
-  --color-ember-700: #b3360f;
-  --color-ember-800: #8c2b0e;
-  --color-ember-900: #6e230e;
+  /* Herbal Leaf — เขียวสมุนไพร : ปุ่ม CTA, ป้าย และจุดเน้นสำคัญ */
+  --color-leaf-50: #eef7f1;
+  --color-leaf-100: #d6ecdf;
+  --color-leaf-200: #aedabf;
+  --color-leaf-300: #7ec79b;
+  --color-leaf-400: #4ea675;
+  --color-leaf-500: #2e7d52;
+  --color-leaf-600: #24643f;
+  --color-leaf-700: #1d5034;
+  --color-leaf-800: #173f29;
+  --color-leaf-900: #123020;
 
-  /* Warm Rice & Earth — พื้นหลังหน้าเว็บ */
+  /* Temple Ochre — เหลืองทองแบบวัดมอญ : สีรอง ใช้กับป้ายสั่งทำและจุดสะดุดตา */
+  --color-ochre-50: #fdf8e7;
+  --color-ochre-100: #faeec2;
+  --color-ochre-200: #f0dfa0;
+  --color-ochre-400: #c9a227;
+  --color-ochre-500: #ad8a1c;
+  --color-ochre-600: #8d6f16;
+  --color-ochre-700: #6f5711;
+
+  /* Warm Rice — ครีมข้าว : พื้นหลังหน้าเว็บ อ่านสบายตา */
   --color-rice-50: #fefdfc;
   --color-rice-100: #faf8f5;
   --color-rice-200: #f2ede6;
@@ -38,10 +47,10 @@
   --color-rice-400: #d6cabb;
   --color-rice-500: #b9a894;
 
-  /* Forged Grey — คำบรรยาย, เส้นกริด */
-  --color-forged-400: #94a3b8;
-  --color-forged-500: #64748b;
-  --color-forged-600: #51607a;
+  /* River Grey — เทาอมฟ้าแบบผิวน้ำ : คำบรรยายและเส้นแบ่งกริด */
+  --color-river-400: #94a3b8;
+  --color-river-500: #64748b;
+  --color-river-600: #51607a;
 
   --font-sans: var(--font-plex-thai), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-serif-thai), ui-serif, Georgia, serif;
@@ -66,7 +75,7 @@
 
   body {
     background-color: var(--color-rice-100);
-    color: var(--color-steel-800);
+    color: var(--color-ink-800);
     -webkit-font-smoothing: antialiased;
     /* ภาษาไทยไม่มีช่องว่างระหว่างคำ — ให้เบราว์เซอร์ตัดบรรทัดตามพจนานุกรม */
     word-break: normal;
@@ -85,12 +94,12 @@
   }
 
   ::selection {
-    background-color: var(--color-ember-500);
+    background-color: var(--color-leaf-500);
     color: #fff;
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-ember-500);
+    outline: 2px solid var(--color-leaf-500);
     outline-offset: 3px;
     border-radius: 2px;
   }
@@ -102,7 +111,7 @@
     max-width: 46rem;
     font-size: 1.0625rem;
     line-height: 1.95;
-    color: var(--color-steel-700);
+    color: var(--color-ink-700);
   }
   .prose-craft > * + * {
     margin-top: 1.5rem;
@@ -112,13 +121,13 @@
     font-size: 1.75rem;
     line-height: 1.5;
     font-weight: 600;
-    color: var(--color-steel-800);
+    color: var(--color-ink-800);
     margin-top: 3rem;
   }
   .prose-craft h3 {
     font-size: 1.3125rem;
     font-weight: 600;
-    color: var(--color-steel-800);
+    color: var(--color-ink-800);
     margin-top: 2.25rem;
   }
   .prose-craft ul {
@@ -139,7 +148,7 @@
     top: 0.8em;
     width: 0.4rem;
     height: 0.4rem;
-    background-color: var(--color-ember-500);
+    background-color: var(--color-leaf-500);
     transform: rotate(45deg);
   }
   .prose-craft ol {
@@ -150,21 +159,31 @@
     margin-top: 0.625rem;
   }
   .prose-craft blockquote {
-    border-left: 3px solid var(--color-ember-500);
+    border-left: 3px solid var(--color-leaf-500);
     padding: 0.25rem 0 0.25rem 1.5rem;
     font-family: var(--font-serif);
     font-size: 1.25rem;
     line-height: 1.75;
-    color: var(--color-steel-800);
+    color: var(--color-ink-800);
   }
   .prose-craft a {
-    color: var(--color-ember-600);
+    color: var(--color-leaf-600);
     text-decoration: underline;
     text-underline-offset: 3px;
   }
   .prose-craft strong {
-    color: var(--color-steel-900);
+    color: var(--color-ink-900);
     font-weight: 600;
+  }
+}
+
+/* แถบความคืบหน้าของสไลด์แคตตาล็อก — รีสตาร์ททุกครั้งที่เปลี่ยนสไลด์ด้วย key */
+@keyframes catalog-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
   }
 }
 

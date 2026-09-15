@@ -17,9 +17,9 @@ export function ProductOrderButton({ product, className = "" }: { product: Produ
         {copied ? <CheckIcon /> : <LineIcon />}
         {copied ? "คัดลอกแล้ว — วางในแชทได้เลย" : "สั่งซื้อผ่าน LINE"}
       </button>
-      <p aria-live="polite" className="text-center text-xs text-forged-500">
+      <p aria-live="polite" className="text-center text-xs text-river-500">
         {copied
-          ? `เปิดแชท ${site.lineId} แล้ว กดวางข้อความเพื่อส่งให้ช่างได้ทันที`
+          ? `เปิดแชท ${site.lineId} แล้ว กดวางข้อความเพื่อส่งให้ชุมชนได้ทันที`
           : "กดแล้วระบบจะคัดลอกรายละเอียดสินค้าให้อัตโนมัติ"}
       </p>
     </div>
@@ -35,7 +35,7 @@ export function QuickOrderButton({ product }: { product: Product }) {
       type="button"
       onClick={handleClick}
       aria-label={`สั่งซื้อ ${t(product.name)} ผ่าน LINE`}
-      className="relative z-10 inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-steel-800 px-3 py-2 text-xs font-semibold text-white transition duration-200 ease-craft hover:bg-ember-500"
+      className="relative z-10 inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-ink-800 px-3 py-2 text-xs font-semibold text-white transition duration-200 ease-craft hover:bg-leaf-500"
     >
       {copied ? <CheckIcon className="h-4 w-4" /> : <LineIcon className="h-4 w-4" />}
       {copied ? "คัดลอกแล้ว" : "สั่งซื้อด่วน"}

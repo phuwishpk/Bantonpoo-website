@@ -10,9 +10,9 @@ import { breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "เรื่องเล่าและข่าวกิจกรรม",
   description:
-    "บทความเกี่ยวกับภูมิปัญญาช่างตีเหล็ก วิถีชีวิตชาวบ้านต้นโพธิ์ และข่าวกิจกรรมของชุมชนที่เปิดให้ผู้สนใจเข้าร่วม",
+    "บทความเกี่ยวกับรากเหง้าชาวมอญบ้านต้นโพธิ์ วัดเจตวงศ์ ภูมิปัญญาสมุนไพร และข่าวกิจกรรมของชุมชน",
   path: "/stories",
-  image: "/placeholder/article-steel-sound.svg",
+  image: "/placeholder/article-mon-heritage.svg",
 });
 
 const CRUMBS = [
@@ -37,8 +37,8 @@ export default async function StoriesPage({
     <>
       <PageHero
         eyebrow="เรื่องเล่าและข่าวกิจกรรม"
-        title="เรื่องเล่าจากเตาไฟและวิถีชีวิตบ้านต้นโพธิ์"
-        description="รวมภูมิปัญญาการตีเหล็ก เรื่องราวของช่างแต่ละคน และข่าวกิจกรรมที่ชุมชนเปิดให้เข้าร่วม"
+        title="เรื่องเล่าจากชุมชนมอญริมเจ้าพระยา"
+        description="รวมประวัติความเป็นมา เรื่องราวของวัดเจตวงศ์ ภูมิปัญญาสมุนไพร และข่าวกิจกรรมที่ชุมชนเปิดให้เข้าร่วม"
         crumbs={CRUMBS}
       />
 

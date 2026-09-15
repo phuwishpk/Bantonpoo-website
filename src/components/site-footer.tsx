@@ -10,18 +10,18 @@ import { Container } from "./ui";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-24 bg-steel-800 text-steel-200">
+    <footer className="mt-24 bg-ink-800 text-ink-200">
       <Container size="wide" className="py-14">
         <div className="grid gap-12 lg:grid-cols-[1.4fr_1fr_1.3fr]">
           <div className="flex flex-col gap-5">
             <SiteLogo />
-            <p className="max-w-sm text-sm leading-relaxed text-steel-300">{t(site.aboutSummary)}</p>
+            <p className="max-w-sm text-sm leading-relaxed text-ink-300">{t(site.aboutSummary)}</p>
             <div className="flex gap-2">
               <a
                 href={site.lineUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-lg border border-white/15 p-2.5 text-rice-100 transition-colors hover:border-ember-500 hover:text-ember-300"
+                className="rounded-lg border border-white/15 p-2.5 text-rice-100 transition-colors hover:border-leaf-500 hover:text-leaf-300"
                 aria-label={`LINE Official Account ${site.lineId}`}
               >
                 <LineIcon />
@@ -30,14 +30,14 @@ export function SiteFooter() {
                 href={site.facebookUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-lg border border-white/15 p-2.5 text-rice-100 transition-colors hover:border-ember-500 hover:text-ember-300"
+                className="rounded-lg border border-white/15 p-2.5 text-rice-100 transition-colors hover:border-leaf-500 hover:text-leaf-300"
                 aria-label="Facebook Fanpage ของชุมชน"
               >
                 <FacebookIcon />
               </a>
               <a
                 href={`mailto:${site.email}`}
-                className="rounded-lg border border-white/15 p-2.5 text-rice-100 transition-colors hover:border-ember-500 hover:text-ember-300"
+                className="rounded-lg border border-white/15 p-2.5 text-rice-100 transition-colors hover:border-leaf-500 hover:text-leaf-300"
                 aria-label={`ส่งอีเมลถึง ${site.email}`}
               >
                 <MailIcon />
@@ -46,11 +46,11 @@ export function SiteFooter() {
           </div>
 
           <nav aria-label="เมนูท้ายเว็บ" className="flex flex-col gap-4">
-            <h2 className="text-xs font-semibold tracking-label text-ember-300">เมนู</h2>
+            <h2 className="text-xs font-semibold tracking-label text-leaf-300">เมนู</h2>
             <ul className="flex flex-col gap-2.5">
               {mainNav.map((item) => (
                 <li key={item.href}>
-                  <Link href={item.href} className="text-sm text-steel-300 transition-colors hover:text-white">
+                  <Link href={item.href} className="text-sm text-ink-300 transition-colors hover:text-white">
                     {item.label}
                   </Link>
                 </li>
@@ -59,25 +59,25 @@ export function SiteFooter() {
           </nav>
 
           <div className="flex flex-col gap-4">
-            <h2 className="text-xs font-semibold tracking-label text-ember-300">ติดต่อชุมชน</h2>
+            <h2 className="text-xs font-semibold tracking-label text-leaf-300">ติดต่อชุมชน</h2>
             <ul className="flex flex-col gap-3 text-sm">
               <li className="flex gap-3">
-                <MapPinIcon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-steel-400" />
-                <span className="text-steel-300">{t(site.address)}</span>
+                <MapPinIcon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-ink-400" />
+                <span className="text-ink-300">{t(site.address)}</span>
               </li>
               <li className="flex gap-3">
-                <PhoneIcon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-steel-400" />
-                <a href={telUrl} className="text-steel-300 transition-colors hover:text-white">
+                <PhoneIcon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-ink-400" />
+                <a href={telUrl} className="text-ink-300 transition-colors hover:text-white">
                   {site.phoneDisplay}
                 </a>
               </li>
               <li className="flex gap-3">
-                <LineIcon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-steel-400" />
+                <LineIcon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-ink-400" />
                 <a
                   href={site.lineUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-steel-300 transition-colors hover:text-white"
+                  className="text-ink-300 transition-colors hover:text-white"
                 >
                   LINE {site.lineId}
                 </a>
@@ -104,7 +104,7 @@ export function SiteFooter() {
 
       <div className="border-t border-white/10">
         <Container size="wide">
-          <div className="flex flex-col gap-2 py-5 text-xs text-steel-400 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-2 py-5 text-xs text-ink-400 sm:flex-row sm:items-center sm:justify-between">
             <p>
               © {new Date().getFullYear()} {t(site.communityName)} · สงวนลิขสิทธิ์
             </p>

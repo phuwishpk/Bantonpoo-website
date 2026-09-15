@@ -103,18 +103,60 @@ export const UsersIcon = (props: IconProps) => (
   </Icon>
 );
 
-export const HammerIcon = (props: IconProps) => (
+export const LeafIcon = (props: IconProps) => (
   <Icon {...props}>
-    <path d="M13.5 3.5l7 7-2.5 2.5-7-7z" />
-    <path d="M11 6L3.5 13.5l4 4L15 10" />
-    <path d="M6 16.5L3 19.5" />
+    <path d="M20 4c0 8-4.5 12.5-11 12.5A4.5 4.5 0 014.5 12C4.5 7 9 4 20 4z" />
+    <path d="M4 20c2.5-5 6-8 12-10" />
   </Icon>
 );
 
-export const FlameIcon = (props: IconProps) => (
+/** เจดีย์/วัด — ใช้สื่อถึงวัดเจตวงศ์และรากเหง้าชุมชนมอญ */
+export const TempleIcon = (props: IconProps) => (
   <Icon {...props}>
-    <path d="M12 3c.5 3 3 4 3 7a3 3 0 11-6 0c0-1.2.4-2 .8-2.6" />
-    <path d="M7.5 9.5A6.5 6.5 0 005 14a7 7 0 1014 0c0-2.4-1.2-4.4-2.6-6" />
+    <path d="M12 2.5l2.2 4.2h-4.4z" />
+    <path d="M12 6.7l3.4 4.6H8.6z" />
+    <path d="M12 11.3l4.6 5.2H7.4z" />
+    <path d="M4.5 20.5h15" />
+    <path d="M6.5 16.5v4M17.5 16.5v4" />
+  </Icon>
+);
+
+/** ครกและสาก — สื่อถึงการบดและแปรรูปสมุนไพร */
+export const MortarIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M4.5 9.5h15a7.5 7.5 0 01-7.5 7.5 7.5 7.5 0 01-7.5-7.5z" />
+    <path d="M12 17v4M9 21h6" />
+    <path d="M15.5 9.5L18 3.5" />
+  </Icon>
+);
+
+/** มุมมองตาราง */
+export const GridIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <rect x="3.5" y="3.5" width="7" height="7" rx="1.5" />
+    <rect x="13.5" y="3.5" width="7" height="7" rx="1.5" />
+    <rect x="3.5" y="13.5" width="7" height="7" rx="1.5" />
+    <rect x="13.5" y="13.5" width="7" height="7" rx="1.5" />
+  </Icon>
+);
+
+/** มุมมองสไลด์ — การ์ดใหญ่ตรงกลางและมีการ์ดถัดไปโผล่ข้าง ๆ */
+export const SlidesIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <rect x="7.5" y="4.5" width="9" height="15" rx="1.5" />
+    <path d="M4 7.5v9M20 7.5v9" />
+  </Icon>
+);
+
+export const PauseIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M9.5 5v14M14.5 5v14" />
+  </Icon>
+);
+
+export const PlayIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M7.5 5l11 7-11 7z" />
   </Icon>
 );
 

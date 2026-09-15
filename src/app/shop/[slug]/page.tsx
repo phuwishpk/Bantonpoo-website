@@ -11,13 +11,13 @@ import { ProductGallery } from "@/components/product-gallery";
 import { StickyBuyBar } from "@/components/sticky-buy-bar";
 import { Badge, buttonClass, Container, OrnamentDivider, SectionHeading } from "@/components/ui";
 import { getCategory } from "@/content/categories";
-import { getCraftsman } from "@/content/craftsmen";
+import { getArtisan } from "@/content/artisans";
 import {
   getProduct,
   getRelatedProducts,
   productStatusLabels,
   products,
-  steelTypeLabels,
+  productFormLabels,
 } from "@/content/products";
 import { site } from "@/content/site";
 import type { Product } from "@/content/types";
@@ -52,22 +52,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 function specRows(product: Product): { label: string; value: string }[] {
   const rows: { label: string; value: string | undefined }[] = [
     { label: "รหัสสินค้า", value: product.sku },
-    { label: "ชนิดเหล็ก / วัสดุ", value: t(steelTypeLabels[product.steelType]) },
-    { label: "ความยาวใบมีด", value: product.bladeLengthCm ? `${product.bladeLengthCm} ซม.` : undefined },
-    { label: "ความยาวรวม", value: product.totalLengthCm ? `${product.totalLengthCm} ซม.` : undefined },
-    { label: "ความหนาสันมีด", value: product.spineThicknessMm ? `${product.spineThicknessMm} มม.` : undefined },
-    { label: "น้ำหนัก", value: product.weightG ? `${product.weightG} กรัม` : undefined },
-    { label: "วัสดุด้ามจับ", value: t(product.handleMaterial) },
-    { label: "ซอง / ปลอก", value: product.sheath ? t(product.sheath) : undefined },
+    { label: "รูปแบบ", value: t(productFormLabels[product.form]) },
+    { label: "ปริมาณสุทธิ", value: t(product.netContent) },
+    { label: "สมุนไพรหลัก", value: t(product.mainHerbs).join(" · ") },
+    { label: "อายุการเก็บรักษา", value: product.shelfLife ? t(product.shelfLife) : undefined },
   ];
 
-  return rows.filter((row): row is { label: string; value: string } => Boolean(row.value) && row.value !== "—");
+  return rows.filter((row): row is { label: string; value: string } => Boolean(row.value));
 }
 
 const STATUS_TONE = {
-  "in-stock": "bg-emerald-600",
-  "made-to-order": "bg-ember-500",
-  "sold-out": "bg-steel-500",
+  "in-stock": "bg-leaf-600",
+  "made-to-order": "bg-ochre-600",
+  "sold-out": "bg-ink-500",
 } as const;
 
 export default async function ProductPage({ params }: PageProps) {
@@ -76,7 +73,7 @@ export default async function ProductPage({ params }: PageProps) {
   if (!product) notFound();
 
   const category = getCategory(product.categorySlug, "product");
-  const craftsman = getCraftsman(product.craftsmanSlug);
+  const artisan = getArtisan(product.artisanSlug);
   const related = getRelatedProducts(product, 3);
   const specs = specRows(product);
 
@@ -109,17 +106,17 @@ export default async function ProductPage({ params }: PageProps) {
                 {category ? (
                   <Link
                     href={`/shop?category=${category.slug}`}
-                    className="text-xs font-semibold tracking-label text-ember-600 hover:text-ember-700"
+                    className="text-xs font-semibold tracking-label text-leaf-600 hover:text-leaf-700"
                   >
                     {t(category.title)}
                   </Link>
                 ) : null}
 
-                <h1 className="font-serif text-2xl leading-snug font-bold text-steel-800 sm:text-3xl">
+                <h1 className="font-serif text-2xl leading-snug font-bold text-ink-800 sm:text-3xl">
                   {t(product.name)}
                 </h1>
 
-                <p className="text-[0.9375rem] leading-relaxed text-forged-500">{t(product.excerpt)}</p>
+                <p className="text-[0.9375rem] leading-relaxed text-river-500">{t(product.excerpt)}</p>
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -132,15 +129,15 @@ export default async function ProductPage({ params }: PageProps) {
 
               <div className="flex items-end justify-between gap-4 border-y border-rice-300 py-5">
                 <div>
-                  <p className="font-serif text-3xl font-bold text-steel-800">
+                  <p className="font-serif text-3xl font-bold text-ink-800">
                     {product.price === null ? (
-                      <span className="text-2xl text-forged-500">สอบถามราคา</span>
+                      <span className="text-2xl text-river-500">สอบถามราคา</span>
                     ) : (
                       formatPrice(product.price)
                     )}
                   </p>
                   {product.leadTime ? (
-                    <p className="mt-1.5 text-xs text-forged-500">{t(product.leadTime)}</p>
+                    <p className="mt-1.5 text-xs text-river-500">{t(product.leadTime)}</p>
                   ) : null}
                 </div>
                 <span
@@ -152,18 +149,31 @@ export default async function ProductPage({ params }: PageProps) {
                 </span>
               </div>
 
+              {product.externalUseOnly ? (
+                <p
+                  role="note"
+                  className="flex gap-3 rounded-lg border border-ochre-200 bg-ochre-50 px-4 py-3 text-sm leading-relaxed text-ochre-700"
+                >
+                  <span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rotate-45 bg-ochre-600" />
+                  <span>
+                    <span className="font-semibold">ใช้ภายนอกเท่านั้น</span> — ห้ามรับประทาน
+                    เก็บให้พ้นมือเด็ก และหลีกเลี่ยงบริเวณดวงตาและบาดแผลเปิด
+                  </span>
+                </p>
+              ) : null}
+
               {/* ---- ปุ่มสั่งซื้อ ---- */}
               <div id={ORDER_ANCHOR_ID} className="flex flex-col gap-3">
                 <ProductOrderButton product={product} />
                 <a href={telUrl} className={buttonClass("secondary", "w-full")}>
                   <PhoneIcon />
-                  โทรสอบถามช่างโดยตรง {site.phoneDisplay}
+                  โทรสอบถามกลุ่มวิสาหกิจชุมชน {site.phoneDisplay}
                 </a>
                 <a
                   href={site.facebookUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-center text-xs text-forged-500 underline underline-offset-4 hover:text-steel-800"
+                  className="text-center text-xs text-river-500 underline underline-offset-4 hover:text-ink-800"
                 >
                   หรือทักผ่านเพจ Facebook ของวิสาหกิจชุมชน
                 </a>
@@ -171,7 +181,7 @@ export default async function ProductPage({ params }: PageProps) {
 
               {/* ---- ตารางสเปก ---- */}
               <div className="rounded-card border border-rice-300 bg-rice-50 p-5">
-                <h2 className="mb-4 text-xs font-semibold tracking-label text-steel-700">สเปกทางเทคนิค</h2>
+                <h2 className="mb-4 text-xs font-semibold tracking-label text-ink-700">สเปกทางเทคนิค</h2>
                 <dl className="flex flex-col">
                   {specs.map((row, index) => (
                     <div
@@ -180,35 +190,33 @@ export default async function ProductPage({ params }: PageProps) {
                         index > 0 ? "border-t border-rice-200" : ""
                       }`}
                     >
-                      <dt className="text-forged-500">{row.label}</dt>
-                      <dd className="text-right font-medium text-steel-800">{row.value}</dd>
+                      <dt className="text-river-500">{row.label}</dt>
+                      <dd className="text-right font-medium text-ink-800">{row.value}</dd>
                     </div>
                   ))}
                 </dl>
               </div>
 
               {/* ---- ประวัติผู้ตี ---- */}
-              {craftsman ? (
-                <div className="flex gap-4 rounded-card border border-rice-300 bg-steel-800 p-5">
+              {artisan ? (
+                <div className="flex gap-4 rounded-card border border-rice-300 bg-ink-800 p-5">
                   <Image
-                    src={craftsman.photo.url}
-                    alt={t(craftsman.photo.alt)}
-                    width={craftsman.photo.width}
-                    height={craftsman.photo.height}
+                    src={artisan.photo.url}
+                    alt={t(artisan.photo.alt)}
+                    width={artisan.photo.width}
+                    height={artisan.photo.height}
                     sizes="64px"
                     className="h-16 w-16 shrink-0 rounded-full object-cover"
                   />
                   <div className="flex flex-col gap-1.5">
-                    <p className="text-[0.6875rem] font-semibold tracking-label text-ember-400">ตีโดย</p>
-                    <p className="font-serif text-base font-semibold text-rice-100">{t(craftsman.name)}</p>
-                    <p className="text-xs text-steel-300">
-                      {t(craftsman.title)} · ตีเหล็กมาแล้ว {craftsman.yearsOfCraft} ปี
-                    </p>
+                    <p className="text-[0.6875rem] font-semibold tracking-label text-leaf-300">ผลิตโดย</p>
+                    <p className="font-serif text-base font-semibold text-rice-100">{t(artisan.name)}</p>
+                    <p className="text-xs text-ink-300">{t(artisan.title)}</p>
                     <Link
                       href="/about"
-                      className="mt-1 text-xs font-semibold text-ember-300 underline-offset-4 hover:underline"
+                      className="mt-1 text-xs font-semibold text-leaf-300 underline-offset-4 hover:underline"
                     >
-                      ดูทำเนียบครูช่างทั้งหมด →
+                      ดูทำเนียบปราชญ์ชุมชนทั้งหมด →
                     </Link>
                   </div>
                 </div>
@@ -223,7 +231,7 @@ export default async function ProductPage({ params }: PageProps) {
         <Container size="wide">
           <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
             <div className="flex flex-col gap-5">
-              <SectionHeading eyebrow="เรื่องเล่าของมีดเล่มนี้" title="ที่มาและจุดเด่น" />
+              <SectionHeading eyebrow="เรื่องเล่าของผลิตภัณฑ์" title="ที่มาและจุดเด่น" />
               <div className="prose-craft">
                 {t(product.story).map((paragraph, index) => (
                   <p key={index}>{paragraph}</p>
@@ -231,22 +239,41 @@ export default async function ProductPage({ params }: PageProps) {
               </div>
             </div>
 
-            <div className="flex flex-col gap-5">
-              <SectionHeading eyebrow="คำแนะนำ" title="การดูแลรักษา" />
-              <ul className="flex flex-col gap-3">
-                {t(product.careInstructions).map((instruction, index) => (
-                  <li
-                    key={index}
-                    className="flex gap-3 rounded-lg border border-rice-300 bg-rice-50 px-4 py-3 text-sm leading-relaxed text-steel-700"
-                  >
-                    <span
-                      aria-hidden
-                      className="mt-2 h-1.5 w-1.5 shrink-0 rotate-45 bg-ember-500"
-                    />
-                    {instruction}
-                  </li>
-                ))}
-              </ul>
+            <div className="flex flex-col gap-8">
+              <div className="flex flex-col gap-5">
+                <SectionHeading eyebrow="วิธีใช้" title="ใช้อย่างไร" />
+                <ol className="flex flex-col gap-3">
+                  {t(product.usage).map((step, index) => (
+                    <li
+                      key={index}
+                      className="flex gap-3 rounded-lg border border-rice-300 bg-rice-50 px-4 py-3 text-sm leading-relaxed text-ink-700"
+                    >
+                      <span
+                        aria-hidden
+                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-leaf-600 text-xs font-semibold text-white"
+                      >
+                        {index + 1}
+                      </span>
+                      {step}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+
+              <div className="flex flex-col gap-5">
+                <SectionHeading eyebrow="คำแนะนำ" title="การเก็บรักษาและข้อควรระวัง" />
+                <ul className="flex flex-col gap-3">
+                  {t(product.careInstructions).map((instruction, index) => (
+                    <li
+                      key={index}
+                      className="flex gap-3 rounded-lg border border-rice-300 bg-rice-50 px-4 py-3 text-sm leading-relaxed text-ink-700"
+                    >
+                      <span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rotate-45 bg-leaf-500" />
+                      {instruction}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
         </Container>

@@ -6,7 +6,7 @@ import { absoluteUrl } from "@/lib/seo";
 import { CheckIcon, CopyIcon, FacebookIcon, LineIcon } from "./icons";
 
 const BUTTON =
-  "inline-flex items-center gap-2 rounded-lg border border-rice-300 bg-rice-50 px-3.5 py-2 text-sm font-medium text-steel-700 transition duration-200 ease-craft hover:border-steel-800 hover:bg-white";
+  "inline-flex items-center gap-2 rounded-lg border border-rice-300 bg-rice-50 px-3.5 py-2 text-sm font-medium text-ink-700 transition duration-200 ease-craft hover:border-ink-800 hover:bg-white";
 
 /**
  * ปุ่มแชร์บทความไปยัง Facebook, LINE และคัดลอกลิงก์
@@ -37,7 +37,7 @@ export function ShareButtons({ path, title }: { path: string; title: string }) {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="mr-1 text-sm text-forged-500">แชร์บทความนี้</span>
+      <span className="mr-1 text-sm text-river-500">แชร์บทความนี้</span>
 
       <a
         href={facebookShareUrl(url)}
@@ -63,7 +63,7 @@ export function ShareButtons({ path, title }: { path: string; title: string }) {
 
       <button type="button" onClick={copyLink} className={BUTTON}>
         {copied ? (
-          <CheckIcon className="h-[18px] w-[18px] text-emerald-600" />
+          <CheckIcon className="h-[18px] w-[18px] text-leaf-600" />
         ) : (
           <CopyIcon className="h-[18px] w-[18px]" />
         )}

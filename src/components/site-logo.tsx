@@ -3,29 +3,31 @@ import { site } from "@/content/site";
 import { t } from "@/lib/i18n";
 
 /**
- * โลโก้ชั่วคราวของชุมชน — เครื่องหมายทั่งตีเหล็กกับเปลวไฟ
+ * โลโก้ชั่วคราวของชุมชน — ใบโพธิ์ในวงกลม สื่อถึงต้นโพธิ์ใหญ่ที่เป็นที่มาของชื่อชุมชน
  * เมื่อชุมชนมีโลโก้จริงแล้ว ให้แทนที่ <svg> ด้วย next/image
  */
 export function LogoMark({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 40 40" className={className} aria-hidden>
-      <circle cx="20" cy="20" r="19" className="fill-ember-500" />
+      <circle cx="20" cy="20" r="19" className="fill-leaf-500" />
+      {/* ใบโพธิ์: ฐานใบกว้าง ปลายใบเรียวยาวเป็นติ่ง */}
       <path
-        d="M20 8c.8 3.4 3.8 4.8 3.8 8.4a3.8 3.8 0 11-7.6 0c0-1.3.4-2.2.9-2.9"
-        fill="none"
-        stroke="white"
-        strokeWidth="1.8"
+        d="M20 9.5c5.4 2.2 8 5.6 8 9.3 0 3.9-3.3 6.8-7.1 7.2l1.6 4.5h-4.9l1.6-4.5c-3.8-.4-7.1-3.3-7.1-7.2 0-3.7 2.6-7.1 8-9.3z"
+        fill="white"
+      />
+      <path
+        d="M20 12v13"
+        stroke="var(--color-leaf-500)"
+        strokeWidth="1.1"
         strokeLinecap="round"
       />
-      <path d="M11 24h18l-2.4 3.4a2 2 0 01-1.6.8H15a2 2 0 01-1.6-.8z" fill="white" />
-      <rect x="17.5" y="28.6" width="5" height="3.4" rx="1" fill="white" />
     </svg>
   );
 }
 
 export function SiteLogo({ tone = "light" }: { tone?: "light" | "dark" }) {
-  const title = tone === "light" ? "text-rice-100" : "text-steel-800";
-  const subtitle = tone === "light" ? "text-steel-300" : "text-forged-500";
+  const title = tone === "light" ? "text-rice-100" : "text-ink-800";
+  const subtitle = tone === "light" ? "text-ink-300" : "text-river-500";
 
   return (
     <Link href="/" className="flex items-center gap-3" aria-label={`${t(site.communityShortName)} — หน้าแรก`}>
@@ -35,7 +37,7 @@ export function SiteLogo({ tone = "light" }: { tone?: "light" | "dark" }) {
           {t(site.communityShortName)}
         </span>
         <span className={`hidden whitespace-nowrap text-[0.6875rem] tracking-wide xs:block ${subtitle}`}>
-          มีดอรัญญิก · อยุธยา
+          สมุนไพรชุมชนมอญ · ปทุมธานี
         </span>
       </span>
     </Link>

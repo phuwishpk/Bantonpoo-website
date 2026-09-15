@@ -4,11 +4,11 @@ export default function NotFound() {
   return (
     <Container size="narrow">
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 py-20 text-center">
-        <span aria-hidden className="font-serif text-6xl font-bold text-ember-500">
+        <span aria-hidden className="font-serif text-6xl font-bold text-leaf-500">
           404
         </span>
-        <h1 className="font-serif text-2xl font-semibold text-steel-800">ไม่พบหน้าที่คุณกำลังหา</h1>
-        <p className="max-w-md text-[0.9375rem] leading-relaxed text-forged-500">
+        <h1 className="font-serif text-2xl font-semibold text-ink-800">ไม่พบหน้าที่คุณกำลังหา</h1>
+        <p className="max-w-md text-[0.9375rem] leading-relaxed text-river-500">
           หน้านี้อาจถูกย้ายหรือลบไปแล้ว ลองกลับไปที่หน้าแรก
           หรือเลือกดูสินค้าและเรื่องเล่าของชุมชนจากเมนูด้านล่าง
         </p>

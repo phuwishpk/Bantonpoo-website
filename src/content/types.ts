@@ -34,23 +34,36 @@ export type Category = {
   description?: Localized;
 };
 
-/** ช่างฝีมือ / ครูช่าง — ใช้ในทำเนียบครูช่างและ Craftsman Badge ในหน้าสินค้า */
-export type Craftsman = {
+/**
+ * ปราชญ์ชุมชนและผู้ผลิต — ใช้ในทำเนียบปราชญ์ชุมชนและป้ายผู้ผลิตในหน้าสินค้า
+ *
+ * ⚠️ เป็นบุคคลจริง ห้ามแต่งประวัติเพิ่มเอง ฟิลด์ bio ต้องมาจากเจ้าตัวหรือ
+ *    แหล่งอ้างอิงที่ตรวจสอบได้เท่านั้น
+ */
+export type Artisan = {
   slug: string;
   name: Localized;
-  /** ฉายา/ตำแหน่ง เช่น "ครูช่างประจำซุ้มตีมีดบ้านต้นโพธิ์" */
+  /** ฉายา/ตำแหน่ง เช่น "ครูช่างประจำโรงปั้นบ้านต้นโพธิ์" */
   title: Localized;
-  /** จำนวนปีที่ทำงานตีเหล็ก */
-  yearsOfCraft: number;
   specialty: Localized;
   bio: Localized;
   photo: Media;
+  /** ที่มาของข้อมูล เพื่อให้ตรวจย้อนได้ว่าประวัตินี้มาจากไหน */
+  source?: Localized;
 };
 
 export type ProductStatus = "in-stock" | "made-to-order" | "sold-out";
 
-/** ชนิดเหล็ก — ใช้เป็นตัวกรองในหน้าสินค้า */
-export type SteelType = "spring-steel" | "d2" | "damascus" | "carbon-1095" | "other";
+/** รูปแบบผลิตภัณฑ์ — ใช้เป็นตัวกรองในหน้าสินค้า */
+export type ProductForm =
+  | "liquid-balm"
+  | "solid-balm"
+  | "massage-oil"
+  | "compress"
+  | "soap"
+  | "tea"
+  | "dried-herb"
+  | "other";
 
 export type Product = {
   slug: string;
@@ -61,20 +74,26 @@ export type Product = {
   /** ราคาเป็นบาท — ถ้าเป็น null หน้าเว็บจะขึ้น "สอบถามราคา" แทนตัวเลข */
   price: number | null;
   status: ProductStatus;
-  steelType: SteelType;
-  /** สเปกเชิงตัวเลข หน่วยเซนติเมตร/มิลลิเมตร */
-  bladeLengthCm?: number;
-  spineThicknessMm?: number;
-  totalLengthCm?: number;
-  weightG?: number;
-  handleMaterial: Localized;
-  sheath?: Localized;
-  craftsmanSlug: string;
+  form: ProductForm;
+  /** ปริมาณสุทธิ เช่น "ขวด 20 มล." หรือ "ลูกละ 100 กรัม" */
+  netContent: Localized;
+  /** สมุนไพรหลักในตำรับ — แสดงในตารางสเปกและใช้ค้นหา */
+  mainHerbs: Localized<string[]>;
+  /** วิธีใช้ */
+  usage: Localized<string[]>;
+  /** อายุการเก็บรักษา */
+  shelfLife?: Localized;
+  /**
+   * ใช้ภายนอกเท่านั้น (ห้ามรับประทาน)
+   * เป็นข้อมูลความปลอดภัย ต้องแสดงชัดเจนในหน้าสินค้า
+   */
+  externalUseOnly: boolean;
+  artisanSlug: string;
   /** สรุปสั้นสำหรับการ์ดสินค้าและ meta description */
   excerpt: Localized;
-  /** Product Story — เล่าที่มาของมีดเล่มนี้ */
+  /** Product Story — เล่าที่มาของผลิตภัณฑ์ */
   story: Localized<string[]>;
-  /** ป้ายการันตี เช่น "เหล็กแหนบแท้ 100%", "ตีโดยครูช่าง" */
+  /** ป้ายจุดเด่น เช่น "ทำมือในชุมชน", "สินค้าเรือธง" */
   badges: Localized<string[]>;
   gallery: Media[];
   /** ระยะเวลาสั่งทำ แสดงเฉพาะสินค้าสถานะ made-to-order */
@@ -89,9 +108,9 @@ export type Article = {
   categorySlug: string;
   excerpt: Localized;
   coverImage: Media;
-  /** ชื่อผู้เขียน — ถ้าเป็นช่างในชุมชนให้ใส่ craftsmanSlug คู่กัน */
+  /** ชื่อผู้เขียน — ถ้าเป็นช่างในชุมชนให้ใส่ artisanSlug คู่กัน */
   author: Localized;
-  craftsmanSlug?: string;
+  artisanSlug?: string;
   publishedAt: string;
   /** เนื้อหาแบบ block — ตรงกับ Rich Text ของ Payload (Lexical) */
   content: ContentBlock[];
@@ -154,9 +173,12 @@ export type SiteSettings = {
   facebookUrl: string;
   email: string;
   address: Localized;
+  /** ใช้ประกอบ schema.org PostalAddress */
+  addressLocality: string;
+  addressRegion: string;
+  postalCode: string;
   mapLatitude: number;
   mapLongitude: number;
-  mapEmbedQuery: string;
   openingHours: Localized;
   /** เวอร์ชันสั้นสำหรับที่แคบ เช่น drawer บนมือถือ */
   openingHoursShort: Localized;

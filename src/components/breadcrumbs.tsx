@@ -2,11 +2,11 @@ import Link from "next/link";
 
 export type Crumb = { name: string; path: string };
 
-/** เส้นทางนำทาง เช่น หน้าแรก › เรื่องเล่าชุมชน › ภูมิปัญญาช่างตีมีด */
+/** เส้นทางนำทาง เช่น หน้าแรก › เรื่องเล่าชุมชน › รากเหง้าชาวมอญ */
 export function Breadcrumbs({ items, tone = "dark" }: { items: Crumb[]; tone?: "dark" | "light" }) {
-  const link = tone === "dark" ? "text-forged-500 hover:text-ember-600" : "text-steel-300 hover:text-ember-300";
-  const current = tone === "dark" ? "text-steel-700" : "text-rice-100";
-  const separator = tone === "dark" ? "text-rice-400" : "text-steel-500";
+  const link = tone === "dark" ? "text-river-500 hover:text-leaf-600" : "text-ink-300 hover:text-leaf-300";
+  const current = tone === "dark" ? "text-ink-700" : "text-rice-100";
+  const separator = tone === "dark" ? "text-rice-400" : "text-ink-500";
 
   return (
     <nav aria-label="เส้นทางนำทาง">

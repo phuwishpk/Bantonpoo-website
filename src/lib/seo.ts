@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { site } from "@/content/site";
-import { productStatusLabels, steelTypeLabels } from "@/content/products";
+import { productFormLabels, productStatusLabels } from "@/content/products";
 import type { Article, Product, Workshop } from "@/content/types";
 import { formatThaiDate, truncate } from "./format";
 import { t } from "./i18n";
@@ -63,9 +63,9 @@ export function localBusinessJsonLd() {
     address: {
       "@type": "PostalAddress",
       streetAddress: t(site.address),
-      addressLocality: "นครหลวง",
-      addressRegion: "พระนครศรีอยุธยา",
-      postalCode: "13260",
+      addressLocality: site.addressLocality,
+      addressRegion: site.addressRegion,
+      postalCode: site.postalCode,
       addressCountry: "TH",
     },
     geo: {
@@ -91,7 +91,7 @@ export function productJsonLd(product: Product) {
     sku: product.sku,
     description: t(product.excerpt),
     image: product.gallery.map((media) => absoluteUrl(media.url)),
-    material: t(steelTypeLabels[product.steelType]),
+    material: t(product.mainHerbs).join(", "),
     brand: { "@type": "Brand", name: t(site.communityName) },
     ...(product.price === null
       ? {}
@@ -107,10 +107,11 @@ export function productJsonLd(product: Product) {
           },
         }),
     additionalProperty: [
-      { "@type": "PropertyValue", name: "ชนิดเหล็ก", value: t(steelTypeLabels[product.steelType]) },
+      { "@type": "PropertyValue", name: "รูปแบบ", value: t(productFormLabels[product.form]) },
+      { "@type": "PropertyValue", name: "ปริมาณสุทธิ", value: t(product.netContent) },
       { "@type": "PropertyValue", name: "สถานะ", value: t(productStatusLabels[product.status]) },
-      ...(product.bladeLengthCm
-        ? [{ "@type": "PropertyValue", name: "ความยาวใบมีด", value: `${product.bladeLengthCm} ซม.` }]
+      ...(product.mainHerbs.th.length
+        ? [{ "@type": "PropertyValue", name: "สมุนไพรหลัก", value: t(product.mainHerbs).join(", ") }]
         : []),
     ],
   };

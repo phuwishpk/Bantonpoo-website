@@ -17,7 +17,7 @@ export function FilterGroup<T extends string>({
     // เบราว์เซอร์จะดัน legend เข้าไปในเส้นขอบ ทำให้ระยะห่างของแต่ละกลุ่มไม่เท่ากัน
     <div className="border-t border-rice-300 pt-5 first:border-t-0 first:pt-0">
       <fieldset>
-        <legend className="mb-3 text-xs font-semibold tracking-label text-steel-700">{legend}</legend>
+        <legend className="mb-3 text-xs font-semibold tracking-label text-ink-700">{legend}</legend>
         <ul className="flex flex-col gap-1">
           {options.map((option) => {
             const checked = selected.includes(option.value);
@@ -35,12 +35,12 @@ export function FilterGroup<T extends string>({
                     checked={checked}
                     disabled={disabled}
                     onChange={() => onToggle(option.value)}
-                    className="h-4 w-4 shrink-0 accent-ember-500"
+                    className="h-4 w-4 shrink-0 accent-leaf-500"
                   />
-                  <span className={`flex-1 ${checked ? "font-semibold text-steel-800" : "text-steel-700"}`}>
+                  <span className={`flex-1 ${checked ? "font-semibold text-ink-800" : "text-ink-700"}`}>
                     {option.label}
                   </span>
-                  <span className="text-xs tabular-nums text-forged-400">{option.count}</span>
+                  <span className="text-xs tabular-nums text-river-400">{option.count}</span>
                 </label>
               </li>
             );

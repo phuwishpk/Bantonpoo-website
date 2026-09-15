@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800" role="img" aria-label="ฐานเรียนรู้การทำยาหม่องน้ำสมุนไพร">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.7" y2="1">
+      <stop offset="0%" stop-color="#15191e"/>
+      <stop offset="55%" stop-color="#1e232a"/>
+      <stop offset="100%" stop-color="#1c2b23"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.68" cy="0.68" r="0.62">
+      <stop offset="0%" stop-color="#7ec79b" stop-opacity="0.72"/>
+      <stop offset="45%" stop-color="#2e7d52" stop-opacity="0.34"/>
+      <stop offset="100%" stop-color="#2e7d52" stop-opacity="0"/>
+    </radialGradient>
+    
+    <pattern id="h" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#ffffff" stroke-width="1" opacity="0.03"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)"/>
+  <rect width="1200" height="800" fill="url(#h)"/>
+  <rect width="1200" height="800" fill="url(#glow)"/>
+  
+    <g transform="translate(96 528) rotate(-26)" opacity="0.6">
+      <path d="M 0 0 C 83.60000000000001 -68.4, 144.4 -30.400000000000002, 152 7.6000000000000005
+               C 121.60000000000001 60.800000000000004, 45.6 63.839999999999996, 0 0 Z"
+            fill="#7ec79b"/>
+      <path d="M 0 0 L 139.84 3.04" stroke="#15191e" stroke-width="5.32"
+            opacity="0.25" fill="none"/>
+    </g>
+  
+    <g transform="translate(600 672) rotate(-14)" opacity="0.8">
+      <path d="M 0 0 C 105.60000000000001 -86.4, 182.39999999999998 -38.400000000000006, 192 9.600000000000001
+               C 153.60000000000002 76.80000000000001, 57.599999999999994 80.64, 0 0 Z"
+            fill="#7ec79b"/>
+      <path d="M 0 0 L 176.64000000000001 3.84" stroke="#15191e" stroke-width="6.720000000000001"
+            opacity="0.25" fill="none"/>
+    </g>
+  
+    <g transform="translate(888 448.00000000000006) rotate(22)" opacity="0.55">
+      <path d="M 0 0 C 74.80000000000001 -61.2, 129.2 -27.200000000000003, 136 6.800000000000001
+               C 108.80000000000001 54.400000000000006, 40.8 57.12, 0 0 Z"
+            fill="#7ec79b"/>
+      <path d="M 0 0 L 125.12 2.72" stroke="#15191e" stroke-width="4.760000000000001"
+            opacity="0.25" fill="none"/>
+    </g>
+  
+    <g transform="translate(983.9999999999999 240) rotate(152)" opacity="0.42">
+      <path d="M 0 0 C 61.600000000000016 -50.400000000000006, 106.4 -22.400000000000006, 112.00000000000001 5.600000000000001
+               C 89.60000000000002 44.80000000000001, 33.6 47.040000000000006, 0 0 Z"
+            fill="#7ec79b"/>
+      <path d="M 0 0 L 103.04000000000002 2.24" stroke="#15191e" stroke-width="3.920000000000001"
+            opacity="0.25" fill="none"/>
+    </g>
+  
+    <g transform="translate(336.00000000000006 336) rotate(196)" opacity="0.34">
+      <path d="M 0 0 C 70.4 -57.6, 121.6 -25.6, 128 6.4
+               C 102.4 51.2, 38.4 53.76, 0 0 Z"
+            fill="#7ec79b"/>
+      <path d="M 0 0 L 117.76 2.56" stroke="#15191e" stroke-width="4.48"
+            opacity="0.25" fill="none"/>
+    </g>
+  
+    <g transform="translate(528 144) rotate(168)" opacity="0.24">
+      <path d="M 0 0 C 48.400000000000006 -39.6, 83.6 -17.6, 88 4.4
+               C 70.4 35.2, 26.4 36.96, 0 0 Z"
+            fill="#7ec79b"/>
+      <path d="M 0 0 L 80.96000000000001 1.76" stroke="#15191e" stroke-width="3.08"
+            opacity="0.25" fill="none"/>
+    </g>
+  
+    <g transform="translate(192 752) rotate(-40)" opacity="0.45">
+      <path d="M 0 0 C 57.2 -46.800000000000004, 98.8 -20.8, 104 5.2
+               C 83.2 41.6, 31.2 43.68, 0 0 Z"
+            fill="#7ec79b"/>
+      <path d="M 0 0 L 95.68 2.08" stroke="#15191e" stroke-width="3.6400000000000006"
+            opacity="0.25" fill="none"/>
+    </g>
+  
+  <g font-family="'IBM Plex Sans Thai','Noto Sans Thai',sans-serif" text-anchor="end">
+    <text x="1146" y="76" font-size="15"
+          fill="#7ec79b" letter-spacing="1.6" opacity="0.9">PLACEHOLDER</text>
+    <text x="1146" y="104.6" font-size="22" fill="#ffffffcc" opacity="0.75">ฐานเรียนรู้การทำยาหม่องน้ำสมุนไพร</text>
+  </g></svg>

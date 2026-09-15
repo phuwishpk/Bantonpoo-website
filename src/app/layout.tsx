@@ -31,14 +31,16 @@ export const metadata: Metadata = {
   },
   description: t(site.aboutSummary),
   keywords: [
-    "มีดอรัญญิก",
     "บ้านต้นโพธิ์",
-    "มีดทำมือ",
-    "ช่างตีเหล็ก",
-    "อยุธยา",
-    "นครหลวง",
+    "ยาหม่องน้ำสมุนไพรบ้านต้นโพธิ์",
+    "วิสาหกิจชุมชนสมุนไพร",
+    "ชุมชนมอญ",
+    "วัดเจตวงศ์",
+    "บางขะแยง",
+    "ปทุมธานี",
     "ท่องเที่ยวชุมชน",
-    "วิสาหกิจชุมชน",
+    "สมุนไพรไทย",
+    "ลูกประคบสมุนไพร",
   ],
   authors: [{ name: t(site.communityName) }],
   openGraph: {
@@ -63,7 +65,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="flex min-h-dvh flex-col font-sans">
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-ember-500 focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-leaf-500 focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white"
         >
           ข้ามไปยังเนื้อหาหลัก
         </a>

@@ -32,7 +32,7 @@ export function SiteHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-steel-800/95 backdrop-blur supports-[backdrop-filter]:bg-steel-800/85">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-ink-800/95 backdrop-blur supports-[backdrop-filter]:bg-ink-800/85">
         <Container size="wide">
           <div className="flex h-[4.5rem] items-center justify-between gap-4">
           <SiteLogo />
@@ -47,14 +47,14 @@ export function SiteHeader() {
                       href={item.href}
                       aria-current={active ? "page" : undefined}
                       className={`relative rounded-md px-3 py-2 text-[0.9375rem] transition-colors duration-200 ${
-                        active ? "text-white" : "text-steel-200 hover:text-white"
+                        active ? "text-white" : "text-ink-200 hover:text-white"
                       }`}
                     >
                       {item.label}
                       {active ? (
                         <span
                           aria-hidden
-                          className="absolute inset-x-3 -bottom-0.5 h-0.5 rounded-full bg-ember-500"
+                          className="absolute inset-x-3 -bottom-0.5 h-0.5 rounded-full bg-leaf-500"
                         />
                       ) : null}
                     </Link>
@@ -114,7 +114,7 @@ export function SiteHeader() {
           tabIndex={-1}
           aria-label="ปิดเมนู"
           onClick={() => setOpen(false)}
-          className={`absolute inset-0 bg-steel-950/70 transition-opacity duration-300 ${
+          className={`absolute inset-0 bg-ink-950/70 transition-opacity duration-300 ${
             open ? "opacity-100" : "opacity-0"
           }`}
         />
@@ -122,7 +122,7 @@ export function SiteHeader() {
           role="dialog"
           aria-modal="true"
           aria-label="เมนูนำทาง"
-          className={`absolute inset-y-0 right-0 flex w-[min(20rem,85vw)] flex-col bg-steel-800 shadow-lift-lg transition-transform duration-300 ease-craft ${
+          className={`absolute inset-y-0 right-0 flex w-[min(20rem,85vw)] flex-col bg-ink-800 shadow-lift-lg transition-transform duration-300 ease-craft ${
             open ? "translate-x-0" : "translate-x-full"
           }`}
           style={{
@@ -154,11 +154,11 @@ export function SiteHeader() {
                       // ปิด drawer ทันทีที่กดลิงก์ ไม่งั้นเมนูจะค้างทับหน้าใหม่
                       onClick={() => setOpen(false)}
                       className={`flex items-center justify-between rounded-lg px-4 py-3 text-base transition-colors ${
-                        active ? "bg-white/10 font-semibold text-white" : "text-steel-200 hover:bg-white/5"
+                        active ? "bg-white/10 font-semibold text-white" : "text-ink-200 hover:bg-white/5"
                       }`}
                     >
                       {item.label}
-                      {active ? <span aria-hidden className="h-1.5 w-1.5 rotate-45 bg-ember-500" /> : null}
+                      {active ? <span aria-hidden className="h-1.5 w-1.5 rotate-45 bg-leaf-500" /> : null}
                     </Link>
                   </li>
                 );
@@ -167,7 +167,7 @@ export function SiteHeader() {
           </nav>
 
           <div className="border-t border-white/10 p-4">
-            <p className="mb-3 text-xs text-steel-300">ติดต่อชุมชนโดยตรง</p>
+            <p className="mb-3 text-xs text-ink-300">ติดต่อชุมชนโดยตรง</p>
             <div className="flex flex-col gap-2">
               <a
                 href={site.lineUrl}
@@ -183,7 +183,7 @@ export function SiteHeader() {
                 โทร {site.phoneDisplay}
               </a>
             </div>
-            <p className="mt-3 text-center text-xs text-steel-400">{t(site.openingHoursShort)}</p>
+            <p className="mt-3 text-center text-xs text-ink-400">{t(site.openingHoursShort)}</p>
           </div>
         </div>
       </div>

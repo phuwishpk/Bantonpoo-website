@@ -13,7 +13,7 @@ import { breadcrumbJsonLd, buildMetadata, localBusinessJsonLd } from "@/lib/seo"
 export const metadata: Metadata = buildMetadata({
   title: "ติดต่อเรา",
   description:
-    "ติดต่อวิสาหกิจชุมชนบ้านต้นโพธิ์ ตำบลท่าช้าง อำเภอนครหลวง จังหวัดพระนครศรีอยุธยา ทั้งทางโทรศัพท์ LINE Official Account และ Facebook",
+    "ติดต่อวิสาหกิจชุมชนสมุนไพรบ้านต้นโพธิ์ หมู่ที่ 1 ตำบลบางขะแยง อำเภอเมืองปทุมธานี ทั้งทางโทรศัพท์ LINE Official Account และ Facebook",
   path: "/contact",
 });
 
@@ -38,16 +38,16 @@ export default function ContactPage() {
       label: "โทรศัพท์ผู้ประสานงาน",
       value: site.phoneDisplay,
       href: telUrl,
-      note: "รับสายในเวลาทำการ หากไม่สะดวกรับสายเพราะอยู่หน้าเตา กรุณาฝากข้อความไว้",
+      note: "เบอร์กลุ่มวิสาหกิจชุมชนสมุนไพรบ้านต้นโพธิ์ รับสายในเวลาทำการ",
       external: false,
       highlight: false,
     },
     {
       icon: FacebookIcon,
       label: "Facebook Fanpage",
-      value: "วิสาหกิจชุมชนบ้านต้นโพธิ์",
+      value: "วิสาหกิจชุมชนสมุนไพรบ้านต้นโพธิ์",
       href: site.facebookUrl,
-      note: "ติดตามภาพงานใหม่ ๆ จากเตา และประกาศกิจกรรมประจำปี",
+      note: "ติดตามผลิตภัณฑ์ใหม่ ๆ และประกาศกิจกรรมของชุมชน",
       external: true,
       highlight: false,
     },
@@ -56,7 +56,7 @@ export default function ContactPage() {
       label: "อีเมล",
       value: site.email,
       href: `mailto:${site.email}`,
-      note: "เหมาะกับงานขายส่ง งานสั่งทำจำนวนมาก และการติดต่อเชิงธุรกิจ",
+      note: "เหมาะกับงานขายส่ง ของชำร่วยจำนวนมาก และการติดต่อเชิงธุรกิจ",
       external: false,
       highlight: false,
     },
@@ -67,7 +67,7 @@ export default function ContactPage() {
       <PageHero
         eyebrow="ติดต่อเรา"
         title="คุยกับชุมชนโดยตรง"
-        description="ไม่ว่าจะสั่งซื้อมีด ขอใบเสนอราคาสำหรับงานสั่งทำ หรือนัดหมายพาคณะเข้าชมชุมชน ทักมาได้ทุกช่องทาง"
+        description="ไม่ว่าจะสั่งซื้อผลิตภัณฑ์สมุนไพร ขอใบเสนอราคาชุดของฝาก หรือนัดหมายพาคณะเข้าศึกษาดูงาน ทักมาได้ทุกช่องทาง"
         crumbs={CRUMBS}
       />
 
@@ -84,21 +84,21 @@ export default function ContactPage() {
                   {...(channel.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                   className={`group flex gap-4 rounded-card border p-5 transition duration-300 ease-craft hover:-translate-y-0.5 hover:shadow-lift ${
                     channel.highlight
-                      ? "border-ember-200 bg-ember-50"
-                      : "border-rice-300 bg-rice-50 hover:border-steel-400"
+                      ? "border-leaf-200 bg-leaf-50"
+                      : "border-rice-300 bg-rice-50 hover:border-ink-400"
                   }`}
                 >
                   <span
                     className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${
-                      channel.highlight ? "bg-ember-500 text-white" : "bg-steel-800 text-rice-100"
+                      channel.highlight ? "bg-leaf-500 text-white" : "bg-ink-800 text-rice-100"
                     }`}
                   >
                     <Icon className="h-5 w-5" />
                   </span>
                   <div className="flex flex-col gap-1">
-                    <p className="text-xs font-semibold tracking-label text-forged-500">{channel.label}</p>
-                    <p className="font-serif text-lg font-semibold text-steel-800">{channel.value}</p>
-                    <p className="mt-1 text-sm leading-relaxed text-forged-500">{channel.note}</p>
+                    <p className="text-xs font-semibold tracking-label text-river-500">{channel.label}</p>
+                    <p className="font-serif text-lg font-semibold text-ink-800">{channel.value}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-river-500">{channel.note}</p>
                   </div>
                 </a>
               );
@@ -129,7 +129,7 @@ export default function ContactPage() {
                   href={directionsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 bg-rice-50 py-3.5 text-sm font-semibold text-steel-800 transition-colors hover:bg-rice-200"
+                  className="flex items-center justify-center gap-2 bg-rice-50 py-3.5 text-sm font-semibold text-ink-800 transition-colors hover:bg-rice-200"
                 >
                   <MapPinIcon className="h-[18px] w-[18px]" />
                   เปิดนำทางด้วย Google Maps
@@ -138,21 +138,21 @@ export default function ContactPage() {
 
               <div className="flex flex-col gap-4 rounded-card border border-rice-300 bg-rice-50 p-5">
                 <div className="flex gap-3">
-                  <MapPinIcon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-ember-600" />
+                  <MapPinIcon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-leaf-600" />
                   <div>
-                    <p className="text-xs font-semibold tracking-label text-forged-500">ที่ตั้ง</p>
-                    <p className="mt-1 text-sm leading-relaxed text-steel-800">{t(site.address)}</p>
-                    <p className="mt-1 text-xs text-forged-400">
+                    <p className="text-xs font-semibold tracking-label text-river-500">ที่ตั้ง</p>
+                    <p className="mt-1 text-sm leading-relaxed text-ink-800">{t(site.address)}</p>
+                    <p className="mt-1 text-xs text-river-400">
                       พิกัด {site.mapLatitude}, {site.mapLongitude}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex gap-3 border-t border-rice-300 pt-4">
-                  <ClockIcon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-ember-600" />
+                  <ClockIcon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-leaf-600" />
                   <div>
-                    <p className="text-xs font-semibold tracking-label text-forged-500">เวลาทำการ</p>
-                    <p className="mt-1 text-sm leading-relaxed text-steel-800">{t(site.openingHours)}</p>
+                    <p className="text-xs font-semibold tracking-label text-river-500">เวลาทำการ</p>
+                    <p className="mt-1 text-sm leading-relaxed text-ink-800">{t(site.openingHours)}</p>
                   </div>
                 </div>
               </div>

@@ -59,7 +59,7 @@ export function ProductGallery({ images, productName }: { images: Media[]; produ
         <div
           ref={trackRef}
           onScroll={handleTrackScroll}
-          className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain rounded-card bg-steel-800"
+          className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain rounded-card bg-ink-800"
           aria-label={`รูปภาพ ${productName}`}
         >
           {images.map((media, index) => (
@@ -96,7 +96,7 @@ export function ProductGallery({ images, productName }: { images: Media[]; produ
                   trackRef.current?.scrollTo({ left: index * trackRef.current.clientWidth, behavior: "smooth" });
                 }}
                 className={`h-1.5 rounded-full transition-all duration-300 ease-craft ${
-                  index === activeIndex ? "w-6 bg-ember-500" : "w-1.5 bg-rice-400"
+                  index === activeIndex ? "w-6 bg-leaf-500" : "w-1.5 bg-rice-400"
                 }`}
               />
             ))}
@@ -109,7 +109,7 @@ export function ProductGallery({ images, productName }: { images: Media[]; produ
         <button
           type="button"
           onClick={() => setLightboxIndex(activeIndex)}
-          className="group relative block aspect-square w-full overflow-hidden rounded-card bg-steel-800"
+          className="group relative block aspect-square w-full overflow-hidden rounded-card bg-ink-800"
           aria-label={`ดูภาพขยาย: ${t(active.alt)}`}
         >
           <Image
@@ -121,7 +121,7 @@ export function ProductGallery({ images, productName }: { images: Media[]; produ
             sizes="(max-width: 1024px) 100vw, 55vw"
             className="h-full w-full object-cover transition duration-500 ease-craft group-hover:scale-[1.03]"
           />
-          <span className="absolute bottom-4 right-4 flex items-center gap-1.5 rounded-lg bg-steel-950/70 px-3 py-2 text-xs font-medium text-rice-100 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+          <span className="absolute bottom-4 right-4 flex items-center gap-1.5 rounded-lg bg-ink-950/70 px-3 py-2 text-xs font-medium text-rice-100 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
             <SearchIcon className="h-4 w-4" />
             คลิกเพื่อซูม
           </span>
@@ -136,9 +136,9 @@ export function ProductGallery({ images, productName }: { images: Media[]; produ
                 onClick={() => setActiveIndex(index)}
                 aria-label={`แสดงรูป: ${t(media.alt)}`}
                 aria-pressed={index === activeIndex}
-                className={`relative aspect-square overflow-hidden rounded-lg bg-steel-800 transition duration-200 ease-craft ${
+                className={`relative aspect-square overflow-hidden rounded-lg bg-ink-800 transition duration-200 ease-craft ${
                   index === activeIndex
-                    ? "ring-2 ring-ember-500 ring-offset-2 ring-offset-rice-100"
+                    ? "ring-2 ring-leaf-500 ring-offset-2 ring-offset-rice-100"
                     : "opacity-70 hover:opacity-100"
                 }`}
               >
@@ -163,10 +163,10 @@ export function ProductGallery({ images, productName }: { images: Media[]; produ
           role="dialog"
           aria-modal="true"
           aria-label={`ภาพขยายของ ${productName}`}
-          className="fixed inset-0 z-[60] flex flex-col bg-steel-950/95 backdrop-blur-sm"
+          className="fixed inset-0 z-[60] flex flex-col bg-ink-950/95 backdrop-blur-sm"
         >
           <div className="flex items-center justify-between px-4 py-3">
-            <span className="text-sm text-steel-300">
+            <span className="text-sm text-ink-300">
               {lightboxIndex + 1} / {total}
             </span>
             <button
@@ -212,7 +212,7 @@ export function ProductGallery({ images, productName }: { images: Media[]; produ
             ) : null}
           </div>
 
-          <p className="px-6 pb-8 text-center text-sm text-steel-300">{t(images[lightboxIndex].alt)}</p>
+          <p className="px-6 pb-8 text-center text-sm text-ink-300">{t(images[lightboxIndex].alt)}</p>
         </div>
       ) : null}
     </div>

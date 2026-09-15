@@ -9,7 +9,7 @@ import { ShareButtons } from "@/components/share-buttons";
 import { ButtonLink, Container, OrnamentDivider, SectionHeading } from "@/components/ui";
 import { articles, getArticle, getRelatedArticles } from "@/content/articles";
 import { getCategory } from "@/content/categories";
-import { getCraftsman } from "@/content/craftsmen";
+import { getArtisan } from "@/content/artisans";
 import { site } from "@/content/site";
 import { estimateReadingMinutes, formatThaiDate } from "@/lib/format";
 import { t } from "@/lib/i18n";
@@ -43,7 +43,7 @@ export default async function ArticlePage({ params }: PageProps) {
   if (!article) notFound();
 
   const category = getCategory(article.categorySlug, "article");
-  const craftsman = article.craftsmanSlug ? getCraftsman(article.craftsmanSlug) : undefined;
+  const artisan = article.artisanSlug ? getArtisan(article.artisanSlug) : undefined;
   const related = getRelatedArticles(article, 3);
   const minutes = estimateReadingMinutes(article);
   const path = `/stories/${article.slug}`;
@@ -58,29 +58,29 @@ export default async function ArticlePage({ params }: PageProps) {
   return (
     <article>
       {/* ---------------- ส่วนหัวบทความ ---------------- */}
-      <header className="bg-steel-800 pb-10 pt-10 sm:pb-14">
+      <header className="bg-ink-800 pb-10 pt-10 sm:pb-14">
         <Container size="narrow">
           <div className="flex flex-col gap-6">
             <Breadcrumbs items={crumbs} tone="light" />
 
             <div className="flex flex-col gap-5">
               {category ? (
-                <p className="text-xs font-semibold tracking-label text-ember-400">{t(category.title)}</p>
+                <p className="text-xs font-semibold tracking-label text-leaf-400">{t(category.title)}</p>
               ) : null}
 
               <h1 className="font-serif text-[1.75rem] leading-snug font-bold text-rice-100 sm:text-[2.25rem] sm:leading-[1.35]">
                 {t(article.title)}
               </h1>
 
-              <p className="text-base leading-relaxed text-steel-200">{t(article.excerpt)}</p>
+              <p className="text-base leading-relaxed text-ink-200">{t(article.excerpt)}</p>
 
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-steel-300">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-300">
                 <span>เขียนโดย {t(article.author)}</span>
-                <span aria-hidden className="text-steel-500">
+                <span aria-hidden className="text-ink-500">
                   ·
                 </span>
                 <time dateTime={article.publishedAt}>{formatThaiDate(article.publishedAt)}</time>
-                <span aria-hidden className="text-steel-500">
+                <span aria-hidden className="text-ink-500">
                   ·
                 </span>
                 <span>ใช้เวลาอ่าน {minutes} นาที</span>
@@ -91,9 +91,9 @@ export default async function ArticlePage({ params }: PageProps) {
       </header>
 
       {/* ---------------- ภาพหน้าปก ---------------- */}
-      <div className="bg-steel-800">
+      <div className="bg-ink-800">
         <Container size="wide">
-          <div className="relative -mb-16 aspect-16/9 overflow-hidden rounded-2xl bg-steel-900 shadow-lift-lg sm:-mb-24">
+          <div className="relative -mb-16 aspect-16/9 overflow-hidden rounded-2xl bg-ink-900 shadow-lift-lg sm:-mb-24">
             <Image
               src={article.coverImage.url}
               alt={t(article.coverImage.alt)}
@@ -118,21 +118,21 @@ export default async function ArticlePage({ params }: PageProps) {
 
           {/* กล่องประวัติผู้เขียน */}
           <aside className="mt-8 flex flex-col gap-4 rounded-card border border-rice-300 bg-rice-50 p-6 sm:flex-row sm:items-start sm:gap-6">
-            {craftsman ? (
+            {artisan ? (
               <Image
-                src={craftsman.photo.url}
-                alt={t(craftsman.photo.alt)}
-                width={craftsman.photo.width}
-                height={craftsman.photo.height}
+                src={artisan.photo.url}
+                alt={t(artisan.photo.alt)}
+                width={artisan.photo.width}
+                height={artisan.photo.height}
                 sizes="80px"
                 className="h-20 w-20 shrink-0 rounded-full object-cover"
               />
             ) : null}
             <div className="flex flex-col gap-2">
-              <p className="text-xs font-semibold tracking-label text-ember-600">เกี่ยวกับผู้เขียน</p>
-              <h2 className="font-serif text-lg font-semibold text-steel-800">{t(article.author)}</h2>
-              <p className="text-sm leading-relaxed text-forged-500">
-                {craftsman ? t(craftsman.bio) : t(site.aboutSummary)}
+              <p className="text-xs font-semibold tracking-label text-leaf-600">เกี่ยวกับผู้เขียน</p>
+              <h2 className="font-serif text-lg font-semibold text-ink-800">{t(article.author)}</h2>
+              <p className="text-sm leading-relaxed text-river-500">
+                {artisan ? t(artisan.bio) : t(site.aboutSummary)}
               </p>
               <div className="mt-2">
                 <ButtonLink href="/about" variant="secondary" className="px-4 py-2 text-sm">

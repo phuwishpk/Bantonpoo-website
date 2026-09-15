@@ -9,9 +9,9 @@ import { QuickOrderButton } from "./line-order-button";
 import { Badge } from "./ui";
 
 const STATUS_TONE = {
-  "in-stock": "bg-emerald-600",
-  "made-to-order": "bg-ember-500",
-  "sold-out": "bg-steel-500",
+  "in-stock": "bg-leaf-600",
+  "made-to-order": "bg-ochre-600",
+  "sold-out": "bg-ink-500",
 } as const;
 
 export function ProductCard({
@@ -29,7 +29,7 @@ export function ProductCard({
 
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-card border border-rice-300 bg-rice-50 transition duration-300 ease-craft hover:-translate-y-1 hover:border-rice-400 hover:shadow-lift">
-      <div className="relative aspect-square overflow-hidden bg-steel-800">
+      <div className="relative aspect-square overflow-hidden bg-ink-800">
         <Image
           src={cover.url}
           alt={t(cover.alt)}
@@ -63,10 +63,10 @@ export function ProductCard({
 
       <div className="flex flex-1 flex-col gap-3 p-4">
         {category ? (
-          <p className="text-[0.6875rem] font-semibold tracking-wide text-forged-500">{t(category.title)}</p>
+          <p className="text-[0.6875rem] font-semibold tracking-wide text-river-500">{t(category.title)}</p>
         ) : null}
 
-        <h3 className="font-serif text-base leading-snug font-semibold text-steel-800">
+        <h3 className="font-serif text-base leading-snug font-semibold text-ink-800">
           {/* ลิงก์ครอบทั้งการ์ดด้วย ::after เพื่อให้กดตรงไหนก็เข้าหน้าสินค้าได้ */}
           <Link href={`/shop/${product.slug}`} className="after:absolute after:inset-0 after:content-['']">
             {t(product.name)}
@@ -80,9 +80,9 @@ export function ProductCard({
         ) : null}
 
         <div className="mt-auto flex items-end justify-between gap-3 pt-2">
-          <p className="font-serif text-lg font-semibold text-steel-800">
+          <p className="font-serif text-lg font-semibold text-ink-800">
             {product.price === null ? (
-              <span className="text-base text-forged-500">สอบถามราคา</span>
+              <span className="text-base text-river-500">สอบถามราคา</span>
             ) : (
               formatPrice(product.price)
             )}

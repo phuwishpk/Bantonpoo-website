@@ -2,21 +2,26 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { productCategories } from "@/content/categories";
-import { productStatusLabels, steelTypeLabels } from "@/content/products";
-import type { Product, ProductStatus, SteelType } from "@/content/types";
+import { productFormLabels, productStatusLabels } from "@/content/products";
+import type { Product, ProductForm, ProductStatus } from "@/content/types";
 import { t } from "@/lib/i18n";
 import { FilterGroup } from "./filter-group";
-import { CloseIcon, FilterIcon, SearchIcon } from "./icons";
+import { CloseIcon, FilterIcon, GridIcon, SearchIcon, SlidesIcon } from "./icons";
 import { ProductCard } from "./product-card";
+import { ProductCatalog } from "./product-catalog";
 import { buttonClass } from "./ui";
 
 export type ShopFilters = {
   categories: string[];
-  steels: SteelType[];
+  forms: ProductForm[];
   statuses: ProductStatus[];
   query: string;
   sort: SortKey;
+  /** มุมมองการแสดงผล — แคตตาล็อกสไลด์ หรือตารางสินค้า */
+  view: ViewMode;
 };
+
+export type ViewMode = "slide" | "grid";
 
 export type SortKey = "recommended" | "price-asc" | "price-desc";
 
@@ -26,7 +31,16 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: "price-desc", label: "ราคามากไปน้อย" },
 ];
 
-const STEEL_ORDER: SteelType[] = ["spring-steel", "d2", "damascus", "carbon-1095", "other"];
+const FORM_ORDER: ProductForm[] = [
+  "liquid-balm",
+  "solid-balm",
+  "massage-oil",
+  "compress",
+  "soap",
+  "tea",
+  "dried-herb",
+  "other",
+];
 const STATUS_ORDER: ProductStatus[] = ["in-stock", "made-to-order", "sold-out"];
 
 /**
@@ -44,10 +58,11 @@ export function ShopBrowser({ products, initial }: { products: Product[]; initia
   useEffect(() => {
     const params = new URLSearchParams();
     if (filters.categories.length) params.set("category", filters.categories.join(","));
-    if (filters.steels.length) params.set("steel", filters.steels.join(","));
+    if (filters.forms.length) params.set("steel", filters.forms.join(","));
     if (filters.statuses.length) params.set("status", filters.statuses.join(","));
     if (filters.query.trim()) params.set("q", filters.query.trim());
     if (filters.sort !== "recommended") params.set("sort", filters.sort);
+    if (filters.view !== "slide") params.set("view", filters.view);
 
     const query = params.toString();
     window.history.replaceState(null, "", query ? `?${query}` : window.location.pathname);
@@ -62,7 +77,7 @@ export function ShopBrowser({ products, initial }: { products: Product[]; initia
     };
   }, [drawerOpen]);
 
-  const toggle = useCallback(<K extends "categories" | "steels" | "statuses">(key: K, value: ShopFilters[K][number]) => {
+  const toggle = useCallback(<K extends "categories" | "forms" | "statuses">(key: K, value: ShopFilters[K][number]) => {
     setFilters((current) => {
       const list = current[key] as string[];
       const next = list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
@@ -74,28 +89,29 @@ export function ShopBrowser({ products, initial }: { products: Product[]; initia
 
   /** นับจำนวนสินค้าของแต่ละตัวเลือก โดยไม่นับตัวกรองของกลุ่มตัวเอง */
   const countBy = useCallback(
-    (dimension: "category" | "steel" | "status", value: string) =>
+    (dimension: "category" | "form" | "status", value: string) =>
       products.filter((product) => {
         if (dimension !== "category" && filters.categories.length && !filters.categories.includes(product.categorySlug))
           return false;
-        if (dimension !== "steel" && filters.steels.length && !filters.steels.includes(product.steelType)) return false;
+        if (dimension !== "form" && filters.forms.length && !filters.forms.includes(product.form)) return false;
         if (dimension !== "status" && filters.statuses.length && !filters.statuses.includes(product.status))
           return false;
 
         if (dimension === "category") return product.categorySlug === value;
-        if (dimension === "steel") return product.steelType === value;
+        if (dimension === "form") return product.form === value;
         return product.status === value;
       }).length,
-    [products, filters.categories, filters.steels, filters.statuses]
+    [products, filters.categories, filters.forms, filters.statuses]
   );
 
   const visible = useMemo(() => {
     const filtered = products.filter((product) => {
       if (filters.categories.length && !filters.categories.includes(product.categorySlug)) return false;
-      if (filters.steels.length && !filters.steels.includes(product.steelType)) return false;
+      if (filters.forms.length && !filters.forms.includes(product.form)) return false;
       if (filters.statuses.length && !filters.statuses.includes(product.status)) return false;
       if (searchText) {
-        const haystack = [t(product.name), product.sku, t(product.excerpt), t(product.handleMaterial)]
+        // ค้นหาครอบคลุมชื่อ รหัส คำโปรย และชื่อสมุนไพรในตำรับ
+        const haystack = [t(product.name), product.sku, t(product.excerpt), ...t(product.mainHerbs)]
           .join(" ")
           .toLowerCase();
         if (!haystack.includes(searchText)) return false;
@@ -113,11 +129,11 @@ export function ShopBrowser({ products, initial }: { products: Product[]; initia
     });
   }, [products, filters, searchText]);
 
-  const activeCount = filters.categories.length + filters.steels.length + filters.statuses.length;
+  const activeCount = filters.categories.length + filters.forms.length + filters.statuses.length;
   const hasAnyFilter = activeCount > 0 || searchText.length > 0;
 
   const resetFilters = () =>
-    setFilters({ categories: [], steels: [], statuses: [], query: "", sort: filters.sort });
+    setFilters({ categories: [], forms: [], statuses: [], query: "", sort: filters.sort, view: filters.view });
 
   const filterPanel = (
     <div className="flex flex-col gap-5">
@@ -132,13 +148,13 @@ export function ShopBrowser({ products, initial }: { products: Product[]; initia
         }))}
       />
       <FilterGroup
-        legend="ชนิดเหล็ก / วัสดุ"
-        selected={filters.steels}
-        onToggle={(value) => toggle("steels", value)}
-        options={STEEL_ORDER.map((steel) => ({
-          value: steel,
-          label: t(steelTypeLabels[steel]),
-          count: countBy("steel", steel),
+        legend="รูปแบบผลิตภัณฑ์"
+        selected={filters.forms}
+        onToggle={(value) => toggle("forms", value)}
+        options={FORM_ORDER.map((form) => ({
+          value: form,
+          label: t(productFormLabels[form]),
+          count: countBy("form", form),
         }))}
       />
       <FilterGroup
@@ -164,22 +180,24 @@ export function ShopBrowser({ products, initial }: { products: Product[]; initia
       {/* แถบตัวกรองด้านข้าง — เดสก์ท็อป */}
       <aside className="hidden lg:block">
         <div className="sticky top-24">
-          <h2 className="mb-5 font-serif text-lg font-semibold text-steel-800">ตัวกรอง</h2>
+          <h2 className="mb-5 font-serif text-lg font-semibold text-ink-800">ตัวกรอง</h2>
           {filterPanel}
         </div>
       </aside>
 
-      <div className="flex flex-col gap-5">
+      {/* min-w-0 จำเป็น: กริดคอลัมน์ 1fr มี min-width: auto โดยปริยาย
+          ถ้าไม่ใส่ แถบสไลด์ที่กว้างรวมกันหลายเท่าจอจะดันคอลัมน์นี้จนล้นออกนอกหน้า */}
+      <div className="flex min-w-0 flex-col gap-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative flex-1">
-            <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-forged-400" />
+            <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-river-400" />
             <input
               type="search"
               value={filters.query}
               onChange={(event) => setFilters((current) => ({ ...current, query: event.target.value }))}
-              placeholder="ค้นหาชื่อมีดหรือรหัสสินค้า"
+              placeholder="ค้นหาชื่อสินค้า รหัส หรือชื่อสมุนไพร"
               aria-label="ค้นหาสินค้า"
-              className="w-full rounded-lg border border-rice-300 bg-rice-50 py-3 pl-11 pr-4 text-sm text-steel-800 placeholder:text-forged-400 focus:border-steel-800 focus:outline-none"
+              className="w-full rounded-lg border border-rice-300 bg-rice-50 py-3 pl-11 pr-4 text-sm text-ink-800 placeholder:text-river-400 focus:border-ink-800 focus:outline-none"
             />
           </div>
 
@@ -192,20 +210,51 @@ export function ShopBrowser({ products, initial }: { products: Product[]; initia
               <FilterIcon className="h-[18px] w-[18px]" />
               ตัวกรอง
               {activeCount > 0 ? (
-                <span className="ml-1 rounded-full bg-ember-500 px-1.5 py-0.5 text-[0.6875rem] text-white">
+                <span className="ml-1 rounded-full bg-leaf-500 px-1.5 py-0.5 text-[0.6875rem] text-white">
                   {activeCount}
                 </span>
               ) : null}
             </button>
 
+            <div
+              role="group"
+              aria-label="รูปแบบการแสดงสินค้า"
+              className="flex shrink-0 items-center gap-1 rounded-lg border border-rice-300 bg-rice-50 p-1"
+            >
+              {(
+                [
+                  { value: "slide", label: "แคตตาล็อกสไลด์", icon: SlidesIcon },
+                  { value: "grid", label: "ตารางสินค้า", icon: GridIcon },
+                ] as const
+              ).map((option) => {
+                const Icon = option.icon;
+                const selected = filters.view === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-pressed={selected}
+                    aria-label={option.label}
+                    title={option.label}
+                    onClick={() => setFilters((current) => ({ ...current, view: option.value }))}
+                    className={`rounded-md p-2 transition duration-200 ease-craft ${
+                      selected ? "bg-ink-800 text-rice-100" : "text-ink-500 hover:bg-rice-200"
+                    }`}
+                  >
+                    <Icon className="h-[18px] w-[18px]" />
+                  </button>
+                );
+              })}
+            </div>
+
             <label className="flex items-center gap-2 rounded-lg border border-rice-300 bg-rice-50 px-3 text-sm">
-              <span className="whitespace-nowrap text-forged-500">เรียงตาม</span>
+              <span className="whitespace-nowrap text-river-500">เรียงตาม</span>
               <select
                 value={filters.sort}
                 onChange={(event) =>
                   setFilters((current) => ({ ...current, sort: event.target.value as SortKey }))
                 }
-                className="bg-transparent py-3 pr-1 font-medium text-steel-800 focus:outline-none"
+                className="bg-transparent py-3 pr-1 font-medium text-ink-800 focus:outline-none"
               >
                 {SORT_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -217,22 +266,27 @@ export function ShopBrowser({ products, initial }: { products: Product[]; initia
           </div>
         </div>
 
-        <p className="text-sm text-forged-500" aria-live="polite">
-          พบ <span className="font-semibold text-steel-800">{visible.length}</span> รายการ
+        <p className="text-sm text-river-500" aria-live="polite">
+          พบ <span className="font-semibold text-ink-800">{visible.length}</span> รายการ
           {hasAnyFilter ? " จากเงื่อนไขที่เลือก" : ""}
         </p>
 
         {visible.length > 0 ? (
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 lg:gap-5">
-            {visible.map((product) => (
-              <ProductCard key={product.slug} product={product} />
-            ))}
-          </div>
+          filters.view === "slide" ? (
+            // key ผูกกับเงื่อนไขการกรอง เพื่อให้สไลด์เริ่มที่ชิ้นแรกทุกครั้งที่ผลลัพธ์เปลี่ยน
+            <ProductCatalog key={visible.map((product) => product.slug).join("-")} products={visible} />
+          ) : (
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 lg:gap-5">
+              {visible.map((product) => (
+                <ProductCard key={product.slug} product={product} />
+              ))}
+            </div>
+          )
         ) : (
           <div className="rounded-card border border-dashed border-rice-400 bg-rice-50 px-6 py-16 text-center">
-            <p className="font-serif text-lg text-steel-800">ไม่พบสินค้าที่ตรงกับเงื่อนไข</p>
-            <p className="mt-2 text-sm text-forged-500">
-              ลองลดตัวกรองลง หรือทักไลน์มาสอบถามช่างโดยตรงได้เลย เรารับงานสั่งทำเฉพาะราย
+            <p className="font-serif text-lg text-ink-800">ไม่พบสินค้าที่ตรงกับเงื่อนไข</p>
+            <p className="mt-2 text-sm text-river-500">
+              ลองลดตัวกรองลง หรือทักมาสอบถามกลุ่มวิสาหกิจชุมชนโดยตรงได้เลย
             </p>
             <button type="button" onClick={resetFilters} className={buttonClass("secondary", "mt-5")}>
               ล้างตัวกรองทั้งหมด
@@ -248,7 +302,7 @@ export function ShopBrowser({ products, initial }: { products: Product[]; initia
           tabIndex={-1}
           aria-label="ปิดตัวกรอง"
           onClick={() => setDrawerOpen(false)}
-          className={`absolute inset-0 bg-steel-950/60 transition-opacity duration-300 ${
+          className={`absolute inset-0 bg-ink-950/60 transition-opacity duration-300 ${
             drawerOpen ? "opacity-100" : "opacity-0"
           }`}
         />
@@ -262,11 +316,11 @@ export function ShopBrowser({ products, initial }: { products: Product[]; initia
           style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
         >
           <div className="sticky top-0 flex items-center justify-between border-b border-rice-300 bg-rice-100 px-5 py-4">
-            <h2 className="font-serif text-lg font-semibold text-steel-800">ตัวกรอง</h2>
+            <h2 className="font-serif text-lg font-semibold text-ink-800">ตัวกรอง</h2>
             <button
               type="button"
               onClick={() => setDrawerOpen(false)}
-              className="rounded-lg p-2 text-steel-700 transition-colors hover:bg-rice-200"
+              className="rounded-lg p-2 text-ink-700 transition-colors hover:bg-rice-200"
               aria-label="ปิดตัวกรอง"
             >
               <CloseIcon className="h-6 w-6" />

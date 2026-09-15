@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" width="1200" height="1200" role="img" aria-label="ลูกประคบสมุนไพรสด — ภาพรวม">
+  <defs>
+    <linearGradient id="bg" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#272d35"/>
+      <stop offset="100%" stop-color="#15191e"/>
+    </linearGradient>
+    <radialGradient id="key" cx="0.5" cy="0.18" r="0.75">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#1f4a34"/>
+      <stop offset="35%" stop-color="#3d7f5c"/>
+      <stop offset="70%" stop-color="#2a5c41"/>
+      <stop offset="100%" stop-color="#163423"/>
+    </linearGradient>
+    <linearGradient id="lid" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#8f7b3a"/>
+      <stop offset="40%" stop-color="#c9a227"/>
+      <stop offset="100%" stop-color="#7a6822"/>
+    </linearGradient>
+    <linearGradient id="cloth" x1="0.2" y1="0" x2="0.9" y2="1">
+      <stop offset="0%" stop-color="#f3ead6"/>
+      <stop offset="60%" stop-color="#ddcba6"/>
+      <stop offset="100%" stop-color="#b8a077"/>
+    </linearGradient>
+    
+    <pattern id="h" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#ffffff" stroke-width="1" opacity="0.025"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="1200" fill="url(#bg)"/>
+  <rect width="1200" height="1200" fill="url(#h)"/>
+  <rect width="1200" height="1200" fill="url(#key)"/>
+  
+    <ellipse cx="600" cy="888" rx="288" ry="30"
+                           fill="#000000" opacity="0.4"/>
+    <path d="M 575.82 476.7 L 575.82 324
+             L 624.18 324 L 624.18 476.7 Z"
+          fill="#8a6a45"/>
+    <circle cx="600" cy="672" r="186" fill="url(#cloth)"/>
+    <path d="M 497.7 504.6 Q 600 420.9 702.3 504.6"
+          fill="url(#cloth)"/>
+    <rect x="544.2" y="463.67999999999995" width="111.6" height="40.92"
+          rx="14.88" fill="#24643f"/>
+    <g stroke="#00000030" fill="none" stroke-width="9.3">
+      <path d="M 460.5 616.2 Q 562.8 690.6 581.4 839.4"/>
+      <path d="M 739.5 616.2 Q 637.2 690.6 618.6 839.4"/>
+    </g>
+    <circle cx="534.9" cy="606.9" r="78.11999999999999" fill="#ffffff" opacity="0.12"/>
+  
+  <g font-family="'IBM Plex Sans Thai','Noto Sans Thai',sans-serif" text-anchor="end">
+    <text x="1146" y="76" font-size="15"
+          fill="#64748b" letter-spacing="1.6" opacity="0.9">PLACEHOLDER</text>
+    <text x="1146" y="104.6" font-size="22" fill="#ffffffcc" opacity="0.75">ลูกประคบสมุนไพรสด — ภาพรวม</text>
+  </g></svg>

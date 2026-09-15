@@ -1,36 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1000" width="1400" height="1000" role="img" aria-label="ภาพประวัติศาสตร์ชุมชนช่างตีเหล็ก">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1000" width="1400" height="1000" role="img" aria-label="ภาพประวัติศาสตร์ชุมชนมอญริมเจ้าพระยา">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0.7" y2="1">
-      <stop offset="0%" stop-color="#15191e"/>
-      <stop offset="55%" stop-color="#1e232a"/>
-      <stop offset="100%" stop-color="#272d35"/>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f7ece0"/>
+      <stop offset="60%" stop-color="#e7dfd4"/>
+      <stop offset="100%" stop-color="#b9a894"/>
     </linearGradient>
-    <radialGradient id="glow" cx="0.68" cy="0.72" r="0.55">
-      <stop offset="0%" stop-color="#ffa26b" stop-opacity="0.85"/>
-      <stop offset="45%" stop-color="#e65100" stop-opacity="0.35"/>
-      <stop offset="100%" stop-color="#e65100" stop-opacity="0"/>
-    </radialGradient>
     
     <pattern id="h" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
-      <line x1="0" y1="0" x2="0" y2="8" stroke="#ffffff" stroke-width="1" opacity="0.035"/>
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#1e232a" stroke-width="1" opacity="0.04"/>
     </pattern>
   </defs>
-  <rect width="1400" height="1000" fill="url(#bg)"/>
+  <rect width="1400" height="1000" fill="url(#sky)"/>
   <rect width="1400" height="1000" fill="url(#h)"/>
-  <rect width="1400" height="1000" fill="url(#glow)"/>
-  <g stroke="#ffa26b" stroke-linecap="round" opacity="0.5" fill="none">
-    <path d="M 700 740 L 1092 600" stroke-width="20"/>
-    <path d="M 420 500 L 588 680" stroke-width="12" opacity="0.3"/>
+  <circle cx="1064" cy="260" r="100" fill="#7ec79b" opacity="0.5"/>
+  <g fill="#272d35" opacity="0.38">
+    <path d="M 0 780 L 308 520 L 560 780 Z"/>
+    <path d="M 420 820 L 784.0000000000001 460 L 1148 820 Z"/>
   </g>
-  <g fill="#ffa26b" opacity="0.55">
-    <circle cx="868" cy="420" r="8"/>
-    <circle cx="994" cy="300" r="5"/>
-    <circle cx="770.0000000000001" cy="240" r="4"/>
-    <circle cx="1120" cy="460" r="6"/>
+  <g fill="#1e232a" opacity="0.55">
+    <rect x="0" y="800" width="1400" height="200"/>
+    <rect x="112" y="620" width="224" height="180"/>
+    <path d="M 70 630 L 224 540 L 378 630 Z"/>
   </g>
   
   <g font-family="'IBM Plex Sans Thai','Noto Sans Thai',sans-serif" text-anchor="end">
     <text x="1337" y="85" font-size="15"
-          fill="#ffa26b" letter-spacing="1.6" opacity="0.9">PLACEHOLDER</text>
-    <text x="1337" y="113.6" font-size="22" fill="#ffffffcc" opacity="0.75">ภาพประวัติศาสตร์ชุมชนช่างตีเหล็ก</text>
+          fill="#24643f" letter-spacing="1.6" opacity="0.9">PLACEHOLDER</text>
+    <text x="1337" y="113.6" font-size="22" fill="#1e232a" opacity="0.75">ภาพประวัติศาสตร์ชุมชนมอญริมเจ้าพระยา</text>
   </g></svg>

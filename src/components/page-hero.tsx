@@ -17,10 +17,10 @@ export function PageHero({
   children?: ReactNode;
 }) {
   return (
-    <section className="relative overflow-hidden bg-steel-800">
+    <section className="relative overflow-hidden bg-ink-800">
       <div
         aria-hidden
-        className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-ember-500/15 blur-[100px]"
+        className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-leaf-500/15 blur-[100px]"
       />
       <Container size="wide">
         <div className="relative flex flex-col gap-5 py-10 sm:py-14">
@@ -29,7 +29,7 @@ export function PageHero({
             {eyebrow ? <EyebrowLabel tone="light">{eyebrow}</EyebrowLabel> : null}
             <h1 className="font-serif text-[1.75rem] leading-snug font-bold text-rice-100 sm:text-4xl">{title}</h1>
             {description ? (
-              <p className="text-base leading-relaxed text-steel-200">{description}</p>
+              <p className="text-base leading-relaxed text-ink-200">{description}</p>
             ) : null}
           </div>
           {children}

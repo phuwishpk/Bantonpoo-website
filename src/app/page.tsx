@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArticleCard } from "@/components/article-card";
-import { FlameIcon, HammerIcon, LineIcon, MapPinIcon, PhoneIcon, UsersIcon } from "@/components/icons";
+import { LeafIcon, LineIcon, MapPinIcon, PhoneIcon, TempleIcon, UsersIcon } from "@/components/icons";
 import { ProductCard } from "@/components/product-card";
 import { ArrowLink, ButtonLink, buttonClass, Container, EyebrowLabel, SectionHeading } from "@/components/ui";
 import { getArticle, getLatestArticles } from "@/content/articles";
@@ -15,53 +15,53 @@ import { telUrl } from "@/lib/line";
 
 const HIGHLIGHTS = [
   {
-    icon: HammerIcon,
-    title: "มรดกช่างตีเหล็ก",
-    body: "ประวัติศาสตร์ที่สืบทอดจากช่างเวียงจันทน์สู่แผ่นดินกรุงเก่า ผ่านมือช่างมาแล้วกว่าเจ็ดชั่วอายุคน",
+    icon: TempleIcon,
+    title: "ชุมชนมอญริมเจ้าพระยา",
+    body: "ลูกหลานชาวมอญเมืองเมาะตะมะที่ตั้งถิ่นฐานริมแม่น้ำเจ้าพระยามาหลายร้อยปี มีวัดเจตวงศ์เป็นศูนย์กลาง",
   },
   {
-    icon: FlameIcon,
-    title: "หัตถกรรมตีมือทุกเล่ม",
-    body: "ขึ้นรูปด้วยค้อนบนทั่ง เผาด้วยถ่านไม้ ชุบแข็งด้วยสูตรโบราณ ได้คมที่ทนและลับง่าย",
+    icon: LeafIcon,
+    title: "ภูมิปัญญาสมุนไพร",
+    body: "วิสาหกิจชุมชนสมุนไพรบ้านต้นโพธิ์แปรรูปสมุนไพรไทยเป็นยาหม่องน้ำ ลูกประคบ และผลิตภัณฑ์อื่นด้วยมือ",
   },
   {
     icon: UsersIcon,
-    title: "ท่องเที่ยวสัมผัสวิถี",
-    body: "เปิดเตาโบราณให้ทดลองตีมีดด้วยตัวเอง พร้อมเรียนรู้วิถีเกษตรและอาหารพื้นบ้านของชุมชน",
+    title: "ท่องเที่ยวเชิงวัฒนธรรม",
+    body: "เปิดฐานเรียนรู้ให้ลงมือทำยาหม่องและลูกประคบเอง พร้อมเดินชมโบราณสถานและจุดชมวิวริมน้ำ",
   },
 ];
 
 export default function HomePage() {
   const featuredProducts = getFeaturedProducts(4);
   const latestArticles = getLatestArticles(3);
-  const spotlight = getArticle("secret-of-the-edge");
-  const heroImage = img("hero-forge", "ช่างกำลังตีมีดในเตาไฟ ประกายไฟกระจายรอบทั่ง");
+  const spotlight = getArticle("herbal-wisdom");
+  const heroImage = img("hero-herbal", "กลุ่มแม่บ้านกำลังแปรรูปสมุนไพรของชุมชน");
 
   return (
     <>
       {/* ---------------- HERO ---------------- */}
-      <section className="relative overflow-hidden bg-steel-800">
+      <section className="relative overflow-hidden bg-ink-800">
         {/* แสงไฟจากเตา — ไล่สีนุ่ม ๆ ให้พื้นหลังไม่แบน */}
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-40 top-1/4 h-[36rem] w-[36rem] rounded-full bg-ember-500/20 blur-[120px]"
+          className="pointer-events-none absolute -right-40 top-1/4 h-[36rem] w-[36rem] rounded-full bg-leaf-500/20 blur-[120px]"
         />
         <Container size="wide">
           <div className="grid items-center gap-10 py-14 lg:min-h-[85vh] lg:grid-cols-[1.05fr_1fr] lg:gap-14 lg:py-20">
             <div className="flex flex-col gap-7">
-              <EyebrowLabel tone="light">ตำบลท่าช้าง · อำเภอนครหลวง · พระนครศรีอยุธยา</EyebrowLabel>
+              <EyebrowLabel tone="light">หมู่ที่ 1 ตำบลบางขะแยง · อำเภอเมืองปทุมธานี</EyebrowLabel>
 
               {/*
                 ภาษาไทยไม่มีช่องว่างระหว่างคำ เบราว์เซอร์จึงเดาจุดตัดบรรทัดเอง
-                และตัดคำเฉพาะอย่าง "อรัญญิก" ผิดตำแหน่งได้ จึงกำหนดบรรทัดเองด้วย block
+                และตัดคำวิสามานยนามผิดตำแหน่งได้ จึงกำหนดบรรทัดเองด้วย block
               */}
               <h1 className="font-serif text-[1.75rem] leading-[1.4] font-bold text-rice-100 sm:text-[2.25rem] lg:text-[2.75rem] lg:leading-[1.35]">
-                <span className="block">มรดกช่างตีเหล็กแห่งอยุธยา</span>
-                <span className="mt-2 block text-ember-400">สืบสานตำนานมีดอรัญญิก</span>
-                <span className="block text-ember-400">กว่า 200 ปี</span>
+                <span className="block">ชุมชนมอญริมเจ้าพระยา</span>
+                <span className="mt-2 block text-leaf-300">กับภูมิปัญญาสมุนไพร</span>
+                <span className="block text-leaf-300">บ้านต้นโพธิ์</span>
               </h1>
 
-              <p className="max-w-xl text-base leading-relaxed text-steel-200 sm:text-lg">
+              <p className="max-w-xl text-base leading-relaxed text-ink-200 sm:text-lg">
                 {t(site.heroSubtitle)}
               </p>
 
@@ -76,13 +76,13 @@ export default function HomePage() {
 
               <dl className="mt-2 grid max-w-lg grid-cols-3 gap-4 border-t border-white/10 pt-6">
                 {[
-                  { value: "200+", label: "ปีของภูมิปัญญา" },
-                  { value: "7", label: "ชั่วอายุคนที่สืบทอด" },
-                  { value: "100%", label: "ตีด้วยมือทุกเล่ม" },
+                  { value: "5,870", label: "ประชากรในชุมชน" },
+                  { value: "2,777", label: "ครัวเรือน" },
+                  { value: "45 ไร่", label: "พื้นที่เกษตรของชุมชน" },
                 ].map((stat) => (
                   <div key={stat.label}>
-                    <dt className="font-serif text-2xl font-semibold text-ember-400">{stat.value}</dt>
-                    <dd className="mt-1 text-xs leading-relaxed text-steel-300">{stat.label}</dd>
+                    <dt className="font-serif text-2xl font-semibold text-leaf-400">{stat.value}</dt>
+                    <dd className="mt-1 text-xs leading-relaxed text-ink-300">{stat.label}</dd>
                   </div>
                 ))}
               </dl>
@@ -101,10 +101,10 @@ export default function HomePage() {
                 />
                 <div
                   aria-hidden
-                  className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-steel-950/80 to-transparent"
+                  className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-ink-950/80 to-transparent"
                 />
                 <figcaption className="absolute inset-x-0 bottom-0 p-5 text-sm text-rice-100">
-                  ซุ้มตีมีดบ้านต้นโพธิ์ · เตาถ่านที่ยังไม่เคยดับ
+                  วิสาหกิจชุมชนสมุนไพรบ้านต้นโพธิ์ · แปรรูปด้วยมือในชุมชน
                 </figcaption>
               </div>
             </div>
@@ -119,13 +119,13 @@ export default function HomePage() {
             {HIGHLIGHTS.map(({ icon: Icon, title, body }) => (
               <div
                 key={title}
-                className="flex flex-col gap-4 rounded-card border border-rice-300 bg-rice-50 p-6 transition duration-300 ease-craft hover:border-ember-200 hover:shadow-lift"
+                className="flex flex-col gap-4 rounded-card border border-rice-300 bg-rice-50 p-6 transition duration-300 ease-craft hover:border-leaf-200 hover:shadow-lift"
               >
-                <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-ember-50 text-ember-600">
+                <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-leaf-50 text-leaf-600">
                   <Icon className="h-6 w-6" />
                 </span>
-                <h3 className="font-serif text-lg font-semibold text-steel-800">{title}</h3>
-                <p className="text-sm leading-relaxed text-forged-500">{body}</p>
+                <h3 className="font-serif text-lg font-semibold text-ink-800">{title}</h3>
+                <p className="text-sm leading-relaxed text-river-500">{body}</p>
               </div>
             ))}
           </div>
@@ -137,8 +137,8 @@ export default function HomePage() {
         <Container size="wide">
           <SectionHeading
             eyebrow="สินค้าคัดสรร"
-            title="มีดและงานหัตถกรรมยอดนิยม"
-            description="ทุกเล่มตีด้วยมือในชุมชน ระบุชื่อช่างผู้ตีและชนิดเหล็กอย่างชัดเจน"
+            title="ผลิตภัณฑ์สมุนไพรยอดนิยม"
+            description="ทุกชิ้นแปรรูปด้วยมือในชุมชน ระบุปริมาณสุทธิและสมุนไพรหลักในตำรับอย่างชัดเจน"
             action={<ArrowLink href="/shop">ดูสินค้าทั้งหมด</ArrowLink>}
           />
           <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-5">
@@ -153,7 +153,7 @@ export default function HomePage() {
       {spotlight ? (
         <section className="py-16 sm:py-20">
           <Container size="wide">
-            <div className="overflow-hidden rounded-2xl bg-steel-800">
+            <div className="overflow-hidden rounded-2xl bg-ink-800">
               <div className="grid lg:grid-cols-2">
                 <div className="relative min-h-64 lg:min-h-full">
                   <Image
@@ -170,11 +170,11 @@ export default function HomePage() {
                   <h2 className="font-serif text-2xl leading-snug font-semibold text-rice-100 sm:text-3xl">
                     {t(spotlight.title)}
                   </h2>
-                  <p className="text-[0.9375rem] leading-relaxed text-steel-200">{t(spotlight.excerpt)}</p>
-                  <blockquote className="border-l-2 border-ember-500 pl-4 font-serif text-base leading-relaxed text-rice-100">
-                    “มีดที่ดีไม่ได้เกิดจากการตีแรง แต่เกิดจากการตีถูกจังหวะ”
-                    <footer className="mt-2 text-xs font-sans text-steel-300">
-                      — ครูช่างสมชาย ตีเหล็กทอง
+                  <p className="text-[0.9375rem] leading-relaxed text-ink-200">{t(spotlight.excerpt)}</p>
+                  <blockquote className="border-l-2 border-leaf-500 pl-4 font-serif text-base leading-relaxed text-rice-100">
+                    “ภูมิปัญญาการใช้สมุนไพรไทย” ถูกระบุเป็นหนึ่งในจุดเด่นของชุมชนบ้านต้นโพธิ์
+                    <footer className="mt-2 font-sans text-xs text-ink-300">
+                      — วิกิชุมชน ศูนย์มานุษยวิทยาสิรินธร
                     </footer>
                   </blockquote>
                   <div>
@@ -195,7 +195,7 @@ export default function HomePage() {
           <SectionHeading
             eyebrow="กิจกรรมและจุดสัมผัสชุมชน"
             title="มาถึงที่แล้วได้ลงมือทำจริง"
-            description="ชุมชนเปิดเตาให้ผู้มาเยือนได้ลองตีมีดด้วยตัวเอง พร้อมฐานเรียนรู้อื่น ๆ ที่จองล่วงหน้าได้"
+            description="ชุมชนเปิดฐานเรียนรู้ให้ผู้มาเยือนลงมือทำยาหม่องและลูกประคบเอง พร้อมเส้นทางเดินชมโบราณสถานริมน้ำ"
             action={<ArrowLink href="/tourism">ดูกิจกรรมทั้งหมด</ArrowLink>}
           />
           <div className="mt-8 grid gap-5 md:grid-cols-3">
@@ -204,7 +204,7 @@ export default function HomePage() {
                 key={workshop.slug}
                 className="group relative flex flex-col overflow-hidden rounded-card border border-rice-300 bg-rice-50 transition duration-300 ease-craft hover:-translate-y-1 hover:shadow-lift"
               >
-                <div className="relative aspect-3/2 overflow-hidden bg-steel-800">
+                <div className="relative aspect-3/2 overflow-hidden bg-ink-800">
                   <Image
                     src={workshop.image.url}
                     alt={t(workshop.image.alt)}
@@ -215,17 +215,17 @@ export default function HomePage() {
                   />
                 </div>
                 <div className="flex flex-1 flex-col gap-3 p-5">
-                  <h3 className="font-serif text-lg leading-snug font-semibold text-steel-800">
+                  <h3 className="font-serif text-lg leading-snug font-semibold text-ink-800">
                     <Link href="/tourism" className="after:absolute after:inset-0 after:content-['']">
                       {t(workshop.title)}
                     </Link>
                   </h3>
-                  <p className="text-sm leading-relaxed text-forged-500">{t(workshop.summary)}</p>
-                  <p className="mt-auto pt-2 text-sm font-semibold text-ember-600">
+                  <p className="text-sm leading-relaxed text-river-500">{t(workshop.summary)}</p>
+                  <p className="mt-auto pt-2 text-sm font-semibold text-leaf-600">
                     {workshop.pricePerPerson === null
                       ? "สอบถามค่าบริการ"
                       : `${formatPrice(workshop.pricePerPerson)} / คน`}
-                    <span className="ml-2 font-normal text-forged-400">· {t(workshop.duration)}</span>
+                    <span className="ml-2 font-normal text-river-400">· {t(workshop.duration)}</span>
                   </p>
                 </div>
               </article>
@@ -253,19 +253,19 @@ export default function HomePage() {
       {/* ---------------- CTA ---------------- */}
       <section className="pb-4">
         <Container size="wide">
-          <div className="relative overflow-hidden rounded-2xl bg-steel-800 px-6 py-12 text-center sm:px-12 sm:py-16">
+          <div className="relative overflow-hidden rounded-2xl bg-ink-800 px-6 py-12 text-center sm:px-12 sm:py-16">
             <div
               aria-hidden
-              className="pointer-events-none absolute left-1/2 top-0 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ember-500/25 blur-[100px]"
+              className="pointer-events-none absolute left-1/2 top-0 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-leaf-500/25 blur-[100px]"
             />
             <div className="relative mx-auto flex max-w-2xl flex-col items-center gap-5">
               <EyebrowLabel tone="light">สั่งซื้อ · สอบถาม · นัดหมายเข้าชม</EyebrowLabel>
               <h2 className="font-serif text-2xl leading-snug font-semibold text-rice-100 sm:text-3xl">
-                คุยกับช่างโดยตรง ไม่ผ่านคนกลาง
+                คุยกับกลุ่มวิสาหกิจชุมชนโดยตรง
               </h2>
-              <p className="text-[0.9375rem] leading-relaxed text-steel-200">
-                ทักมาทาง LINE เพื่อสอบถามสินค้า ขอใบเสนอราคาสำหรับงานสั่งทำ หรือนัดหมายเข้าชมชุมชนเป็นหมู่คณะ
-                ทีมงานตอบกลับทุกวันในเวลาทำการ
+              <p className="text-[0.9375rem] leading-relaxed text-ink-200">
+                ทักมาทาง LINE เพื่อสอบถามผลิตภัณฑ์ ขอใบเสนอราคาชุดของฝาก หรือนัดหมายพาคณะเข้าศึกษาดูงาน
+                ทีมงานตอบกลับในเวลาทำการ
               </p>
               <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
                 <a
