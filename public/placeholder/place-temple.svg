@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800" role="img" aria-label="วัดประจำชุมชน — จุดเช็กอิน">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f7ece0"/>
+      <stop offset="60%" stop-color="#e7dfd4"/>
+      <stop offset="100%" stop-color="#b9a894"/>
+    </linearGradient>
+    
+    <pattern id="h" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#1e232a" stroke-width="1" opacity="0.04"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="800" fill="url(#sky)"/>
+  <rect width="1200" height="800" fill="url(#h)"/>
+  <circle cx="912" cy="208" r="80" fill="#ffa26b" opacity="0.5"/>
+  <g fill="#272d35" opacity="0.38">
+    <path d="M 0 624 L 264 416 L 480 624 Z"/>
+    <path d="M 360 656 L 672.0000000000001 368 L 983.9999999999999 656 Z"/>
+  </g>
+  <g fill="#1e232a" opacity="0.55">
+    <rect x="0" y="640" width="1200" height="160"/>
+    <rect x="96" y="496" width="192" height="144"/>
+    <path d="M 60 504 L 192 432 L 324 504 Z"/>
+  </g>
+  
+  <g font-family="'IBM Plex Sans Thai','Noto Sans Thai',sans-serif" text-anchor="end">
+    <text x="1146" y="76" font-size="15"
+          fill="#d84315" letter-spacing="1.6" opacity="0.9">PLACEHOLDER</text>
+    <text x="1146" y="104.6" font-size="22" fill="#1e232a" opacity="0.75">วัดประจำชุมชน — จุดเช็กอิน</text>
+  </g></svg>

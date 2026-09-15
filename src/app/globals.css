@@ -1,0 +1,190 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   Design tokens — "Heritage Meets Modern Craft"
+   ปรับสีทั้งเว็บได้จากที่เดียวตรงนี้
+   ------------------------------------------------------------------ */
+@theme {
+  /* Charcoal Steel — เหล็กกล้า/เตาเผา : ตัวอักษรหลัก, Header, Footer */
+  --color-steel-50: #f5f6f7;
+  --color-steel-100: #e6e8ea;
+  --color-steel-200: #c9cdd3;
+  --color-steel-300: #9aa2ac;
+  --color-steel-400: #6b7581;
+  --color-steel-500: #47505b;
+  --color-steel-600: #333b45;
+  --color-steel-700: #272d35;
+  --color-steel-800: #1e232a;
+  --color-steel-900: #15191e;
+  --color-steel-950: #0d1014;
+
+  /* Ember Flame — ประกายไฟจากเตาตีเหล็ก : ปุ่ม CTA, ป้าย, จุดเน้น */
+  --color-ember-50: #fff5ed;
+  --color-ember-100: #ffe6d1;
+  --color-ember-200: #ffc8a3;
+  --color-ember-300: #ffa26b;
+  --color-ember-400: #fb7a37;
+  --color-ember-500: #e65100;
+  --color-ember-600: #d84315;
+  --color-ember-700: #b3360f;
+  --color-ember-800: #8c2b0e;
+  --color-ember-900: #6e230e;
+
+  /* Warm Rice & Earth — พื้นหลังหน้าเว็บ */
+  --color-rice-50: #fefdfc;
+  --color-rice-100: #faf8f5;
+  --color-rice-200: #f2ede6;
+  --color-rice-300: #e7dfd4;
+  --color-rice-400: #d6cabb;
+  --color-rice-500: #b9a894;
+
+  /* Forged Grey — คำบรรยาย, เส้นกริด */
+  --color-forged-400: #94a3b8;
+  --color-forged-500: #64748b;
+  --color-forged-600: #51607a;
+
+  --font-sans: var(--font-plex-thai), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-serif-thai), ui-serif, Georgia, serif;
+
+  /* จอมือถือแคบมาก (iPhone SE ~375px) ต้องซ่อนรายละเอียดบางอย่าง */
+  --breakpoint-xs: 23rem;
+
+  --radius-card: 0.75rem;
+
+  --shadow-lift: 0 1px 2px rgb(30 35 42 / 0.04), 0 12px 32px -12px rgb(30 35 42 / 0.18);
+  --shadow-lift-lg: 0 2px 4px rgb(30 35 42 / 0.05), 0 24px 48px -16px rgb(30 35 42 / 0.25);
+
+  --ease-craft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    /* กันเนื้อหาโดน sticky header บัง เวลากดลิงก์ #anchor */
+    scroll-padding-top: 5.5rem;
+  }
+
+  body {
+    background-color: var(--color-rice-100);
+    color: var(--color-steel-800);
+    -webkit-font-smoothing: antialiased;
+    /* ภาษาไทยไม่มีช่องว่างระหว่างคำ — ให้เบราว์เซอร์ตัดบรรทัดตามพจนานุกรม */
+    word-break: normal;
+    overflow-wrap: break-word;
+    line-break: normal;
+  }
+
+  :lang(th) {
+    line-height: 1.85;
+  }
+
+  /* ตัวอักษรไทยไม่มีตัวพิมพ์ใหญ่ — uppercase ใช้ได้เฉพาะข้อความอังกฤษ */
+  .tracking-label {
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  ::selection {
+    background-color: var(--color-ember-500);
+    color: #fff;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ember-500);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+}
+
+@layer components {
+  /* กรอบเนื้อหาอ่านง่าย 720–800px ตามสเปกหน้าบทความ */
+  .prose-craft {
+    max-width: 46rem;
+    font-size: 1.0625rem;
+    line-height: 1.95;
+    color: var(--color-steel-700);
+  }
+  .prose-craft > * + * {
+    margin-top: 1.5rem;
+  }
+  .prose-craft h2 {
+    font-family: var(--font-serif);
+    font-size: 1.75rem;
+    line-height: 1.5;
+    font-weight: 600;
+    color: var(--color-steel-800);
+    margin-top: 3rem;
+  }
+  .prose-craft h3 {
+    font-size: 1.3125rem;
+    font-weight: 600;
+    color: var(--color-steel-800);
+    margin-top: 2.25rem;
+  }
+  .prose-craft ul {
+    list-style: none;
+    padding-left: 0.25rem;
+  }
+  .prose-craft ul li {
+    position: relative;
+    padding-left: 1.5rem;
+  }
+  .prose-craft ul li + li {
+    margin-top: 0.625rem;
+  }
+  .prose-craft ul li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.8em;
+    width: 0.4rem;
+    height: 0.4rem;
+    background-color: var(--color-ember-500);
+    transform: rotate(45deg);
+  }
+  .prose-craft ol {
+    list-style: decimal;
+    padding-left: 1.5rem;
+  }
+  .prose-craft ol li + li {
+    margin-top: 0.625rem;
+  }
+  .prose-craft blockquote {
+    border-left: 3px solid var(--color-ember-500);
+    padding: 0.25rem 0 0.25rem 1.5rem;
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    line-height: 1.75;
+    color: var(--color-steel-800);
+  }
+  .prose-craft a {
+    color: var(--color-ember-600);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .prose-craft strong {
+    color: var(--color-steel-900);
+    font-weight: 600;
+  }
+}
+
+/* ซ่อน scrollbar ของแถบเลื่อนแนวนอน (แกลเลอรี/แท็บบนมือถือ) */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

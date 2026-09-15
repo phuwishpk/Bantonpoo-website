@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-label="ปกบทความ: วิธีดูแลรักษามีด">
+  <defs>
+    <linearGradient id="bg" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#272d35"/>
+      <stop offset="100%" stop-color="#15191e"/>
+    </linearGradient>
+    <radialGradient id="key" cx="0.5" cy="0.18" r="0.75">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#cfd6de"/>
+      <stop offset="48%" stop-color="#8a949f"/>
+      <stop offset="52%" stop-color="#6c7682"/>
+      <stop offset="100%" stop-color="#3d454f"/>
+    </linearGradient>
+    
+    <pattern id="h" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#ffffff" stroke-width="1" opacity="0.025"/>
+    </pattern>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <rect width="1600" height="900" fill="url(#h)"/>
+  <rect width="1600" height="900" fill="url(#key)"/>
+  <g transform="translate(800 450) rotate(-18)">
+    <!-- ใบมีด -->
+    <path d="M -457.6 -40.5
+             L 249.6 -45
+             Q 399.36 -36 416 10.8
+             L -457.6 45 Z"
+          fill="url(#steel)"/>
+    <!-- ด้ามไม้ -->
+    <rect x="-790.4" y="-37.800000000000004" width="349.44" height="82.8"
+          rx="18" fill="#5a3a24"/>
+    <rect x="-790.4" y="-37.800000000000004" width="349.44" height="27"
+          rx="12.6" fill="#ffffff" opacity="0.08"/>
+    <!-- เงาตกกระทบ -->
+    <ellipse cx="0" cy="108" rx="665.6" ry="19.799999999999997" fill="#000000" opacity="0.35"/>
+  </g>
+  
+  <g font-family="'IBM Plex Sans Thai','Noto Sans Thai',sans-serif" text-anchor="end">
+    <text x="1528" y="94" font-size="15"
+          fill="#64748b" letter-spacing="1.6" opacity="0.9">PLACEHOLDER</text>
+    <text x="1528" y="122.6" font-size="22" fill="#ffffffcc" opacity="0.75">ปกบทความ: วิธีดูแลรักษามีด</text>
+  </g></svg>

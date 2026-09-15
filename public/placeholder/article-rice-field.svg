@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-label="ปกบทความ: วิถีเกษตรริมแม่น้ำป่าสัก">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f7ece0"/>
+      <stop offset="60%" stop-color="#e7dfd4"/>
+      <stop offset="100%" stop-color="#b9a894"/>
+    </linearGradient>
+    
+    <pattern id="h" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#1e232a" stroke-width="1" opacity="0.04"/>
+    </pattern>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <rect width="1600" height="900" fill="url(#h)"/>
+  <circle cx="1216" cy="234" r="90" fill="#ffa26b" opacity="0.5"/>
+  <g fill="#272d35" opacity="0.38">
+    <path d="M 0 702 L 352 468 L 640 702 Z"/>
+    <path d="M 480 738 L 896.0000000000001 414 L 1312 738 Z"/>
+  </g>
+  <g fill="#1e232a" opacity="0.55">
+    <rect x="0" y="720" width="1600" height="180"/>
+    <rect x="128" y="558" width="256" height="162"/>
+    <path d="M 80 567 L 256 486.00000000000006 L 432 567 Z"/>
+  </g>
+  
+  <g font-family="'IBM Plex Sans Thai','Noto Sans Thai',sans-serif" text-anchor="end">
+    <text x="1528" y="94" font-size="15"
+          fill="#d84315" letter-spacing="1.6" opacity="0.9">PLACEHOLDER</text>
+    <text x="1528" y="122.6" font-size="22" fill="#1e232a" opacity="0.75">ปกบทความ: วิถีเกษตรริมแม่น้ำป่าสัก</text>
+  </g></svg>
