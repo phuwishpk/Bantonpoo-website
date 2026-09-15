@@ -6,15 +6,19 @@ import { ShopBrowser, type ShopFilters, type SortKey, type ViewMode } from "@/co
 import { EditToolbar } from "@/components/edit-mode";
 import { Container } from "@/components/ui";
 import type { ProductForm, ProductStatus } from "@/content/types";
-import { hero, readSections, titleBody } from "@/lib/cms/page-content";
+import { hero, readSections, sectionSkin, titleBody, typographyOf } from "@/lib/cms/page-content";
 import { getCategories, getPageGlobal, getProducts, getSite } from "@/lib/cms/queries";
 import { loc } from "@/lib/cms/map";
 import { isDraftMode } from "@/lib/cms/draft";
 import { editLinksFor } from "@/lib/cms/edit-links";
+import { atGlobal } from "@/lib/cms/inline";
 import { t } from "@/lib/i18n";
 import { breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
 
 const DEFAULT_SECTIONS = ["catalogue"];
+
+/** ที่อยู่ของฟิลด์ในหน้านี้ ใช้ผูกข้อความบนหน้าเว็บกับช่องกรอกในหลังบ้าน */
+const at = atGlobal("shop-page");
 
 const CRUMBS = [
   { name: "หน้าแรก", path: "/" },
@@ -102,11 +106,17 @@ export default async function ShopPage({
         title={t(content.title)}
         description={t(content.description)}
         crumbs={CRUMBS}
+        at={at("hero")}
+        typography={typographyOf(page, "hero")}
       />
 
       {visibleSections.map((item, index) =>
         item.type === "catalogue" ? (
-          <section key={`${item.type}-${index}`} className="py-12 sm:py-16">
+          <section
+            key={`${item.type}-${index}`}
+            className={`py-12 sm:py-16 ${sectionSkin(item).className}`}
+            style={sectionSkin(item).style}
+          >
             <Container size="wide">
               <ShopBrowser
                 products={products}
@@ -124,6 +134,9 @@ export default async function ShopPage({
             eyebrow={loc(cta.eyebrow as never)}
             title={loc(cta.title as never)}
             body={loc(cta.body as never)}
+            at={at("cta")}
+            config={item}
+            editing={editing}
           />
         ) : null
       )}

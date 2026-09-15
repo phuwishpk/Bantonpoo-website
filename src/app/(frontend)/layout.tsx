@@ -115,11 +115,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             ข้ามไปยังเนื้อหาหลัก
           </a>
           {draft ? <PreviewBar path="/" /> : null}
-          <SiteHeader nav={nav} />
+          <SiteHeader nav={nav} editing={draft} />
           <main id="main" className="flex-1">
             {children}
           </main>
-          <SiteFooter site={site} nav={nav} />
+          <SiteFooter site={site} nav={nav} editing={draft} />
         </SiteProvider>
         <JsonLd data={localBusinessJsonLd(site)} />
       </body>

@@ -8,6 +8,7 @@ import {
   setAtPath,
   type Target,
 } from "@/lib/cms/inline";
+import { findTextField } from "@/lib/cms/inline-schema";
 
 /**
  * บันทึกข้อความที่แก้จากหน้าเว็บ
@@ -24,7 +25,7 @@ import {
  */
 
 /** ภาษาที่หน้าเว็บใช้อยู่ตอนนี้ (ดู src/lib/i18n.ts) */
-const LOCALE = "th";
+const LOCALE = "th" as const;
 
 type Cms = Awaited<ReturnType<typeof getCms>>;
 type User = Parameters<Cms["updateGlobal"]>[0]["user"];
@@ -104,21 +105,25 @@ async function save(cms: Cms, user: User, body: Record<string, unknown>) {
   const value = clean(body.value, body.multiline === true);
   if (value === null) return deny("ข้อความยาวเกินไปหรือรูปแบบไม่ถูกต้อง", 400);
 
+  // เทียบกับสคีมาก่อนแตะฐานข้อมูล — ชื่อฟิลด์ที่พิมพ์ผิดหรือช่องที่ไม่ใช่ข้อความจะตกที่นี่
+  if (!findTextField(fieldsOf(cms, address), address.path)) {
+    return deny("ช่องนี้แก้จากหน้าเว็บไม่ได้ ต้องแก้จากหลังบ้าน", 400);
+  }
+
   const doc = await readDoc(cms, address, user);
   if (!doc) return deny("ไม่พบเอกสารที่ต้องการแก้", 404);
 
-  // ช่องที่แก้ได้ต้องเป็นข้อความอยู่แล้ว — กันไม่ให้สตริงไปทับอาร์เรย์หรือกลุ่มฟิลด์
   const current = getAtPath(doc, address.path);
-  if (typeof current !== "string" && current !== null && current !== undefined) {
-    return deny("ช่องนี้ไม่ใช่ช่องข้อความ ต้องแก้จากหลังบ้าน", 400);
-  }
   if (current === value) return Response.json({ ok: true, unchanged: true });
 
   // ส่งกลับเฉพาะกิ่งบนสุดของเส้นทาง ไม่ส่งเอกสารทั้งก้อน
   const [top, ...rest] = address.path;
   let branch: unknown = value;
   if (rest.length > 0) {
-    branch = structuredClone(doc[top] ?? null);
+    // กลุ่มฟิลด์ที่ยังไม่เคยกรอกเลย Payload จะไม่ส่งกลับมา แต่ถ้าชั้นถัดไปเป็นเลขลำดับ
+    // แปลว่าเป็นอาร์เรย์ซึ่งสร้างแถวเองไม่ได้ ต้องปล่อยให้ setAtPath ปฏิเสธ
+    const seed = doc[top] ?? (/^\d+$/.test(rest[0]) ? null : {});
+    branch = structuredClone(seed);
     if (!setAtPath(branch, rest, value)) return deny("ไม่พบช่องที่ต้องการแก้ในเอกสาร", 400);
   }
 
@@ -181,6 +186,14 @@ function stripMeta(doc: Record<string, unknown>): Record<string, unknown> {
 /* ------------------------------------------------------------------
    อ่าน/เขียนผ่าน Local API
    ------------------------------------------------------------------ */
+
+/** ผังฟิลด์ของเอกสาร ใช้ตรวจว่าเส้นทางที่ขอมาชี้ไปยังช่องข้อความจริง */
+function fieldsOf(cms: Cms, target: Target) {
+  if (target.kind === "global") {
+    return cms.globals.config.find((global) => global.slug === target.slug)?.fields ?? [];
+  }
+  return cms.collections[target.collection as keyof Cms["collections"]]?.config.fields ?? [];
+}
 
 async function readDoc(cms: Cms, target: Target, user: User) {
   const common = {

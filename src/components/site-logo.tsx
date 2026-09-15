@@ -1,7 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { SiteSettings } from "@/content/types";
+import { atGlobal } from "@/lib/cms/inline";
 import { t } from "@/lib/i18n";
+import { InlineEditable } from "./inline-editable";
+
+const at = atGlobal("site-settings");
 
 /**
  * เครื่องหมายสำรอง — ใบโพธิ์ในวงกลม สื่อถึงต้นโพธิ์ใหญ่ที่เป็นที่มาของชื่อชุมชน
@@ -26,13 +30,20 @@ export function LogoMark({ className = "" }: { className?: string }) {
   );
 }
 
-/** รับข้อมูลชุมชนเป็น prop เพราะใช้ทั้งใน header (client) และ footer (server) */
+/**
+ * รับข้อมูลชุมชนเป็น prop เพราะใช้ทั้งใน header (client) และ footer (server)
+ *
+ * ใช้ InlineEditable ตรง ๆ แทน <Ed> เพราะคอมโพเนนต์นี้ถูกเรนเดอร์ในฝั่งไคลเอนต์ด้วย
+ * ผู้เรียกจึงต้องเป็นคนบอกว่าตอนนี้อยู่ในโหมดแก้ไขหรือไม่
+ */
 export function SiteLogo({
   site,
   tone = "light",
+  editing = false,
 }: {
   site: SiteSettings;
   tone?: "light" | "dark";
+  editing?: boolean;
 }) {
   const title = tone === "light" ? "text-rice-100" : "text-ink-800";
   const subtitle = tone === "light" ? "text-ink-300" : "text-river-500";
@@ -52,10 +63,22 @@ export function SiteLogo({
       )}
       <span className="flex flex-col leading-tight">
         <span className={`whitespace-nowrap font-serif text-base font-semibold sm:text-lg ${title}`}>
-          {t(site.communityShortName)}
+          {editing ? (
+            <InlineEditable at={at("communityShortName")} tone={tone}>
+              {t(site.communityShortName)}
+            </InlineEditable>
+          ) : (
+            t(site.communityShortName)
+          )}
         </span>
         <span className={`hidden whitespace-nowrap text-2xs tracking-wide xs:block ${subtitle}`}>
-          {t(site.tagline)}
+          {editing ? (
+            <InlineEditable at={at("tagline")} tone={tone}>
+              {t(site.tagline)}
+            </InlineEditable>
+          ) : (
+            t(site.tagline)
+          )}
         </span>
       </span>
     </Link>

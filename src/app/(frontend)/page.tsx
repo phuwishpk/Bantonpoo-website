@@ -10,9 +10,11 @@ import {
   TempleIcon,
   UsersIcon,
 } from "@/components/icons";
+import { Ed } from "@/components/editable";
 import { EditToolbar } from "@/components/edit-mode";
 import { ProductCard } from "@/components/product-card";
-import { ArrowLink, ButtonLink, buttonClass, Container, EyebrowLabel, SectionHeading } from "@/components/ui";
+import { ArrowLink, ButtonLink, buttonClass, Container, EyebrowLabel } from "@/components/ui";
+import { SectionHeading } from "@/components/section-heading";
 import {
   COLUMN_CLASS,
   hero,
@@ -24,6 +26,8 @@ import {
   section,
   stats,
   titleBody,
+  typographyOf,
+  typographySkin,
 } from "@/lib/cms/page-content";
 import {
   getArticle,
@@ -37,6 +41,7 @@ import { loc } from "@/lib/cms/map";
 import { formatPrice } from "@/lib/format";
 import { isDraftMode } from "@/lib/cms/draft";
 import { adminDoc, editLinksFor } from "@/lib/cms/edit-links";
+import { atGlobal } from "@/lib/cms/inline";
 import { t } from "@/lib/i18n";
 import { telUrl } from "@/lib/line";
 
@@ -59,6 +64,9 @@ const ICONS = {
   "map-pin": MapPinIcon,
 } as const;
 
+/** ที่อยู่ของฟิลด์ในหน้านี้ ใช้ผูกข้อความบนหน้าเว็บกับช่องกรอกในหลังบ้าน */
+const at = atGlobal("home-page");
+
 export default async function HomePage() {
   const editing = await isDraftMode();
   const [page, site, featuredProducts, latestArticles, workshops] = await Promise.all([
@@ -79,6 +87,7 @@ export default async function HomePage() {
   }));
   const primary = link(heroGroup, "primaryButton");
   const secondary = link(heroGroup, "secondaryButton");
+  const heroSkin = typographySkin(typographyOf(page, "hero"));
 
   const highlights = rowsOf(page, "highlights", (row) => ({
     icon: (row.icon as keyof typeof ICONS) ?? "leaf",
@@ -99,7 +108,10 @@ export default async function HomePage() {
   return (
     <>
       {/* ---------------- HERO ---------------- */}
-      <section className="relative overflow-hidden bg-ink-800">
+      <section
+        className={`relative overflow-hidden bg-ink-800 ${heroSkin.className}`}
+        style={heroSkin.style}
+      >
         <div
           aria-hidden
           className="pointer-events-none absolute -right-40 top-1/4 h-[36rem] w-[36rem] rounded-full bg-leaf-500/20 blur-[120px]"
@@ -107,8 +119,12 @@ export default async function HomePage() {
         <Container size="wide">
           <div className="grid items-center gap-10 py-14 lg:min-h-[85vh] lg:grid-cols-[1.05fr_1fr] lg:gap-14 lg:py-20">
             <div className="flex flex-col gap-7">
-              {t(heroContent.eyebrow) ? (
-                <EyebrowLabel tone="light">{t(heroContent.eyebrow)}</EyebrowLabel>
+              {t(heroContent.eyebrow) || editing ? (
+                <EyebrowLabel tone="light">
+                  <Ed at={at("hero.eyebrow")} tone="light" placeholder="ข้อความนำ">
+                    {t(heroContent.eyebrow)}
+                  </Ed>
+                </EyebrowLabel>
               ) : null}
 
               {/*
@@ -117,34 +133,51 @@ export default async function HomePage() {
               */}
               <h1 className="font-serif text-display-sm leading-[1.4] font-bold text-rice-100 sm:text-display-md lg:text-display-lg lg:leading-[1.35]">
                 {titleLines.map((line, index) => (
-                  <span
+                  <Ed
                     key={index}
+                    as="span"
+                    at={at(`hero.titleLines.${index}.text`)}
+                    tone="light"
                     className={`block ${index > 0 ? "mt-2" : ""} ${line.accent ? "text-leaf-300" : ""}`}
                   >
                     {t(line.text)}
-                  </span>
+                  </Ed>
                 ))}
               </h1>
 
               <p className="max-w-xl text-base leading-relaxed text-ink-200 sm:text-lg">
-                {t(loc(heroGroup.subtitle as never)) || t(site.aboutSummary)}
+                <Ed at={at("hero.subtitle")} multiline tone="light" placeholder="คำโปรย">
+                  {t(loc(heroGroup.subtitle as never)) || t(site.aboutSummary)}
+                </Ed>
               </p>
 
               <div className="flex flex-col gap-3 sm:flex-row">
                 <ButtonLink href={primary.href} variant="primary" className="sm:w-auto">
-                  {t(primary.label)}
+                  <Ed at={at("hero.primaryButton.label")} tone="light">
+                    {t(primary.label)}
+                  </Ed>
                 </ButtonLink>
                 <ButtonLink href={secondary.href} variant="onDark" className="sm:w-auto">
-                  {t(secondary.label)}
+                  <Ed at={at("hero.secondaryButton.label")} tone="light">
+                    {t(secondary.label)}
+                  </Ed>
                 </ButtonLink>
               </div>
 
               {heroStats.length > 0 ? (
                 <dl className="mt-2 grid max-w-lg grid-cols-3 gap-4 border-t border-white/10 pt-6">
-                  {heroStats.map((stat) => (
-                    <div key={t(stat.label)}>
-                      <dt className="font-serif text-2xl font-semibold text-leaf-300">{t(stat.value)}</dt>
-                      <dd className="mt-1 text-xs leading-relaxed text-ink-300">{t(stat.label)}</dd>
+                  {heroStats.map((stat, index) => (
+                    <div key={index}>
+                      <dt className="font-serif text-2xl font-semibold text-leaf-300">
+                        <Ed at={at(`hero.stats.${index}.value`)} tone="light">
+                          {t(stat.value)}
+                        </Ed>
+                      </dt>
+                      <dd className="mt-1 text-xs leading-relaxed text-ink-300">
+                        <Ed at={at(`hero.stats.${index}.label`)} tone="light">
+                          {t(stat.label)}
+                        </Ed>
+                      </dd>
                     </div>
                   ))}
                 </dl>
@@ -168,7 +201,9 @@ export default async function HomePage() {
                     className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-ink-950/80 to-transparent"
                   />
                   <figcaption className="absolute inset-x-0 bottom-0 p-5 text-sm text-rice-100">
-                    {t(loc(heroGroup.imageCaption as never))}
+                    <Ed at={at("hero.imageCaption")} tone="light" placeholder="คำบรรยายใต้ภาพ">
+                      {t(loc(heroGroup.imageCaption as never))}
+                    </Ed>
                   </figcaption>
                 </div>
               </div>
@@ -188,20 +223,24 @@ export default async function HomePage() {
               <section key={key} className={`py-16 sm:py-20 ${skin.className}`} style={skin.style}>
                 <Container size="wide">
                   <div className={`grid gap-5 ${columns ?? "md:grid-cols-3"}`}>
-                    {highlights.map((highlight) => {
+                    {highlights.map((highlight, cardIndex) => {
                       const Icon = ICONS[highlight.icon] ?? LeafIcon;
                       return (
                         <div
-                          key={t(highlight.title)}
+                          key={cardIndex}
                           className="flex flex-col gap-4 rounded-card border border-rice-300 bg-rice-50 p-6 transition duration-300 ease-craft hover:border-leaf-200 hover:shadow-lift"
                         >
                           <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-leaf-50 text-leaf-600">
                             <Icon className="h-6 w-6" />
                           </span>
                           <h3 className="font-serif text-lg font-semibold text-ink-800">
-                            {t(highlight.title)}
+                            <Ed at={at(`highlights.${cardIndex}.title`)}>{t(highlight.title)}</Ed>
                           </h3>
-                          <p className="text-sm leading-relaxed text-river-500">{t(highlight.body)}</p>
+                          <p className="text-sm leading-relaxed text-river-500">
+                            <Ed at={at(`highlights.${cardIndex}.body`)} multiline>
+                              {t(highlight.body)}
+                            </Ed>
+                          </p>
                         </div>
                       );
                     })}
@@ -215,6 +254,7 @@ export default async function HomePage() {
               <section key={key} className={`py-12 sm:py-16 ${skin.className}`} style={skin.style}>
                 <Container size="wide">
                   <SectionHeading
+                    at={at("featuredSection")}
                     eyebrow={t(section(page, "featuredSection").eyebrow)}
                     title={t(section(page, "featuredSection").title)}
                     description={t(section(page, "featuredSection").description)}
@@ -241,7 +281,7 @@ export default async function HomePage() {
 
           case "spotlight":
             return spotlight ? (
-              <section key={key} className="py-16 sm:py-20">
+              <section key={key} className={`py-16 sm:py-20 ${skin.className}`} style={skin.style}>
                 <Container size="wide">
                   <div className="overflow-hidden rounded-2xl bg-ink-800">
                     <div className="grid lg:grid-cols-2">
@@ -257,7 +297,9 @@ export default async function HomePage() {
                       </div>
                       <div className="flex flex-col justify-center gap-5 p-8 sm:p-12">
                         <EyebrowLabel tone="light">
-                          {t(loc(spotlightGroup.eyebrow as never))}
+                          <Ed at={at("spotlight.eyebrow")} tone="light" placeholder="ข้อความนำ">
+                            {t(loc(spotlightGroup.eyebrow as never))}
+                          </Ed>
                         </EyebrowLabel>
                         <h2 className="font-serif text-2xl leading-snug font-semibold text-rice-100 sm:text-3xl">
                           {t(spotlight.title)}
@@ -265,11 +307,16 @@ export default async function HomePage() {
                         <p className="text-md leading-relaxed text-ink-200">
                           {t(spotlight.excerpt)}
                         </p>
-                        {t(loc(spotlightGroup.quote as never)) ? (
+                        {t(loc(spotlightGroup.quote as never)) || editing ? (
                           <blockquote className="border-l-2 border-leaf-500 pl-4 font-serif text-base leading-relaxed text-rice-100">
-                            {t(loc(spotlightGroup.quote as never))}
+                            <Ed at={at("spotlight.quote")} multiline tone="light" placeholder="ข้อความอ้างอิง">
+                              {t(loc(spotlightGroup.quote as never))}
+                            </Ed>
                             <footer className="mt-2 font-sans text-xs text-ink-300">
-                              — {t(loc(spotlightGroup.attribution as never))}
+                              —{" "}
+                              <Ed at={at("spotlight.attribution")} tone="light" placeholder="ที่มาของข้อความ">
+                                {t(loc(spotlightGroup.attribution as never))}
+                              </Ed>
                             </footer>
                           </blockquote>
                         ) : null}
@@ -290,6 +337,7 @@ export default async function HomePage() {
               <section key={key} className={`py-12 sm:py-16 ${skin.className}`} style={skin.style}>
                 <Container size="wide">
                   <SectionHeading
+                    at={at("experienceSection")}
                     eyebrow={t(section(page, "experienceSection").eyebrow)}
                     title={t(section(page, "experienceSection").title)}
                     description={t(section(page, "experienceSection").description)}
@@ -342,6 +390,7 @@ export default async function HomePage() {
               <section key={key} className={`py-16 sm:py-20 ${skin.className}`} style={skin.style}>
                 <Container size="wide">
                   <SectionHeading
+                    at={at("storiesSection")}
                     eyebrow={t(section(page, "storiesSection").eyebrow)}
                     title={t(section(page, "storiesSection").title)}
                     tone={skin.onDark ? "light" : "dark"}
@@ -366,7 +415,7 @@ export default async function HomePage() {
 
           case "cta":
             return (
-              <section key={key} className="pb-4 pt-8">
+              <section key={key} className={`pb-4 pt-8 ${skin.className}`} style={skin.style}>
                 <Container size="wide">
                   <div className="relative overflow-hidden rounded-2xl bg-ink-800 px-6 py-12 text-center sm:px-12 sm:py-16">
                     <div
@@ -375,12 +424,20 @@ export default async function HomePage() {
                     />
                     <div className="relative mx-auto flex max-w-2xl flex-col items-center gap-5">
                       <EyebrowLabel tone="light">
-                        {t(loc((page.cta as Record<string, unknown>)?.eyebrow as never))}
+                        <Ed at={at("cta.eyebrow")} tone="light" placeholder="ข้อความนำ">
+                          {t(loc((page.cta as Record<string, unknown>)?.eyebrow as never))}
+                        </Ed>
                       </EyebrowLabel>
                       <h2 className="font-serif text-2xl leading-snug font-semibold text-rice-100 sm:text-3xl">
-                        {t(cta.title)}
+                        <Ed at={at("cta.title")} tone="light">
+                          {t(cta.title)}
+                        </Ed>
                       </h2>
-                      <p className="text-md leading-relaxed text-ink-200">{t(cta.body)}</p>
+                      <p className="text-md leading-relaxed text-ink-200">
+                        <Ed at={at("cta.body")} multiline tone="light" placeholder="เนื้อหา">
+                          {t(cta.body)}
+                        </Ed>
+                      </p>
                       <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
                         <a
                           href={site.lineUrl}

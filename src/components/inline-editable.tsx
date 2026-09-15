@@ -49,7 +49,7 @@ export function InlineEditable({
 
   const readValue = useCallback(() => {
     // innerText ให้ข้อความตามที่ตาเห็น ต่างจาก textContent ที่รวมข้อความของแท็กซ่อนด้วย
-    return (ref.current?.innerText ?? "").replace(/ /g, " ").replace(/\n+$/, "").trim();
+    return (ref.current?.innerText ?? "").replace(/\u00a0/g, " ").replace(/\n+$/, "").trim();
   }, []);
 
   const commit = useCallback(async () => {
@@ -114,6 +114,13 @@ export function InlineEditable({
       data-placeholder={placeholder}
       title={error || (multiline ? HINT.multi : HINT.single)}
       className={`inline-edit ${tone === "light" ? "inline-edit-light" : ""} ${className}`}
+      onClick={(event: React.MouseEvent) => {
+        // ช่องแก้ไขบางช่องอยู่ในลิงก์ (เช่นข้อความบนปุ่ม) การคลิกวางเคอร์เซอร์
+        // จึงพาออกจากหน้าไปเลย ต้องกันไว้ — คลิกตอนนี้ทำงานแล้วหลัง mousedown
+        // เคอร์เซอร์จึงยังลงตำแหน่งที่คลิกได้ตามปกติ
+        event.preventDefault();
+        event.stopPropagation();
+      }}
       onFocus={() => {
         original.current = readValue();
         setState("idle");

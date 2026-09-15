@@ -109,16 +109,35 @@ export function getAtPath(root: unknown, path: string[]): unknown {
 /**
  * เขียนค่าตามเส้นทาง
  *
- * ไม่สร้างชั้นที่ยังไม่มีให้ — ถ้าเส้นทางไม่มีอยู่จริงจะคืน false แล้วให้ผู้เรียกปฏิเสธคำขอ
- * เพราะการสร้างชั้นเองมีโอกาสสร้างโครงสร้างที่ไม่ตรงกับสคีมาของ Payload
+ * สร้างกลุ่มฟิลด์ที่ยังไม่มีให้ได้ เพราะ Payload ไม่ส่งคีย์ของช่องที่ยังว่างกลับมาเลย
+ * ถ้าไม่ยอมสร้าง ผู้ดูแลจะกรอกช่องที่ยังว่างจากหน้าเว็บไม่ได้สักช่อง
+ *
+ * แต่ไม่สร้าง "แถวในอาร์เรย์" ให้ — เส้นทางที่ชี้ไปยังแถวที่ยังไม่มีจะคืน false
+ * เพราะแถวใหม่ต้องมีฟิลด์อื่นครบด้วย การเดาโครงสร้างเองจะได้ข้อมูลที่ไม่ตรงสคีมา
+ *
+ * ผู้เรียกต้องตรวจเส้นทางกับสคีมาก่อน (ดู findTextField) ไม่งั้นชื่อฟิลด์ที่พิมพ์ผิด
+ * จะกลายเป็นคีย์ใหม่ในเอกสาร
  */
 export function setAtPath(root: unknown, path: string[], value: string): boolean {
   if (path.length === 0) return false;
-  const parent = getAtPath(root, path.slice(0, -1));
-  if (parent === null || typeof parent !== "object") return false;
-  const key = path[path.length - 1];
-  if (!(key in (parent as Record<string, unknown>))) return false;
-  (parent as Record<string, unknown>)[key] = value;
+
+  let current: unknown = root;
+  for (let index = 0; index < path.length - 1; index += 1) {
+    if (current === null || typeof current !== "object") return false;
+    const holder = current as Record<string, unknown>;
+    const segment = path[index];
+
+    if (holder[segment] === undefined || holder[segment] === null) {
+      // แถวในอาร์เรย์สร้างเองไม่ได้ ต้องไปเพิ่มในหลังบ้าน
+      const nextIsRow = /^\d+$/.test(path[index + 1]);
+      if (Array.isArray(holder) || /^\d+$/.test(segment) || nextIsRow) return false;
+      holder[segment] = {};
+    }
+    current = holder[segment];
+  }
+
+  if (current === null || typeof current !== "object") return false;
+  (current as Record<string, unknown>)[path[path.length - 1]] = value;
   return true;
 }
 

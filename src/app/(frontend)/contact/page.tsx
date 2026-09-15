@@ -4,8 +4,10 @@ import { ClockIcon, FacebookIcon, LineIcon, MailIcon, MapPinIcon, PhoneIcon } fr
 import { JsonLd } from "@/components/json-ld";
 import { directionsUrl, MapEmbed } from "@/components/map-embed";
 import { PageHero } from "@/components/page-hero";
+import { Ed } from "@/components/editable";
 import { EditToolbar } from "@/components/edit-mode";
-import { Container, SectionHeading } from "@/components/ui";
+import { Container } from "@/components/ui";
+import { SectionHeading } from "@/components/section-heading";
 import { loc } from "@/lib/cms/map";
 import {
   COLUMN_CLASS,
@@ -16,10 +18,12 @@ import {
   section,
   textList,
   titleBody,
+  typographyOf,
 } from "@/lib/cms/page-content";
 import { getPageGlobal, getSite } from "@/lib/cms/queries";
 import { isDraftMode } from "@/lib/cms/draft";
 import { editLinksFor } from "@/lib/cms/edit-links";
+import { atGlobal } from "@/lib/cms/inline";
 import { t } from "@/lib/i18n";
 import { telUrl } from "@/lib/line";
 import { breadcrumbJsonLd, buildMetadata, localBusinessJsonLd } from "@/lib/seo";
@@ -36,6 +40,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const DEFAULT_SECTIONS = ["channels", "form"];
+
+/** ที่อยู่ของฟิลด์ในหน้านี้ ใช้ผูกข้อความบนหน้าเว็บกับช่องกรอกในหลังบ้าน */
+const at = atGlobal("contact-page");
 
 const CRUMBS = [
   { name: "หน้าแรก", path: "/" },
@@ -95,6 +102,8 @@ export default async function ContactPage() {
         title={t(content.title)}
         description={t(content.description)}
         crumbs={CRUMBS}
+        at={at("hero")}
+        typography={typographyOf(page, "hero")}
       />
 
       {visibleSections.map((item, index) => {
@@ -109,7 +118,7 @@ export default async function ContactPage() {
 
         <Container size="wide">
           <div className={`grid gap-4 ${columns ?? "sm:grid-cols-2"}`}>
-            {channels.map((channel) => {
+            {channels.map((channel, channelIndex) => {
               const Icon = channel.icon;
               return (
                 <a
@@ -130,9 +139,15 @@ export default async function ContactPage() {
                     <Icon className="h-5 w-5" />
                   </span>
                   <div className="flex flex-col gap-1">
-                    <p className="text-xs font-semibold tracking-label text-river-500">{t(channel.label)}</p>
+                    <p className="text-xs font-semibold tracking-label text-river-500">
+                      <Ed at={at(`channels.${channelIndex}.label`)}>{t(channel.label)}</Ed>
+                    </p>
                     <p className="font-serif text-lg font-semibold text-ink-800">{channel.value}</p>
-                    <p className="mt-1 text-sm leading-relaxed text-river-500">{t(channel.note)}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-river-500">
+                      <Ed at={at(`channels.${channelIndex}.note`)} multiline>
+                        {t(channel.note)}
+                      </Ed>
+                    </p>
                   </div>
                 </a>
               );
@@ -144,15 +159,17 @@ export default async function ContactPage() {
 
           case "form":
             return (
-              <section key={key} className="pb-16 sm:pb-20">
+              <section key={key} className={`pb-16 sm:pb-20 ${skin.className}`} style={skin.style}>
 
         <Container size="wide">
           <div className="grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-14">
             <div className="flex flex-col gap-7">
               <SectionHeading
+                at={at("formSection")}
                 eyebrow={t(section(page, "formSection").eyebrow)}
                 title={t(section(page, "formSection").title)}
                 description={t(section(page, "formSection").description)}
+                tone={skin.onDark ? "light" : "dark"}
               />
               <ContactForm
                 topics={topics}

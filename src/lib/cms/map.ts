@@ -88,6 +88,7 @@ export function mapArtisan(value: unknown): Artisan | null {
   if (!doc.slug) return null;
   const source = loc(doc.source as LocaleMap);
   return {
+    id: doc.id as string | number,
     slug: String(doc.slug),
     name: loc(doc.name as LocaleMap),
     title: loc(doc.title as LocaleMap),
@@ -210,6 +211,7 @@ export function mapArticle(doc: Record<string, unknown>): Article {
 export function mapWorkshop(doc: Record<string, unknown>): Workshop {
   const takeaway = loc(doc.takeaway as LocaleMap);
   return {
+    id: doc.id as string | number,
     slug: String(doc.slug),
     title: loc(doc.title as LocaleMap),
     summary: loc(doc.summary as LocaleMap),
@@ -227,6 +229,7 @@ export function mapWorkshop(doc: Record<string, unknown>): Workshop {
 export function mapPlace(doc: Record<string, unknown>): PlaceOfInterest {
   const openingHours = loc(doc.openingHours as LocaleMap);
   return {
+    id: doc.id as string | number,
     slug: String(doc.slug),
     name: loc(doc.name as LocaleMap),
     kind: (doc.kind as PlaceOfInterest["kind"]) ?? "landmark",

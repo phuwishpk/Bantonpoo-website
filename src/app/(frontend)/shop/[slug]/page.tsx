@@ -7,11 +7,14 @@ import { PhoneIcon } from "@/components/icons";
 import { JsonLd } from "@/components/json-ld";
 import { ProductOrderButton } from "@/components/line-order-button";
 import { ProductCard } from "@/components/product-card";
+import { Ed } from "@/components/editable";
 import { ProductGallery } from "@/components/product-gallery";
 import { StickyBuyBar } from "@/components/sticky-buy-bar";
-import { Badge, buttonClass, Container, OrnamentDivider, SectionHeading } from "@/components/ui";
+import { Badge, buttonClass, Container, OrnamentDivider } from "@/components/ui";
+import { SectionHeading } from "@/components/section-heading";
 import type { Product } from "@/content/types";
 import { getProduct, getProducts, getRelatedProducts, getSite } from "@/lib/cms/queries";
+import { atDoc } from "@/lib/cms/inline";
 import { productFormLabels, productStatusLabels } from "@/lib/product-labels";
 import { formatPrice } from "@/lib/format";
 import { t } from "@/lib/i18n";
@@ -70,6 +73,7 @@ export default async function ProductPage({ params }: PageProps) {
   const artisan = product.artisan;
   const related = await getRelatedProducts(product, 3);
   const specs = specRows(product);
+  const at = atDoc("products", product.id);
 
   const crumbs = [
     { name: "หน้าแรก", path: "/" },
@@ -105,10 +109,14 @@ export default async function ProductPage({ params }: PageProps) {
                 </Link>
 
                 <h1 className="font-serif text-2xl leading-snug font-bold text-ink-800 sm:text-3xl">
-                  {t(product.name)}
+                  <Ed at={at("name")}>{t(product.name)}</Ed>
                 </h1>
 
-                <p className="text-md leading-relaxed text-river-500">{t(product.excerpt)}</p>
+                <p className="text-md leading-relaxed text-river-500">
+                  <Ed at={at("excerpt")} multiline>
+                    {t(product.excerpt)}
+                  </Ed>
+                </p>
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -226,7 +234,9 @@ export default async function ProductPage({ params }: PageProps) {
               <SectionHeading eyebrow="เรื่องเล่าของผลิตภัณฑ์" title="ที่มาและจุดเด่น" />
               <div className="prose-craft">
                 {t(product.story).map((paragraph, index) => (
-                  <p key={index}>{paragraph}</p>
+                  <Ed key={index} as="p" at={at(`story.${index}.value`)} multiline>
+                    {paragraph}
+                  </Ed>
                 ))}
               </div>
             </div>
@@ -246,7 +256,9 @@ export default async function ProductPage({ params }: PageProps) {
                       >
                         {index + 1}
                       </span>
-                      {step}
+                      <Ed at={at(`usage.${index}.value`)} multiline>
+                        {step}
+                      </Ed>
                     </li>
                   ))}
                 </ol>
@@ -261,7 +273,9 @@ export default async function ProductPage({ params }: PageProps) {
                       className="flex gap-3 rounded-lg border border-rice-300 bg-rice-50 px-4 py-3 text-sm leading-relaxed text-ink-700"
                     >
                       <span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rotate-45 bg-leaf-500" />
-                      {instruction}
+                      <Ed at={at(`careInstructions.${index}.value`)} multiline>
+                        {instruction}
+                      </Ed>
                     </li>
                   ))}
                 </ul>

@@ -41,6 +41,7 @@ export type Category = {
  *    แหล่งอ้างอิงที่ตรวจสอบได้เท่านั้น
  */
 export type Artisan = {
+  id: string | number;
   slug: string;
   name: Localized;
   /** ฉายา/ตำแหน่ง เช่น "ครูช่างประจำโรงปั้นบ้านต้นโพธิ์" */
@@ -138,6 +139,7 @@ export type ContentBlock =
   | { type: "youtube"; videoId: string; title: Localized };
 
 export type Workshop = {
+  id: string | number;
   slug: string;
   title: Localized;
   summary: Localized;
@@ -156,6 +158,7 @@ export type Workshop = {
 
 /** จุดเช็กอิน/ที่พักในชุมชน แสดงบนหน้าท่องเที่ยว */
 export type PlaceOfInterest = {
+  id: string | number;
   slug: string;
   name: Localized;
   kind: "workshop-site" | "homestay" | "landmark" | "shop";

@@ -4,10 +4,13 @@ import type { Metadata } from "next";
 import { ArticleCard } from "@/components/article-card";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { JsonLd } from "@/components/json-ld";
+import { Ed } from "@/components/editable";
 import { RichText } from "@/components/rich-text";
 import { ShareButtons } from "@/components/share-buttons";
-import { ButtonLink, Container, OrnamentDivider, SectionHeading } from "@/components/ui";
+import { ButtonLink, Container, OrnamentDivider } from "@/components/ui";
+import { SectionHeading } from "@/components/section-heading";
 import { getArticle, getArticles, getRelatedArticles, getSite } from "@/lib/cms/queries";
+import { atDoc } from "@/lib/cms/inline";
 import { estimateReadingMinutes, formatThaiDate } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import { articleJsonLd, breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
@@ -47,6 +50,8 @@ export default async function ArticlePage({ params }: PageProps) {
   const minutes = estimateReadingMinutes(article);
   const path = `/stories/${article.slug}`;
 
+  const at = atDoc("articles", article.id);
+
   const crumbs = [
     { name: "หน้าแรก", path: "/" },
     { name: "เรื่องเล่าชุมชน", path: "/stories" },
@@ -66,10 +71,16 @@ export default async function ArticlePage({ params }: PageProps) {
               <p className="text-xs font-semibold tracking-label text-leaf-300">{t(category.title)}</p>
 
               <h1 className="font-serif text-display-sm leading-snug font-bold text-rice-100 sm:text-display-md sm:leading-[1.35]">
-                {t(article.title)}
+                <Ed at={at("title")} tone="light">
+                  {t(article.title)}
+                </Ed>
               </h1>
 
-              <p className="text-base leading-relaxed text-ink-200">{t(article.excerpt)}</p>
+              <p className="text-base leading-relaxed text-ink-200">
+                <Ed at={at("excerpt")} multiline tone="light">
+                  {t(article.excerpt)}
+                </Ed>
+              </p>
 
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-300">
                 <span>เขียนโดย {t(article.author)}</span>
@@ -107,7 +118,7 @@ export default async function ArticlePage({ params }: PageProps) {
       {/* ---------------- เนื้อหา ---------------- */}
       <div className="pt-24 pb-16 sm:pt-32 sm:pb-20">
         <Container size="narrow">
-          <RichText blocks={article.content} />
+          <RichText blocks={article.content} at={at("content")} />
 
           <div className="mt-12 border-t border-rice-300 pt-8">
             <ShareButtons path={path} title={t(article.title)} />

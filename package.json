@@ -9,6 +9,7 @@
     "start": "next start --port ${PORT:-3100}",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "check:inline": "tsx --env-file=.env.local scripts/check-inline.ts",
     "placeholders": "node scripts/generate-placeholders.mjs",
     "deploy": "./scripts/deploy.sh",
     "db:start": "docker start bantonpoo-pg || docker run -d --name bantonpoo-pg -e POSTGRES_USER=bantonpoo -e POSTGRES_PASSWORD=devpassword -e POSTGRES_DB=bantonpoo -p 5433:5432 postgres:16-alpine",

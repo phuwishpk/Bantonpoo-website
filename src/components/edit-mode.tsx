@@ -7,11 +7,13 @@ import { usePathname, useRouter } from "next/navigation";
  * โหมดแก้ไขบนหน้าเว็บ
  *
  * เปิดจากปุ่ม "เปิดเว็บไซต์ (โหมดแก้ไข)" ในหลังบ้าน ผู้ดูแลจะเห็นเว็บจริง
- * พร้อมปุ่มแก้ไขลอยอยู่ตรงจุดที่แก้ได้ กดแล้วเด้งไปหน้าแก้ไขของจุดนั้นทันที
+ * พร้อมช่องข้อความที่คลิกแก้ได้ตรงนั้น และปุ่มลัดไปหน้าแก้ไขของแต่ละส่วน
  *
- * เจตนา: ให้คนที่ไม่คุ้นกับโครงสร้างหลังบ้านหาจุดที่ต้องแก้เจอจากสิ่งที่เห็นบนหน้าเว็บ
- * แทนที่จะต้องเดาว่าข้อความนี้อยู่ใน global ตัวไหน
+ * เจตนา: ให้คนที่ไม่คุ้นกับโครงสร้างหลังบ้านแก้ข้อความจากสิ่งที่เห็นบนหน้าเว็บได้เลย
+ * ส่วนที่แก้ในหน้าเว็บไม่ได้ (เพิ่ม/ลบรายการ เปลี่ยนรูป จัดสี) ยังต้องไปที่หลังบ้าน
+ * ปุ่มลัดในแถบนี้จึงยังอยู่
  */
+
 /**
  * ปุ่มแก้ไขเล็ก ๆ ที่ลอยอยู่มุมของบล็อกเนื้อหา
  *
@@ -52,14 +54,19 @@ function PencilIcon() {
 
 type EditLink = { label: string; href: string };
 
+type SavedEvent = CustomEvent<{ scope?: string; label?: string; drafts?: boolean }>;
+
 /**
  * แถบเครื่องมือลอยมุมล่างขวา
  *
- * รวมทางลัดไปยังทุกจุดที่แก้ได้ของหน้าที่เปิดอยู่ พร้อมปุ่มออกจากโหมด
- * และรีเฟรชอัตโนมัติเมื่อมีการบันทึกในหน้าแอดมินที่เปิดค้างไว้
+ * รวมสามอย่างไว้ที่เดียว: รายการสิ่งที่แก้ไปแล้วแต่ยังไม่เผยแพร่ ปุ่มเผยแพร่
+ * และทางลัดไปหลังบ้านสำหรับสิ่งที่แก้ในหน้าเว็บไม่ได้
  */
 export function EditToolbar({ pageLabel, links }: { pageLabel: string; links: EditLink[] }) {
   const [open, setOpen] = useState(false);
+  const [pending, setPending] = useState<{ scope: string; label: string }[]>([]);
+  const [publishing, setPublishing] = useState(false);
+  const [message, setMessage] = useState("");
   const router = useRouter();
   const pathname = usePathname();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -77,13 +84,76 @@ export function EditToolbar({ pageLabel, links }: { pageLabel: string; links: Ed
     };
   }, [router]);
 
+  // เก็บรายชื่อเอกสารที่ถูกแก้จากหน้าเว็บ เพื่อให้ปุ่มเผยแพร่รู้ว่าต้องเผยแพร่อะไรบ้าง
+  useEffect(() => {
+    function onSaved(event: Event) {
+      const detail = (event as SavedEvent).detail;
+      if (!detail?.scope || !detail.drafts) return;
+      setMessage("");
+      setPending((current) =>
+        current.some((item) => item.scope === detail.scope)
+          ? current
+          : [...current, { scope: detail.scope!, label: detail.label ?? "เนื้อหา" }]
+      );
+    }
+    window.addEventListener("bantonpoo:inline-saved", onSaved);
+    return () => window.removeEventListener("bantonpoo:inline-saved", onSaved);
+  }, []);
+
+  // เตือนก่อนปิดแท็บถ้ายังมีฉบับร่างที่ยังไม่เผยแพร่
+  useEffect(() => {
+    if (pending.length === 0) return;
+    function onBeforeUnload(event: BeforeUnloadEvent) {
+      event.preventDefault();
+    }
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [pending.length]);
+
+  async function publishAll() {
+    setPublishing(true);
+    setMessage("");
+    try {
+      const response = await fetch("/api/inline-edit", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "publish", scopes: pending.map((item) => item.scope) }),
+      });
+      const result = (await response.json()) as {
+        ok?: boolean;
+        done?: string[];
+        failed?: { label: string; message: string }[];
+      };
+
+      if (result.ok) {
+        setPending([]);
+        setMessage("เผยแพร่แล้ว ผู้เข้าชมทั่วไปเห็นการเปลี่ยนแปลงนี้แล้ว");
+        router.refresh();
+      } else {
+        const first = result.failed?.[0];
+        setMessage(first ? `${first.label}: ${first.message}` : "เผยแพร่ไม่สำเร็จ");
+      }
+    } catch {
+      setMessage("ติดต่อเซิร์ฟเวอร์ไม่ได้ ลองอีกครั้ง");
+    } finally {
+      setPublishing(false);
+    }
+  }
+
   return (
     <div className="fixed bottom-4 right-4 z-[80] flex flex-col items-end gap-2 print:hidden">
       {open ? (
-        <div className="w-64 overflow-hidden rounded-xl border border-ink-700 bg-ink-800 shadow-lift-lg">
+        <div className="w-72 overflow-hidden rounded-xl border border-ink-700 bg-ink-800 shadow-lift-lg">
           <p className="border-b border-white/10 px-4 py-3 text-xs font-semibold text-ochre-200">
             แก้ไข{pageLabel}
           </p>
+
+          <p className="border-b border-white/10 px-4 py-3 text-2xs leading-relaxed text-ink-300">
+            คลิกที่ข้อความบนหน้าเว็บเพื่อแก้ได้เลย · กด Esc เพื่อยกเลิก
+            <br />
+            เพิ่ม/ลบรายการ เปลี่ยนรูป และจัดสี ต้องทำที่หลังบ้าน
+          </p>
+
           <ul className="flex flex-col py-1">
             {links.map((link) => (
               <li key={link.href}>
@@ -106,6 +176,23 @@ export function EditToolbar({ pageLabel, links }: { pageLabel: string; links: Ed
             ออกจากโหมดแก้ไข
           </a>
         </div>
+      ) : null}
+
+      {message ? (
+        <p className="max-w-72 rounded-lg bg-ink-800 px-3 py-2 text-2xs leading-relaxed text-rice-100 shadow-lift-lg">
+          {message}
+        </p>
+      ) : null}
+
+      {pending.length > 0 ? (
+        <button
+          type="button"
+          onClick={publishAll}
+          disabled={publishing}
+          className="flex items-center gap-2 rounded-full bg-leaf-500 px-4 py-3 text-sm font-semibold text-white shadow-lift-lg transition hover:bg-leaf-600 disabled:opacity-60"
+        >
+          {publishing ? "กำลังเผยแพร่…" : `เผยแพร่ ${pending.length} รายการที่แก้ไว้`}
+        </button>
       ) : null}
 
       <button

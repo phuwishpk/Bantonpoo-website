@@ -42,41 +42,6 @@ export function EyebrowLabel({ children, tone = "ember" }: { children: ReactNode
   );
 }
 
-export function SectionHeading({
-  eyebrow,
-  title,
-  description,
-  action,
-  tone = "dark",
-  align = "left",
-}: {
-  eyebrow?: string;
-  title: string;
-  description?: string;
-  action?: ReactNode;
-  tone?: "dark" | "light";
-  align?: "left" | "center";
-}) {
-  const titleColor = tone === "dark" ? "text-ink-800" : "text-rice-100";
-  const descColor = tone === "dark" ? "text-river-500" : "text-ink-200";
-  const alignment = align === "center" ? "text-center items-center" : "";
-
-  return (
-    <div
-      className={`flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between ${
-        align === "center" ? "sm:flex-col sm:items-center" : ""
-      }`}
-    >
-      <div className={`flex max-w-2xl flex-col gap-3 ${alignment}`}>
-        {eyebrow ? <EyebrowLabel tone={tone === "dark" ? "ember" : "light"}>{eyebrow}</EyebrowLabel> : null}
-        <h2 className={`font-serif text-2xl leading-snug font-semibold sm:text-3xl ${titleColor}`}>{title}</h2>
-        {description ? <p className={`text-md ${descColor}`}>{description}</p> : null}
-      </div>
-      {action ? <div className="shrink-0">{action}</div> : null}
-    </div>
-  );
-}
-
 type ButtonVariant = "primary" | "secondary" | "ghost" | "onDark";
 
 const BUTTON_BASE =

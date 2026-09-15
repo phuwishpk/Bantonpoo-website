@@ -4,15 +4,23 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { NavData } from "@/lib/cms/navigation";
+import { atGlobal } from "@/lib/cms/inline";
 import { t } from "@/lib/i18n";
 import { telUrl } from "@/lib/line";
 import { isActivePath } from "@/lib/nav";
 import { CloseIcon, LineIcon, MenuIcon, PhoneIcon } from "./icons";
+import { InlineEditable } from "./inline-editable";
 import { useSite } from "./site-context";
 import { SiteLogo } from "./site-logo";
 import { buttonClass, Container } from "./ui";
 
-export function SiteHeader({ nav }: { nav: NavData }) {
+const at = atGlobal("navigation");
+
+/**
+ * @param editing เปิดโหมดแก้ไขบนหน้าเว็บหรือไม่ — ตัดสินจากฝั่งเซิร์ฟเวอร์ใน layout
+ *                เพื่อไม่ให้ที่อยู่ของฟิลด์ติดไปกับข้อมูลที่ส่งให้ผู้เข้าชมทั่วไป
+ */
+export function SiteHeader({ nav, editing = false }: { nav: NavData; editing?: boolean }) {
   const site = useSite();
   const pathname = usePathname();
 
@@ -46,11 +54,11 @@ export function SiteHeader({ nav }: { nav: NavData }) {
       <header className="sticky top-0 z-50 border-b border-white/10 bg-ink-800/95 backdrop-blur supports-[backdrop-filter]:bg-ink-800/85">
         <Container size="wide">
           <div className="flex h-[4.5rem] items-center justify-between gap-4">
-          <SiteLogo site={site} />
+          <SiteLogo site={site} editing={editing} />
 
           <nav aria-label="เมนูหลัก" className="hidden lg:block">
             <ul className="flex items-center gap-1">
-              {nav.mainMenu.map((item) => {
+              {nav.mainMenu.map((item, itemIndex) => {
                 const active = isActivePath(pathname, item.href);
                 return (
                   <li key={item.href}>
@@ -62,7 +70,13 @@ export function SiteHeader({ nav }: { nav: NavData }) {
                         active ? "text-white" : "text-ink-200 hover:text-white"
                       }`}
                     >
-                      {t(item.label)}
+                      {editing ? (
+                        <InlineEditable at={at(`mainMenu.${itemIndex}.label`)} tone="light">
+                          {t(item.label)}
+                        </InlineEditable>
+                      ) : (
+                        t(item.label)
+                      )}
                       {active ? (
                         <span
                           aria-hidden
@@ -85,7 +99,13 @@ export function SiteHeader({ nav }: { nav: NavData }) {
                   className={buttonClass("primary", "px-4 py-2.5")}
                 >
                   <LineIcon className="h-[18px] w-[18px]" />
-                  {t(nav.headerCta.label)}
+                  {editing ? (
+                    <InlineEditable at={at("headerCta.label")} tone="light">
+                      {t(nav.headerCta.label)}
+                    </InlineEditable>
+                  ) : (
+                    t(nav.headerCta.label)
+                  )}
                 </a>
               </div>
             ) : null}
@@ -145,7 +165,13 @@ export function SiteHeader({ nav }: { nav: NavData }) {
         >
           <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
             <span className="font-serif text-base font-semibold text-rice-100">
-              {t(nav.mobileMenu.title) || "เมนู"}
+              {editing ? (
+                <InlineEditable at={at("mobileMenu.title")} tone="light">
+                  {t(nav.mobileMenu.title) || "เมนู"}
+                </InlineEditable>
+              ) : (
+                t(nav.mobileMenu.title) || "เมนู"
+              )}
             </span>
             <button
               type="button"
@@ -159,7 +185,7 @@ export function SiteHeader({ nav }: { nav: NavData }) {
 
           <nav aria-label="เมนูบนมือถือ" className="flex-1 overflow-y-auto px-3 py-4">
             <ul className="flex flex-col gap-1">
-              {nav.mainMenu.map((item) => {
+              {nav.mainMenu.map((item, itemIndex) => {
                 const active = isActivePath(pathname, item.href);
                 return (
                   <li key={item.href}>
@@ -172,7 +198,13 @@ export function SiteHeader({ nav }: { nav: NavData }) {
                         active ? "bg-white/10 font-semibold text-white" : "text-ink-200 hover:bg-white/5"
                       }`}
                     >
-                      {t(item.label)}
+                      {editing ? (
+                        <InlineEditable at={at(`mainMenu.${itemIndex}.label`)} tone="light">
+                          {t(item.label)}
+                        </InlineEditable>
+                      ) : (
+                        t(item.label)
+                      )}
                       {active ? <span aria-hidden className="h-1.5 w-1.5 rotate-45 bg-leaf-500" /> : null}
                     </Link>
                   </li>
@@ -182,7 +214,15 @@ export function SiteHeader({ nav }: { nav: NavData }) {
           </nav>
 
           <div className="border-t border-white/10 p-4">
-            <p className="mb-3 text-xs text-ink-300">{t(nav.mobileMenu.contactHeading)}</p>
+            <p className="mb-3 text-xs text-ink-300">
+              {editing ? (
+                <InlineEditable at={at("mobileMenu.contactHeading")} tone="light">
+                  {t(nav.mobileMenu.contactHeading)}
+                </InlineEditable>
+              ) : (
+                t(nav.mobileMenu.contactHeading)
+              )}
+            </p>
             <div className="flex flex-col gap-2">
               <a
                 href={site.lineUrl}
@@ -191,14 +231,36 @@ export function SiteHeader({ nav }: { nav: NavData }) {
                 className={buttonClass("primary", "w-full")}
               >
                 <LineIcon className="h-[18px] w-[18px]" />
-                {t(nav.mobileMenu.lineButtonPrefix)} {site.lineId}
+                {editing ? (
+                  <InlineEditable at={at("mobileMenu.lineButtonPrefix")} tone="light">
+                    {t(nav.mobileMenu.lineButtonPrefix)}
+                  </InlineEditable>
+                ) : (
+                  t(nav.mobileMenu.lineButtonPrefix)
+                )}{" "}
+                {site.lineId}
               </a>
               <a href={telUrl(site)} onClick={() => setOpen(false)} className={buttonClass("onDark", "w-full")}>
                 <PhoneIcon className="h-[18px] w-[18px]" />
-                {t(nav.mobileMenu.phoneButtonPrefix)} {site.phoneDisplay}
+                {editing ? (
+                  <InlineEditable at={at("mobileMenu.phoneButtonPrefix")} tone="light">
+                    {t(nav.mobileMenu.phoneButtonPrefix)}
+                  </InlineEditable>
+                ) : (
+                  t(nav.mobileMenu.phoneButtonPrefix)
+                )}{" "}
+                {site.phoneDisplay}
               </a>
             </div>
-            <p className="mt-3 text-center text-xs text-ink-400">{t(site.openingHoursShort)}</p>
+            <p className="mt-3 text-center text-xs text-ink-400">
+              {editing ? (
+                <InlineEditable at={`g:site-settings:openingHoursShort`} tone="light">
+                  {t(site.openingHoursShort)}
+                </InlineEditable>
+              ) : (
+                t(site.openingHoursShort)
+              )}
+            </p>
           </div>
         </div>
       </div>
