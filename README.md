@@ -45,18 +45,22 @@
 
 ```bash
 npm install
-npm run db:start   # รัน PostgreSQL ใน Docker (พอร์ต 5433)
-cp .env.example .env.local
-npm run dev        # เปิด http://localhost:3100
-                   # หลังบ้าน http://localhost:3100/admin
-                   # อยากใช้พอร์ตอื่น: PORT=4000 npm run dev
+cp .env.example .env.local         # แล้วใส่ PAYLOAD_SECRET ด้วย openssl rand -hex 32
+npm run migrate                    # สร้างไฟล์ฐานข้อมูล bantonpoo.db
+npm run seed                       # ใส่เนื้อหาตัวอย่าง
+npm run dev                        # เปิด http://localhost:3100
+                                   # หลังบ้าน http://localhost:3100/admin
+                                   # อยากใช้พอร์ตอื่น: PORT=4000 npm run dev
 ```
 
-**ขึ้นเซิร์ฟเวอร์** — คู่มือตั้งเครื่องครั้งแรกอยู่ที่ [docs/deploy-vps.md](docs/deploy-vps.md)
+ฐานข้อมูลเป็น **SQLite** เก็บอยู่ในไฟล์ `bantonpoo.db` ที่รากโปรเจกต์
+ไม่ต้องติดตั้งเซิร์ฟเวอร์ฐานข้อมูล · อยากเริ่มใหม่ก็ลบไฟล์แล้วรันสองคำสั่งข้างบนซ้ำ
+
+**ขึ้นเซิร์ฟเวอร์** — คู่มือตั้งเครื่องครั้งแรกอยู่ที่ [docs/deploy-plesk.md](docs/deploy-plesk.md)
 หลังตั้งเสร็จแล้ว การอัปเดตเหลือคำสั่งเดียว
 
 ```bash
-DEPLOY_HOST=root@<ไอพี VPS> npm run deploy
+DEPLOY_HOST=phuwishs@<ไอพี> REMOTE_DIR=<app root> REMOTE_DB=<ไฟล์ฐานข้อมูล> npm run deploy
 ```
 
 คำสั่งอื่น
@@ -69,13 +73,18 @@ DEPLOY_HOST=root@<ไอพี VPS> npm run deploy
 | `npm run lint` | ตรวจคุณภาพโค้ด |
 | `npm run typecheck` | ตรวจชนิดข้อมูล TypeScript |
 | `npm run placeholders` | สร้างภาพตัวอย่างใหม่ (ดูหัวข้อ "ภาพ") |
-| `npm run deploy` | build แล้วส่งขึ้น VPS และรีสตาร์ตบริการ |
-| `npm run db:start` / `db:stop` | เปิด/ปิด PostgreSQL สำหรับพัฒนาในเครื่อง |
+| `npm run deploy` | build แล้วส่งขึ้นเซิร์ฟเวอร์และรีสตาร์ตแอป |
+| `npm run seed` | ใส่เนื้อหาตัวอย่าง (ล้างของเดิมก่อนเสมอ) |
 | `npm run cms:types` | สร้าง TypeScript types ของ CMS ใหม่ (รันหลังแก้ collection) |
 | `npm run migrate:create` | สร้างไฟล์ migration หลังแก้โครงฟิลด์ (ต้องรันก่อน deploy) |
-| `npm run migrate` | รัน migration บนเซิร์ฟเวอร์ |
+| `npm run migrate` | ปรับโครงฐานข้อมูลตามไฟล์ migration |
+| `npm run migrate:status` | ดูว่า migration ไหนรันไปแล้ว |
+| `npm run check:public` | ตรวจว่าหน้าสาธารณะไม่มีข้อมูลหลังบ้านหลุด |
+| `npm run check:inline` | ตรวจการแก้ข้อความบนหน้าเว็บ (20 ข้อ) |
+| `npm run check:redirects` | ตรวจทางเปลี่ยนเส้นทาง (10 ข้อ) |
+| `npm run check:pages` | ตรวจหน้าที่สร้างเองและบล็อกทั้งหมด (28 ข้อ) |
 
-เทคโนโลยี: Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4
+เทคโนโลยี: Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Payload CMS 3 + SQLite
 ฟอนต์ IBM Plex Sans Thai (เนื้อหา) และ Noto Serif Thai (หัวเรื่อง)
 
 ---

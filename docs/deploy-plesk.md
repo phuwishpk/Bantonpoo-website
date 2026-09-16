@@ -1,13 +1,11 @@
 # คู่มือขึ้นเซิร์ฟเวอร์ — Plesk (Node.js Toolkit)
 
-สำหรับ **HostAtom Cloud VPS ที่ลง Plesk ไว้** โดเมน `bantonpoo.phuwish.com`
+สำหรับ **HostAtom Web Hosting (Plesk แบบแชร์)** โดเมน `bantonpoo.phuwish.com`
+เข้าแผงควบคุมที่ `https://103.80.48.25:8443` ด้วยผู้ใช้ `phuwishs`
 
-**ทำไมใช้ผ่าน Plesk ไม่ใช่ตั้ง systemd + nginx เอง** — Plesk เป็นเจ้าของไฟล์ตั้งค่า
-ของ nginx/Apache ถ้าไปแก้เองจะถูกเขียนทับเมื่อ Plesk sync ค่าครั้งถัดไป
-ปล่อยให้ Plesk จัดการ proxy, TLS และการรีสตาร์ต แล้วเราส่งแค่ไฟล์แอปขึ้นไป จะไม่ชนกัน
-
-> คู่มือสำหรับ VPS เปล่าที่ไม่มี Plesk อยู่ที่ [deploy-vps.md](./deploy-vps.md)
-> ใช้เมื่อจะย้ายไปเครื่องที่ไม่มีแผงควบคุมเท่านั้น
+**เป็นโฮสต์แบบแชร์ ไม่มีสิทธิ์ root** ติดตั้งบริการเพิ่มเองไม่ได้ (เช่น PostgreSQL)
+และ Plesk เป็นเจ้าของไฟล์ตั้งค่าของ nginx/Apache — ปล่อยให้ Plesk จัดการ proxy, TLS
+และการรีสตาร์ต แล้วเราส่งแค่ไฟล์แอปขึ้นไป
 
 ---
 
@@ -16,79 +14,58 @@
 | หัวข้อ | ค่าที่ใช้ |
 | --- | --- |
 | Node.js | 24.21.0 — ใช้ได้ (Next 16 ต้องการ ≥ 20.9) |
-| ฐานข้อมูล | PostgreSQL ที่ติดตั้งเองผ่าน SSH — **Plesk ให้มาแค่ MariaDB ซึ่ง Payload ใช้ไม่ได้** |
+| ฐานข้อมูล | **SQLite** — ไฟล์เดียว ไม่ต้องมีเซิร์ฟเวอร์ฐานข้อมูล |
 | ไฟล์เริ่มต้นแอป | `server.js` — มาจากบิลด์แบบ standalone **ไม่ใช่ `app.js`** |
-| ขนาดที่อัปโหลด | ~68 MB ต่อครั้ง ไม่ต้องมีซอร์สหรือ `node_modules` บนเซิร์ฟเวอร์ |
+| ขนาดที่อัปโหลด | ~76 MB ต่อครั้ง |
 
-**หาที่อยู่จริงของ Application Root ก่อน** — ที่แผงควบคุมขึ้นเป็น `/bantonpoo.phuwish.com`
-ซึ่งเป็นเส้นทางเทียบกับบ้านของ subscription ไม่ใช่เส้นทางเต็ม
+### ทำไมเป็น SQLite
+
+Payload รองรับแค่ **MongoDB / PostgreSQL / SQLite** — ไม่รองรับ MySQL/MariaDB
+ซึ่งเป็นตัวเดียวที่ Plesk แบบแชร์ให้มา และติดตั้ง PostgreSQL เองก็ไม่ได้เพราะไม่มีสิทธิ์ root
+
+SQLite เหมาะกับเว็บนี้: ผู้ดูแลไม่กี่คน ปริมาณเขียนต่ำมาก และสำรองข้อมูลคือการคัดลอกไฟล์เดียว
+ข้อแลกเปลี่ยนคือการเขียนพร้อมกันถูกจัดคิวทีละคำสั่ง ถ้าวันหนึ่งทราฟฟิกสูงขึ้นมาก
+หรือมีคนแก้เนื้อหาพร้อมกันหลายคน ค่อยย้ายไป PostgreSQL
+
+### สามที่อยู่ที่ต้องจดไว้
 
 ```bash
-ssh root@<ไอพี>
-ls -d /var/www/vhosts/*/bantonpoo.phuwish.com
-# ตัวอย่างผลลัพธ์: /var/www/vhosts/phuwish.com/bantonpoo.phuwish.com
+ssh phuwishs@103.80.48.25
+
+pwd                                  # บ้านของ subscription
+ls -d ~/bantonpoo.phuwish.com        # Application Root
 ```
 
-จดค่านี้ไว้ จะเรียกว่า `$APP_ROOT` ตลอดคู่มือนี้
+| ตัวแปร | คืออะไร | ตัวอย่าง |
+| --- | --- | --- |
+| `REMOTE_DIR` | Application Root — โฟลเดอร์แอปที่ถูกเขียนทับทุกครั้งที่ deploy | `/var/www/vhosts/phuwish.com/bantonpoo.phuwish.com` |
+| `REMOTE_DB` | ไฟล์ฐานข้อมูล — **ต้องอยู่นอก** `REMOTE_DIR` | `.../bantonpoo-data/bantonpoo.db` |
+| `UPLOAD_DIR` | รูปที่อัปโหลดผ่าน CMS — **ต้องอยู่นอก** `REMOTE_DIR` | `.../bantonpoo-data/uploads` |
+
+**สองอันหลังต้องอยู่นอกโฟลเดอร์แอป** เพราะ deploy คือการเขียนทับโฟลเดอร์นั้นทั้งก้อน
+ถ้าเก็บไว้ข้างใน เนื้อหาและรูปทั้งหมดจะหายทุกครั้งที่อัปเดตเว็บ
 
 ---
 
-## 1. ติดตั้ง PostgreSQL
-
-**Plesk ของ HostAtom มาพร้อม MariaDB เท่านั้น ซึ่ง Payload ใช้ไม่ได้**
-(รองรับแค่ MongoDB / PostgreSQL / SQLite) หน้า *Databases → Add Database* ของ Plesk
-จึงใช้สร้างฐานข้อมูลให้เว็บนี้ไม่ได้ ต้องติดตั้ง PostgreSQL แยกผ่าน SSH
-
-ไม่ชนกับ MariaDB ของ Plesk เพราะคนละพอร์ต (5432 กับ 3306) และ Plesk ไม่ได้ใช้ Postgres อยู่แล้ว
+## 1. เตรียมโฟลเดอร์ข้อมูล
 
 ```bash
-ssh root@<ไอพี>
+ssh phuwishs@103.80.48.25
 
-apt update
-apt install -y postgresql postgresql-contrib
-
-# ต้องฟังเฉพาะ 127.0.0.1 — ถ้าเห็น 0.0.0.0 ให้แก้ listen_addresses ใน postgresql.conf
-ss -lntp | grep 5432
-
-# สร้างผู้ใช้และฐานข้อมูล (เปลี่ยนรหัสผ่านก่อนรัน)
-sudo -u postgres psql <<'SQL'
-CREATE USER bantonpoo WITH PASSWORD 'เปลี่ยนรหัสผ่านนี้';
-CREATE DATABASE bantonpoo OWNER bantonpoo;
-SQL
-
-# ตรวจว่าต่อได้จริง
-PGPASSWORD='เปลี่ยนรหัสผ่านนี้' psql -h 127.0.0.1 -U bantonpoo -d bantonpoo -c '\conninfo'
+# แก้ให้ตรงกับผลของ ls ด้านบน
+APP=~/bantonpoo.phuwish.com
+mkdir -p "$APP/../bantonpoo-data/uploads"
+cd "$APP/.." && pwd    # จดที่อยู่เต็มไว้ใช้ตอนตั้ง env
 ```
 
-สร้างรหัสผ่านที่เดายากด้วย `openssl rand -base64 24`
+ได้สองค่านี้ไปใช้ต่อ
 
-> **PostgreSQL ต้องไม่เปิดออกอินเทอร์เน็ต** ค่าเริ่มต้นฟังเฉพาะ `127.0.0.1` อยู่แล้ว
-> อย่าเปิดพอร์ต 5432 ใน Plesk Firewall — เราต่อผ่านอุโมงค์ SSH ตอน deploy อยู่แล้ว
-
-### สำรองข้อมูล — ต้องตั้งเอง
-
-**Plesk Backup Manager จะไม่สำรอง PostgreSQL ให้** เพราะไม่ได้เป็นคนจัดการ
-ต้องตั้ง cron เอง ไม่งั้นเนื้อหาทั้งเว็บไม่มีสำรองเลย
-
-```bash
-ssh root@<ไอพี>
-
-cat > /usr/local/bin/bantonpoo-backup <<'SH'
-#!/bin/bash
-set -euo pipefail
-DIR=/var/backups/bantonpoo
-mkdir -p "$DIR"
-sudo -u postgres pg_dump bantonpoo | gzip > "$DIR/db-$(date +%F).sql.gz"
-find "$DIR" -name '*.sql.gz' -mtime +30 -delete
-SH
-
-chmod +x /usr/local/bin/bantonpoo-backup
-echo "15 3 * * * root /usr/local/bin/bantonpoo-backup" > /etc/cron.d/bantonpoo-backup
-/usr/local/bin/bantonpoo-backup && ls -lh /var/backups/bantonpoo
+```
+REMOTE_DB   <ที่อยู่เต็ม>/bantonpoo-data/bantonpoo.db
+UPLOAD_DIR  <ที่อยู่เต็ม>/bantonpoo-data/uploads
 ```
 
-ส่วนโฟลเดอร์รูป (`bantonpoo-uploads`) อยู่ในบ้านของ subscription อยู่แล้ว
-**Plesk Backup Manager สำรองให้เอง** — ตั้งค่าที่ Tools & Settings → Backup Manager
+> ไฟล์ฐานข้อมูลยังไม่ต้องสร้างเอง — `npm run deploy` รอบแรกจะสร้างให้พร้อมตารางทั้งหมด
 
 ## 2. ตั้งค่าในหน้า Node.js
 
@@ -110,30 +87,20 @@ echo "15 3 * * * root /usr/local/bin/bantonpoo-backup" > /etc/cron.d/bantonpoo-b
 ### Custom environment variables → กด [specify]
 
 ```
-DATABASE_URI          postgres://bantonpoo:<รหัสผ่าน>@127.0.0.1:5432/bantonpoo
+DATABASE_URI          file:<ที่อยู่เต็มจากหัวข้อ 1>/bantonpoo-data/bantonpoo.db
 PAYLOAD_SECRET        <openssl rand -hex 32>
 NEXT_PUBLIC_SITE_URL  https://bantonpoo.phuwish.com
 SITE_NOINDEX          1
-UPLOAD_DIR            <APP_ROOT ด้านบน>/../bantonpoo-uploads
+UPLOAD_DIR            <ที่อยู่เต็มจากหัวข้อ 1>/bantonpoo-data/uploads
 HOSTNAME              127.0.0.1
 ```
 
-เหตุผลของสองตัวท้าย
-
-- **`UPLOAD_DIR` ต้องอยู่นอก Application Root** เพราะ deploy คือการเขียนทับโฟลเดอร์นั้นทั้งก้อน
-  ถ้าเก็บรูปไว้ข้างใน รูปที่ชุมชนอัปโหลดจะหายทุกครั้งที่อัปเดตเว็บ
+- **`DATABASE_URI` ต้องขึ้นต้นด้วย `file:` และเป็นที่อยู่เต็ม** ไม่ใช่เส้นทางสัมพัทธ์
+  เพราะแอปถูกรันจากโฟลเดอร์ที่ต่างไปตามที่ Passenger กำหนด
 - **`HOSTNAME=127.0.0.1`** — `server.js` ของ Next อ่านตัวแปรนี้ไปผูกกับเน็ตเวิร์ก
   ถ้าระบบตั้งเป็นชื่อเครื่องไว้ แอปจะผูกพลาดแล้วไม่ขึ้นเลย
 
-สร้างโฟลเดอร์รูปและคืนเจ้าของให้ผู้ใช้ของโดเมน
-
-```bash
-ssh root@<ไอพี>
-APP_ROOT=/var/www/vhosts/phuwish.com/bantonpoo.phuwish.com   # แก้ตามของจริง
-OWNER=$(stat -c '%U:%G' "$APP_ROOT")
-mkdir -p "$APP_ROOT/../bantonpoo-uploads"
-chown "$OWNER" "$APP_ROOT/../bantonpoo-uploads"
-```
+สร้าง `PAYLOAD_SECRET` ด้วย `openssl rand -hex 32` **เก็บไว้ให้ดี** เปลี่ยนแล้วทุกคนจะหลุดจากระบบ
 
 ## 3. ใบรับรอง TLS
 
@@ -151,9 +118,10 @@ chown "$OWNER" "$APP_ROOT/../bantonpoo-uploads"
 จากเครื่องตัวเอง
 
 ```bash
-export DEPLOY_HOST=root@<ไอพี>
-export REMOTE_DIR=/var/www/vhosts/phuwish.com/bantonpoo.phuwish.com   # APP_ROOT
-export DB_PASSWORD=<รหัสผ่าน PostgreSQL>
+export DEPLOY_HOST=phuwishs@103.80.48.25
+export REMOTE_DIR=<Application Root จากหัวข้อ 0>
+export REMOTE_DB=<ที่อยู่เต็ม>/bantonpoo-data/bantonpoo.db
+export PAYLOAD_SECRET=<ค่าเดียวกับที่ตั้งใน Plesk>
 
 npm run deploy
 ```
@@ -162,17 +130,24 @@ npm run deploy
 
 ```
 ตรวจ typecheck + lint + มีไฟล์ migration ครบ
-  →  เปิดอุโมงค์ SSH ไปยัง PostgreSQL ของเซิร์ฟเวอร์
-  →  payload migrate            สร้าง/ปรับตารางให้ตรงกับโค้ด
-  →  next build                 อ่านเนื้อหาจากฐานข้อมูลของเซิร์ฟเวอร์
-  →  rsync ขึ้น Application Root (ไม่แตะ uploads และ .env*)
+  →  ส่งซอร์ส (ไม่รวม node_modules) ขึ้น bantonpoo-src/ บนเซิร์ฟเวอร์
+  →  npm ci ที่นั่น (เฉพาะครั้งแรกหรือเมื่อ package-lock เปลี่ยน)
+  →  payload migrate            สร้าง/ปรับตารางในไฟล์ฐานข้อมูล
+  →  คัดลอกไฟล์ฐานข้อมูลลงมาอ่าน (อ่านอย่างเดียว ไม่เขียนกลับ)
+  →  next build                 สร้างหน้าสินค้า/บทความจากเนื้อหาจริง
+  →  rsync ขึ้น Application Root (ไม่แตะ uploads, *.db, .env*, tmp)
   →  touch tmp/restart.txt      Passenger รีสตาร์ตแอปให้เอง
   →  curl โดเมนจริง ต้องได้ 200
 ```
 
-**build ที่เครื่องเรา ไม่ใช่บนเซิร์ฟเวอร์** ถึงแม้ RAM จะพอ เพราะ `next build` กิน CPU หนัก
-พอสมควร และเว็บที่รันอยู่จะช้าลงระหว่างนั้น อีกทั้งไม่ต้องเอาซอร์สกับ `node_modules`
-(~700MB) ขึ้นไปวางบนเครื่องจริงให้เป็นภาระ
+**ทำไมต้องมีโฟลเดอร์ซอร์สแยกบนเซิร์ฟเวอร์** — SQLite ไม่มีโพรโทคอลเครือข่ายให้ต่อจาก
+ระยะไกล ไฟล์อยู่ที่ไหนก็ต้องรัน migration ที่นั่น โฟลเดอร์ `bantonpoo-src/` จึงมีไว้
+รัน `payload migrate` อย่างเดียว ไม่ได้ถูกใช้เสิร์ฟเว็บ และไม่มีการ build บนเซิร์ฟเวอร์
+
+**ไฟล์ฐานข้อมูลของเซิร์ฟเวอร์ไม่เคยถูกเขียนทับจากเครื่องเรา** สคริปต์คัดลอกลงมาอ่าน
+อย่างเดียวแล้วลบสำเนาทิ้งเมื่อจบ เนื้อหาที่ชุมชนแก้ไว้จึงไม่มีทางหายจากการ deploy
+
+> ถ้าไม่ได้แก้ฟิลด์ใน CMS เลย ข้ามขั้น migrate ให้เร็วขึ้นได้ด้วย `SKIP_MIGRATE=1 npm run deploy`
 
 > **ถ้าแอปไม่รีสตาร์ต** — Plesk บางรุ่นไม่ได้ใช้ Passenger ให้กดปุ่ม **Restart App**
 > ในหน้า Node.js แทน ถ้าเป็นแบบนั้นจริง บอกได้ จะเปลี่ยนสคริปต์ไปเรียก
@@ -188,9 +163,12 @@ npm run deploy
 
 **2. ใส่เนื้อหาตั้งต้น** (ข้ามได้ถ้าจะกรอกเองทั้งหมด)
 
+รันบนเซิร์ฟเวอร์ ในโฟลเดอร์ซอร์สที่ `npm run deploy` ส่งขึ้นไปให้แล้ว
+
 ```bash
-ssh -f -N -L 15432:127.0.0.1:5432 $DEPLOY_HOST
-DATABASE_URI="postgres://bantonpoo:$DB_PASSWORD@127.0.0.1:15432/bantonpoo" \
+ssh $DEPLOY_HOST
+cd ~/bantonpoo-src        # แก้ตามที่อยู่จริง
+DATABASE_URI="file:<REMOTE_DB>" \
   PAYLOAD_SECRET=<ค่าเดียวกับที่ตั้งใน Plesk> \
   NODE_ENV=production \
   npx tsx scripts/seed.ts
@@ -226,21 +204,88 @@ CHECK_BASE_URL=https://bantonpoo.phuwish.com npm run check:public
 ssh $DEPLOY_HOST "tail -n 80 $REMOTE_DIR/../logs/error_log"
 ```
 
-## 7. สำรองข้อมูล
+## 7. การเปลี่ยนโครงฐานข้อมูล (migration)
 
-ตั้งไว้แล้วสองชั้นตั้งแต่หัวข้อ 1 — cron `pg_dump` รายวันสำหรับฐานข้อมูล
-และ Plesk Backup Manager สำหรับโฟลเดอร์รูป
+ทุกครั้งที่ **เพิ่ม ลบ หรือเปลี่ยนชนิดฟิลด์** ใน `src/collections/*` หรือ `src/globals/*`
+โครงตารางในฐานข้อมูลต้องเปลี่ยนตาม
 
-เหลืออีกอย่างที่ต้องทำเอง: **ส่งไฟล์สำรองออกไปเก็บนอกเครื่อง** อย่างน้อยสัปดาห์ละครั้ง
-เก็บไว้บนเครื่องเดียวกันอย่างเดียว ถ้า VPS เสียหายก็หายไปพร้อมกัน
+| สภาพแวดล้อม | วิธีปรับโครง |
+| --- | --- |
+| เครื่องพัฒนา | Payload ปรับให้อัตโนมัติตอน `npm run dev` (`push: true`) |
+| เซิร์ฟเวอร์จริง | ต้องมีไฟล์ migration และรัน `payload migrate` (`push: false`) — `npm run deploy` ทำให้อัตโนมัติ |
 
-สำรองด่วนด้วยมือก่อนทำอะไรเสี่ยง
+**ทำไมแยกกัน** — `push` เดาการเปลี่ยนแปลงเอง ซึ่งสะดวกมากตอนพัฒนา
+แต่บนฐานข้อมูลที่มีข้อมูลจริง การเดาผิดครั้งเดียวอาจลบคอลัมน์ที่ยังมีข้อมูลอยู่
+migration เป็นไฟล์ SQL ที่อ่านตรวจก่อนได้ และเก็บไว้ใน git ตามประวัติโค้ด
+
+### ขั้นตอนหลังแก้ฟิลด์
 
 ```bash
-ssh $DEPLOY_HOST /usr/local/bin/bantonpoo-backup
+# 1. ที่เครื่องพัฒนา — ให้ Payload สร้างไฟล์ migration จากส่วนต่าง
+npm run migrate:create ชื่อสั้น-อธิบายการเปลี่ยน
+
+# 2. อ่านไฟล์ที่ได้ใน src/migrations/ ก่อนเสมอ
+#    ระวังคำสั่ง DROP COLUMN / DROP TABLE ที่ทำให้ข้อมูลหาย
+#    ถ้าเป็นการ "เปลี่ยนชื่อฟิลด์" Payload จะมองเป็นลบของเก่า+เพิ่มของใหม่
+#    ต้องแก้ไฟล์เองให้เป็น ALTER TABLE ... RENAME COLUMN แทน
+
+# 3. commit ไฟล์ migration ไปพร้อมกับโค้ดที่แก้
+git add src/migrations && git commit
+
+# 4. deploy ตามปกติ — scripts/deploy.sh ส่งซอร์สขึ้นไปแล้วรัน migrate บนเซิร์ฟเวอร์ให้เอง
+npm run deploy
 ```
 
-## 8. เมื่อจะเปลี่ยนเป็นเว็บจริง
+> **`migrate:create` เทียบกับฐานข้อมูลที่ต่ออยู่** ถ้ารันโดยต่อกับฐานข้อมูลพัฒนา
+> ที่ `push` ปรับโครงไปแล้ว จะได้ migration เปล่า — ต้องเทียบกับไฟล์ที่ยังเป็นโครงเก่า
+> หรือสร้างไฟล์เปล่าขึ้นมาใหม่ เช่น
+>
+> ```bash
+> DATABASE_URI="file:/tmp/diff.db" NODE_ENV=production npm run migrate:create ชื่อ
+> ```
+>
+> **อย่ารัน `npm run migrate` กับฐานข้อมูลพัฒนาของตัวเอง** — ไฟล์นั้นถูกสร้างด้วย
+> `push` จึงมีตารางครบอยู่แล้ว การรัน migration ทับจะล้มเพราะพยายามสร้างตารางซ้ำ
+> ถ้าอยากเริ่มใหม่ให้ลบไฟล์ `bantonpoo.db` แล้วรัน `npm run migrate && npm run seed`
+
+### ตรวจสถานะ
+
+```bash
+# ดูว่า migration ไหนรันไปแล้วบ้างบนเซิร์ฟเวอร์
+ssh $DEPLOY_HOST
+cd ~/bantonpoo-src
+DATABASE_URI="file:<REMOTE_DB>" NODE_ENV=production npm run migrate:status
+```
+
+### ถ้า migration ล้มกลางทาง
+
+1. **สำรองก่อนเสมอ** — `scp $DEPLOY_HOST:<REMOTE_DB> ./backup-$(date +%F).db`
+2. อ่านข้อความผิดพลาดว่าค้างที่คำสั่งไหน
+3. Payload ห่อแต่ละ migration ไว้ใน transaction เดียว ปกติจึงย้อนกลับเองทั้งก้อน
+   ฐานข้อมูลควรอยู่ในสภาพก่อนรัน
+4. แก้ไฟล์ migration แล้วรันใหม่ · ถ้าต้องกู้จริงก็แค่ `scp` ไฟล์สำรองกลับขึ้นไปทับ
+   (ปิดแอปใน Plesk ก่อน แล้วค่อยเปิดใหม่)
+
+---
+
+---
+
+## 8. สำรองข้อมูล
+
+**ข้อดีใหญ่ของ SQLite** — ทั้งเว็บอยู่ในโฟลเดอร์ `bantonpoo-data/` เดียว
+(ไฟล์ฐานข้อมูล + รูปที่อัปโหลด) และอยู่ในบ้านของ subscription
+**Plesk Backup Manager จึงสำรองให้ครบทั้งหมดโดยไม่ต้องตั้งอะไรเพิ่ม**
+
+ตั้งที่ **Tools & Settings → Backup Manager** ให้สำรองรายวัน และ **ส่งออกไปเก็บนอกเครื่อง**
+(FTP/Google Drive) อย่างน้อยสัปดาห์ละครั้ง — เก็บบนเครื่องเดียวกันอย่างเดียวไม่พอ
+
+ดึงสำเนาลงมาเก็บที่เครื่องตัวเองก่อนทำอะไรเสี่ยง
+
+```bash
+scp $DEPLOY_HOST:<REMOTE_DB> ./backup-$(date +%F).db
+```
+
+## 9. เมื่อจะเปลี่ยนเป็นเว็บจริง
 
 1. ลบ `SITE_NOINDEX` ออกจาก Custom environment variables (หรือตั้งเป็น `0`)
 2. แก้ `NEXT_PUBLIC_SITE_URL` เป็นโดเมนจริง
@@ -257,10 +302,12 @@ ssh $DEPLOY_HOST /usr/local/bin/bantonpoo-backup
 | แอปไม่ขึ้นเลย / 503 | Startup File ยังเป็น `app.js` — ต้องเป็น `server.js` |
 | แอปขึ้นแล้วล่มทันที | ไม่ได้ตั้ง `HOSTNAME=127.0.0.1` แอปผูกเน็ตเวิร์กพลาด |
 | CSS ไม่มา / 404 ทั้งเว็บ | Document Root ชี้ผิด — ลองย้อนกลับเป็น Application Root |
-| ต่อฐานข้อมูลไม่ได้ | `DATABASE_URI` ชี้พอร์ต 3306 (MariaDB ของ Plesk) — ต้องเป็น 5432 |
+| ต่อฐานข้อมูลไม่ได้ | `DATABASE_URI` ต้องขึ้นต้นด้วย `file:` และเป็นที่อยู่เต็ม |
+| เนื้อหาหายหลัง deploy | `REMOTE_DB` อยู่ข้างใน Application Root — ต้องย้ายออกมาข้างนอก |
+| migration ล้มบนเซิร์ฟเวอร์ | `npm ci` ในโฟลเดอร์ซอร์สยังไม่สำเร็จ — เข้า SSH ไปรันเองแล้วดูข้อความ |
 | อัปโหลดรูปไม่ผ่าน | โฟลเดอร์ `UPLOAD_DIR` ยังไม่ได้สร้าง หรือเจ้าของไฟล์ผิด |
 | รูปหายหลัง deploy | `UPLOAD_DIR` อยู่ข้างใน Application Root — ต้องย้ายออกมาข้างนอก |
-| แก้ฟิลด์ใน CMS แล้ว deploy ล้ม | ยังไม่ได้สร้าง migration — ดู [deploy-vps.md หัวข้อ 9](./deploy-vps.md) |
+| แก้ฟิลด์ใน CMS แล้ว deploy ล้ม | ยังไม่ได้สร้าง migration — ดูหัวข้อ 7 |
 | ลิงก์ในเว็บเป็น `http://` | ยังไม่ได้เปิด redirect เป็น https ใน SSL It! |
 | ปุ่มแชร์ส่งลิงก์ผิดโดเมน | `NEXT_PUBLIC_SITE_URL` ผิด และต้อง **build ใหม่** ไม่ใช่แค่รีสตาร์ต |
 | เข้า `/admin` แล้วขึ้นจอสร้างผู้ใช้ทั้งที่เคยมีบัญชี | ต่อฐานข้อมูลผิดตัว — ตรวจ `DATABASE_URI` |
