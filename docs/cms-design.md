@@ -1003,6 +1003,10 @@ src/
 Application Root ทั้งก้อน ถ้าเก็บไว้ข้างในจะหายทุกครั้งที่อัปเดตเว็บ จึงตั้ง `UPLOAD_DIR`
 และ `DATABASE_URI` ให้ชี้ไปโฟลเดอร์ `bantonpoo-data/` ที่อยู่ข้างนอก
 
+**ค่าตั้งอยู่ในไฟล์ ไม่ใช่ใน Plesk** — โฮสต์นี้ไม่ส่ง Custom environment variables ของ Plesk
+มาถึงแอป (ยืนยันจาก log บนเซิร์ฟเวอร์จริง) แอปจึงอ่าน `bantonpoo-data/app.env` เองตอนเริ่มทำงาน
+ใน `src/instrumentation.ts` ก่อน route ใด ๆ ถูกโหลด ดู `src/lib/server/app-env.ts`
+
 ```ts
 upload: {
   // ชี้ออกไปนอกโฟลเดอร์ที่ถูกเขียนทับตอน deploy

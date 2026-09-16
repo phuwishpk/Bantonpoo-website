@@ -17,7 +17,9 @@ npm run deploy                                   bantonpoo.phuwish.com/       �
   ├─ ดาวน์โหลดฐานข้อมูลจริงลงมาอ่าน  ◄── FTP ──  bantonpoo.phuwish.com.prev/  ← เวอร์ชันก่อนหน้า
   ├─ build (Mac) + เติมไฟล์ native ของ Linux      bantonpoo-data/
   └─ อัปโหลดแล้วสลับเวอร์ชัน          ── FTP ──►   ├─ bantonpoo.db             ← เนื้อหาทั้งหมด
-                                                    └─ uploads/                 ← รูปที่อัปโหลด
+                                                    ├─ uploads/                 ← รูปที่อัปโหลด
+                                                    ├─ app.env                  ← ค่าตั้งของแอป (มีกุญแจลับ)
+                                                    └─ logs/app.log             ← log ของแอป
 ```
 
 | เรื่อง            | ทำอย่างไร                                                                    |
@@ -25,6 +27,7 @@ npm run deploy                                   bantonpoo.phuwish.com/       �
 | ฐานข้อมูล         | **SQLite** ไฟล์เดียว อยู่นอกโฟลเดอร์แอป จึงไม่หายตอน deploy                  |
 | ส่งไฟล์           | **FTP แบบเข้ารหัส (FTPS)** ราว 2,400 ไฟล์ต่อครั้ง ส่งพร้อมกัน 4 การเชื่อมต่อ |
 | ปรับโครงฐานข้อมูล | **แอปทำเองตอนเริ่มทำงาน** ไม่ต้องรันคำสั่งบนเซิร์ฟเวอร์                      |
+| ค่าตั้งของแอป     | ไฟล์ `bantonpoo-data/app.env` — **สคริปต์สร้างให้เอง** (หัวข้อ 3)            |
 | รีสตาร์ต          | วางไฟล์ `tmp/restart.txt` ให้ Passenger รีสตาร์ตเอง                          |
 | ย้อนกลับ          | `npm run deploy:rollback` สลับกับเวอร์ชันก่อนหน้าได้ทันที                    |
 
@@ -74,25 +77,32 @@ open -e .env.deploy.local
 | Application Startup File | **`server.js`**                                       |
 | Document Root            | ปล่อยไว้ก่อน — **แก้หลัง deploy ครั้งแรก** (หัวข้อ 4) |
 
-### Custom environment variables → กด [specify]
-
-```
-DATABASE_URI          file:../bantonpoo-data/bantonpoo.db
-UPLOAD_DIR            ../bantonpoo-data/uploads
-PAYLOAD_SECRET        <สุ่มใหม่ ดูด้านล่าง>
-NEXT_PUBLIC_SITE_URL  https://bantonpoo.phuwish.com
-SITE_NOINDEX          1
-HOSTNAME              127.0.0.1
-```
-
-- **เส้นทางสัมพัทธ์ใช้ได้** เพราะ `server.js` ย้ายไปทำงานในโฟลเดอร์แอปของตัวเองเสมอ
-  `../bantonpoo-data` จึงชี้ไปโฟลเดอร์ข้าง ๆ แอปพอดี ไม่ต้องรู้ที่อยู่เต็มของโฮสต์
-- **`PAYLOAD_SECRET`** สร้างด้วย `openssl rand -hex 32` ที่เทอร์มินัล
-  **เก็บไว้ให้ดี** เปลี่ยนแล้วทุกคนจะหลุดจากระบบ
-- **`HOSTNAME=127.0.0.1`** — `server.js` อ่านตัวแปรนี้ไปผูกเน็ตเวิร์ก
-  ถ้าระบบตั้งเป็นชื่อเครื่องไว้ แอปจะผูกพลาดแล้วไม่ขึ้น
-
 กด **OK** — ยังไม่ต้องกด Restart App หรือ NPM install
+
+### ค่าตั้งของแอป — ไม่ต้องใส่ใน Plesk
+
+**โฮสต์นี้ไม่ส่ง Custom environment variables ในหน้า Node.js มาถึงแอป** — ทดสอบแล้ว
+ใส่ครบทุกช่องแอปก็ยังเห็นเป็นค่าว่าง (อาการเดียวกับที่มีรายงานใน
+[Plesk Forum](https://talk.plesk.com/threads/node-environment-variables-not-returned-by-process-env.362424/))
+แอปจึงอ่านค่าจากไฟล์ `bantonpoo-data/app.env` แทน ซึ่ง **`npm run deploy` สร้างให้เอง** ครั้งแรก
+
+```
+DATABASE_URI=file:../bantonpoo-data/bantonpoo.db
+UPLOAD_DIR=../bantonpoo-data/uploads
+PAYLOAD_SECRET=<สคริปต์สุ่มให้ 64 ตัวอักษร>
+NEXT_PUBLIC_SITE_URL=https://bantonpoo.phuwish.com   ← สคริปต์ปรับให้ตรง DEPLOY_SITE_URL ทุกครั้ง
+SITE_NOINDEX=1                                       ← สคริปต์ปรับให้ตรง DEPLOY_NOINDEX ทุกครั้ง
+```
+
+- **ไฟล์อยู่นอกโฟลเดอร์เว็บ** เปิดจากอินเทอร์เน็ตไม่ได้ และสคริปต์ตั้งสิทธิ์เป็น 600 (เจ้าของอ่านได้คนเดียว)
+- **`PAYLOAD_SECRET` สุ่มครั้งเดียวแล้วไม่เปลี่ยนอีก** — deploy ครั้งต่อไปไม่แตะ
+  ถ้าเปลี่ยนเองทุกคนจะหลุดจากระบบ ห้ามส่งไฟล์นี้ให้ใคร
+- **แก้เองได้** ใน File Manager ของ Plesk แล้วกด **Restart App**
+- **เส้นทางสัมพัทธ์ใช้ได้** เพราะ `server.js` ย้ายไปทำงานในโฟลเดอร์แอปของตัวเองเสมอ
+  `../bantonpoo-data` จึงชี้ไปโฟลเดอร์ข้าง ๆ แอปพอดี
+- **ค่าในไฟล์ชนะค่าใน Plesk** — ถ้าวันหนึ่งโฮสต์เริ่มส่งค่าเก่าจาก Plesk มา แอปจะไม่สลับไปใช้
+  ฐานข้อมูลหรือกุญแจอื่นเงียบ ๆ ช่อง Custom environment variables ใน Plesk จึงลบทิ้งได้
+- ไม่ต้องตั้ง `HOSTNAME` — Passenger เป็นคนรับการเชื่อมต่อแทนแอป
 
 ## 4. ติดตั้งครั้งแรก
 
@@ -156,7 +166,18 @@ CHECK_BASE_URL=https://bantonpoo.phuwish.com npm run check:public
 
 `check:public` ตรวจว่าไม่มีลิงก์หลังบ้านหรือที่อยู่ฟิลด์หลุดไปถึงผู้เข้าชมทั่วไป
 
-ดู log เมื่อมีปัญหา: **Websites & Domains → bantonpoo.phuwish.com → Logs**
+### ดู log เมื่อมีปัญหา
+
+log ของ Passenger อยู่ในที่ที่ผู้ใช้โฮสต์แชร์เปิดไม่ได้ แอปจึงเขียนสำเนาไว้เองที่
+**`bantonpoo-data/logs/app.log`** (เปิดใน File Manager ของ Plesk) — ไฟล์เกิน 5 MB
+จะถูกย้ายเป็น `app.log.1`
+
+ทุกครั้งที่แอปเริ่มทำงานจะเขียนบรรทัด `startup:` บอกรุ่น Node, ไฟล์ค่าตั้งที่อ่านได้,
+ค่าที่ตั้งแล้ว/ยังไม่ตั้ง (กุญแจลับบอกแค่ว่ามี), สิทธิ์ของฐานข้อมูลและโฟลเดอร์รูป
+และผลการโหลด SQLite กับ sharp ส่วน error ระหว่างเปิดหน้าเว็บขึ้นเป็น `request-error:` พร้อมชื่อหน้า
+
+**Websites & Domains → bantonpoo.phuwish.com → Logs** มีแค่ log ของ Apache/nginx
+ไม่มีข้อความจากแอป
 
 ## 8. การเปลี่ยนโครงฐานข้อมูล (migration)
 
@@ -202,6 +223,8 @@ npm run deploy
 ตั้งที่ **Websites & Domains → Backup Manager** ให้สำรองรายวัน และส่งออกไปเก็บนอกเครื่อง
 อย่างน้อยสัปดาห์ละครั้ง — เก็บบนเครื่องเดียวกันอย่างเดียวไม่พอ
 
+ไฟล์สำรองมี `app.env` ซึ่งมีกุญแจลับอยู่ด้วย — เก็บไฟล์สำรองไว้ในที่ที่คนอื่นเปิดไม่ได้
+
 ดึงสำเนาฐานข้อมูลลงมาเองก่อนทำอะไรเสี่ยง: ใช้ **File Manager** ของ Plesk
 เข้าโฟลเดอร์ `bantonpoo-data` แล้วดาวน์โหลด `bantonpoo.db`
 
@@ -211,29 +234,32 @@ npm run deploy
 ## 10. เมื่อจะเปลี่ยนเป็นเว็บจริง
 
 1. ใน `.env.deploy.local` ตั้ง `DEPLOY_NOINDEX=0` และ `DEPLOY_SITE_URL` เป็นโดเมนจริง
-2. ในหน้า Node.js แก้ `SITE_NOINDEX` เป็น `0` และ `NEXT_PUBLIC_SITE_URL` เป็นโดเมนจริง
-3. `npm run deploy` — **ต้อง build ใหม่** เพราะ `robots.txt` และแท็ก `<meta name="robots">`
-   ถูกสร้างตอน build ไม่ใช่ตอนรัน
+2. `npm run deploy` — **ต้อง build ใหม่** เพราะ `robots.txt` และแท็ก `<meta name="robots">`
+   ถูกสร้างตอน build ไม่ใช่ตอนรัน สคริปต์ปรับ `SITE_NOINDEX` และ `NEXT_PUBLIC_SITE_URL`
+   ใน `app.env` ให้ตรงกันเอง
+3. ถ้าย้ายไปโดเมนใหม่ใน subscription เดิม ตั้ง `REMOTE_APP` เป็นชื่อโฟลเดอร์ของโดเมนนั้นด้วย
 4. ส่ง sitemap เข้า Google Search Console
 
 ---
 
 ## ปัญหาที่พบบ่อย
 
-| อาการ                                                | สาเหตุและทางแก้                                                                                                                          |
-| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `ล็อกอิน FTP ไม่ผ่าน`                                | `FTP_PASSWORD` ผิด — ตั้งใหม่ตามหัวข้อ 1 แล้วแก้ `.env.deploy.local`                                                                     |
-| `ตรวจใบรับรอง TLS ของ FTP ไม่ผ่าน`                   | ต่อด้วยชื่อ `thsv25.hostatom.com` (ค่าตั้งต้นแล้ว) ไม่ใช่ไอพี — ใบรับรองออกให้ชื่อนี้ · ถ้าโฮสต์ย้ายเครื่อง ดูชื่อใหม่แล้วแก้ `FTP_HOST` |
-| `ล็อกอิน FTP ไม่ผ่าน` ทั้งที่เพิ่งตั้งรหัส           | ใน Plesk ต้องกด **Save** ท้ายหน้า Hosting Settings — กด Generate อย่างเดียวรหัสยังไม่เปลี่ยน                                             |
-| อัปโหลดหยุดกลางทาง / การเชื่อมต่อถูกตัด              | โฮสต์จำกัดจำนวนการเชื่อมต่อ — ใส่ `FTP_WORKERS=2`                                                                                        |
-| `มีฐานข้อมูลอยู่แล้ว` ตอน `deploy:init`              | ติดตั้งไปแล้ว — ใช้ `npm run deploy` แทน                                                                                                 |
-| `ยังไม่มีฐานข้อมูลบนเซิร์ฟเวอร์`                     | ยังไม่ได้ติดตั้งครั้งแรก — ใช้ `npm run deploy:init`                                                                                     |
-| แอปไม่ขึ้น / 503                                     | Startup File ยังเป็น `app.js` — ต้องเป็น `server.js`                                                                                     |
-| แอปขึ้นแล้วล่มทันที                                  | ไม่ได้ตั้ง `HOSTNAME=127.0.0.1`                                                                                                          |
-| หน้าเว็บ 500 ทุกหน้า                                 | ดู Logs — ถ้าเจอ `Cannot find module` แปลว่าไฟล์ขึ้นไม่ครบ ให้ deploy ใหม่                                                               |
-| CSS ไม่มา / 404 ทั้งเว็บ                             | Document Root ชี้ผิด — ย้อนกลับเป็น `/bantonpoo.phuwish.com`                                                                             |
-| อัปโหลดรูปในหลังบ้านไม่ผ่าน                          | `UPLOAD_DIR` ผิด — ต้องเป็น `../bantonpoo-data/uploads`                                                                                  |
-| เนื้อหาหายหลัง deploy                                | `DATABASE_URI` ชี้เข้าไปในโฟลเดอร์แอป — ต้องเป็น `file:../bantonpoo-data/bantonpoo.db`                                                   |
-| เข้า `/admin` แล้วขึ้นจอสร้างผู้ใช้ทั้งที่เคยมีบัญชี | `DATABASE_URI` ชี้ไฟล์ผิด                                                                                                                |
-| ปุ่มแชร์ส่งลิงก์ผิดโดเมน                             | `DEPLOY_SITE_URL` ผิด และต้อง deploy ใหม่                                                                                                |
-| แก้ฟิลด์ใน CMS แล้ว deploy ล้ม                       | ยังไม่ได้สร้าง migration — หัวข้อ 8                                                                                                      |
+| อาการ                                                 | สาเหตุและทางแก้                                                                                                                          |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `ล็อกอิน FTP ไม่ผ่าน`                                 | `FTP_PASSWORD` ผิด — ตั้งใหม่ตามหัวข้อ 1 แล้วแก้ `.env.deploy.local`                                                                     |
+| `ตรวจใบรับรอง TLS ของ FTP ไม่ผ่าน`                    | ต่อด้วยชื่อ `thsv25.hostatom.com` (ค่าตั้งต้นแล้ว) ไม่ใช่ไอพี — ใบรับรองออกให้ชื่อนี้ · ถ้าโฮสต์ย้ายเครื่อง ดูชื่อใหม่แล้วแก้ `FTP_HOST` |
+| `ล็อกอิน FTP ไม่ผ่าน` ทั้งที่เพิ่งตั้งรหัส            | ใน Plesk ต้องกด **Save** ท้ายหน้า Hosting Settings — กด Generate อย่างเดียวรหัสยังไม่เปลี่ยน                                             |
+| อัปโหลดหยุดกลางทาง / การเชื่อมต่อถูกตัด               | โฮสต์จำกัดจำนวนการเชื่อมต่อ — ใส่ `FTP_WORKERS=2`                                                                                        |
+| `มีฐานข้อมูลอยู่แล้ว` ตอน `deploy:init`               | ติดตั้งไปแล้ว — ใช้ `npm run deploy` แทน                                                                                                 |
+| `ยังไม่มีฐานข้อมูลบนเซิร์ฟเวอร์`                      | ยังไม่ได้ติดตั้งครั้งแรก — ใช้ `npm run deploy:init`                                                                                     |
+| แอปไม่ขึ้น / 503                                      | Startup File ยังเป็น `app.js` — ต้องเป็น `server.js`                                                                                     |
+| หน้าเว็บ 500 ทุกหน้า                                  | ดู `bantonpoo-data/logs/app.log` — ถ้าเจอ `Cannot find module` แปลว่าไฟล์ขึ้นไม่ครบ ให้ deploy ใหม่                                      |
+| หน้าแรกเปิดได้ แต่หน้าอื่นและ `/admin` ขึ้น 500       | log มี `missing secret key` — ไม่มี `app.env` หรือไม่มี `PAYLOAD_SECRET` ในนั้น · รัน `npm run deploy` สคริปต์จะสร้างให้                 |
+| แก้ Custom environment variables ใน Plesk แล้วไม่มีผล | โฮสต์นี้ไม่ส่งค่าเหล่านั้นมาถึงแอป — แก้ใน `bantonpoo-data/app.env` แล้วกด Restart App                                                   |
+| CSS ไม่มา / 404 ทั้งเว็บ                              | Document Root ชี้ผิด — ย้อนกลับเป็น `/bantonpoo.phuwish.com`                                                                             |
+| อัปโหลดรูปในหลังบ้านไม่ผ่าน                           | `UPLOAD_DIR` ใน `app.env` ผิด — ต้องเป็น `../bantonpoo-data/uploads`                                                                     |
+| เนื้อหาหายหลัง deploy                                 | `DATABASE_URI` ใน `app.env` ชี้เข้าไปในโฟลเดอร์แอป — ต้องเป็น `file:../bantonpoo-data/bantonpoo.db`                                      |
+| เข้า `/admin` แล้วขึ้นจอสร้างผู้ใช้ทั้งที่เคยมีบัญชี  | `DATABASE_URI` ใน `app.env` ชี้ไฟล์ผิด                                                                                                   |
+| ทุกคนหลุดจากระบบพร้อมกัน                              | `PAYLOAD_SECRET` ใน `app.env` ถูกเปลี่ยน — ล็อกอินใหม่ได้ตามปกติ ข้อมูลไม่หาย                                                            |
+| ปุ่มแชร์ส่งลิงก์ผิดโดเมน                              | `DEPLOY_SITE_URL` ผิด และต้อง deploy ใหม่                                                                                                |
+| แก้ฟิลด์ใน CMS แล้ว deploy ล้ม                        | ยังไม่ได้สร้าง migration — หัวข้อ 8                                                                                                      |

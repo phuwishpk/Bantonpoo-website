@@ -22,16 +22,22 @@
  *      เว็บจริงจึงไม่เคยอยู่ในสภาพไฟล์ครึ่ง ๆ กลาง ๆ และย้อนกลับได้ทันที
  *   5. วางไฟล์ tmp/restart.txt ให้ Passenger รีสตาร์ต — แอปปรับโครงฐานข้อมูลจริงเองตอนเปิด
  *
+ * ค่าตั้งของแอป (ฐานข้อมูล กุญแจลับ) อยู่ในไฟล์ bantonpoo-data/app.env บนเซิร์ฟเวอร์
+ * เพราะโฮสต์นี้ไม่ส่ง Custom environment variables ของ Plesk มาถึงแอป
+ * สคริปต์สร้างไฟล์ให้ครั้งแรก (สุ่ม PAYLOAD_SECRET) และไม่เปลี่ยนกุญแจอีก
+ *
  * ไม่มีขั้นตอนไหนเขียนทับฐานข้อมูลจริงบนเซิร์ฟเวอร์ ยกเว้นตอนติดตั้งครั้งแรก
  * ซึ่งจะตรวจก่อนเสมอว่ายังไม่มีไฟล์อยู่
  */
 import { spawn } from "node:child_process";
+import { randomBytes } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { cp, lstat, mkdir, mkdtemp, readdir, rm, stat, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { posix } from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseEnv } from "node:util";
 import { Client } from "basic-ftp";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -74,13 +80,14 @@ const FTP = {
 */
 const APP_NAME = env("REMOTE_APP", "bantonpoo.phuwish.com").replace(/^\/+/, "");
 const DATA_NAME = env("REMOTE_DATA", "bantonpoo-data").replace(/^\/+/, "");
-const remote = { home: "/", app: "", data: "", db: "", release: "", previous: "" };
+const remote = { home: "/", app: "", data: "", db: "", appEnv: "", release: "", previous: "" };
 
 function resolveRemote(home) {
   remote.home = home;
   remote.app = posix.join(home, APP_NAME);
   remote.data = posix.join(home, DATA_NAME);
   remote.db = posix.join(remote.data, "bantonpoo.db");
+  remote.appEnv = posix.join(remote.data, "app.env");
   remote.release = `${remote.app}.release`;
   remote.previous = `${remote.app}.prev`;
 }
@@ -140,7 +147,15 @@ async function connect() {
     user: FTP.user,
     password: FTP.password,
     secure: FTP.secure,
-    secureOptions: FTP.insecureTls ? { rejectUnauthorized: false } : undefined,
+    /*
+      จำกัดไว้ที่ TLS 1.2 — กับ TLS 1.3 เซิร์ฟเวอร์ FTP ของโฮสต์ (ProFTPD) ตัดการเชื่อมต่อข้อมูล
+      กลางทางด้วย "SSL alert number 50" เพราะการใช้ session ซ้ำกับ channel ข้อมูลไม่เข้ากัน
+      เจอจริงระหว่างอัปโหลดรอบแรก TLS 1.2 ยังเข้ารหัสแข็งแรงตามมาตรฐานปัจจุบัน
+    */
+    secureOptions: {
+      maxVersion: process.env.FTP_TLS13 === "1" ? "TLSv1.3" : "TLSv1.2",
+      ...(FTP.insecureTls ? { rejectUnauthorized: false } : {}),
+    },
     })
     .catch((error) => {
       const message = String(error.message ?? error);
@@ -222,28 +237,44 @@ async function inParallel(items, label, task) {
   const queue = [...items];
   let done = 0;
   let lastPrinted = 0;
-  const clients = await Promise.all(
-    Array.from({ length: Math.min(FTP.workers, items.length) }, () => connect())
-  );
+  let failure = null;
 
-  try {
-    await Promise.all(
-      clients.map(async (client) => {
-        while (queue.length) {
-          const item = queue.shift();
-          await task(client, item);
-          done += 1;
-          const percent = Math.floor((done / items.length) * 100);
-          if (percent >= lastPrinted + 10 || done === items.length) {
-            lastPrinted = percent;
-            process.stdout.write(`  ${label} ${done}/${items.length} (${percent}%)\n`);
+  /*
+    แต่ละการเชื่อมต่อลองซ้ำได้ 4 ครั้งต่อไฟล์ ถ้าหลุดจะต่อใหม่ก่อนลองอีกรอบ
+    อัปโหลดหลายพันไฟล์ผ่านอินเทอร์เน็ต การหลุดสักครั้งเป็นเรื่องปกติ ไม่ควรทำให้ทั้งรอบล้ม
+  */
+  const worker = async () => {
+    let client = await connect();
+    try {
+      while (queue.length && !failure) {
+        const item = queue.shift();
+        for (let attempt = 1; ; attempt += 1) {
+          try {
+            await task(client, item);
+            break;
+          } catch (error) {
+            if (attempt >= 4) {
+              failure = error;
+              throw error;
+            }
+            client.close();
+            await new Promise((resolve) => setTimeout(resolve, 1500 * attempt));
+            client = await connect();
           }
         }
-      })
-    );
-  } finally {
-    for (const client of clients) client.close();
-  }
+        done += 1;
+        const percent = Math.floor((done / items.length) * 100);
+        if (percent >= lastPrinted + 10 || done === items.length) {
+          lastPrinted = percent;
+          process.stdout.write(`  ${label} ${done}/${items.length} (${percent}%)\n`);
+        }
+      }
+    } finally {
+      client.close();
+    }
+  };
+
+  await Promise.all(Array.from({ length: Math.min(FTP.workers, items.length) }, worker));
 }
 
 async function uploadTree(client, localDir, remoteDir) {
@@ -361,6 +392,89 @@ async function assertNoSymlinks(dir) {
   }
 }
 
+/**
+ * ให้เจ้าของ (system user ที่รันแอป) เข้าโฟลเดอร์ข้อมูลได้คนเดียว
+ * บนโฮสต์แชร์ กลุ่ม psacln คือลูกค้าทุกคนของเครื่อง สิทธิ์ 755/644 ที่ FTP ตั้งให้จึงกว้างเกินไป
+ * เว็บเซิร์ฟเวอร์ไม่ต้องเข้าโฟลเดอร์นี้ — รูปถูกส่งผ่านแอป
+ */
+async function lockDownData(client) {
+  const targets = [
+    ["700", remote.data],
+    ["700", `${remote.data}/uploads`],
+    ["700", `${remote.data}/logs`],
+    ["600", remote.db],
+    ["600", `${remote.data}/logs/app.log`],
+  ];
+  for (const [mode, target] of targets) {
+    // ไฟล์ที่ยังไม่มี (เช่นครั้งแรก) ข้ามได้ — ส่วนที่มีแล้วแต่ตั้งไม่ได้ให้เตือน
+    await client.send(`SITE CHMOD ${mode} ${target}`).catch((error) => {
+      if (!/no such file|not found|550/i.test(error.message)) console.log(`  ⚠ ตั้งสิทธิ์ ${target} ไม่ได้ (${error.message})`);
+    });
+  }
+}
+
+function setEnvLine(text, key, value) {
+  const line = `${key}=${value}`;
+  const pattern = new RegExp(`^\\s*${key}\\s*=.*$`, "m");
+  return pattern.test(text) ? text.replace(pattern, () => line) : `${text.replace(/\n*$/, "\n")}${line}\n`;
+}
+
+/**
+ * ไฟล์ค่าตั้งของแอปบนเซิร์ฟเวอร์ (bantonpoo-data/app.env) — แอปอ่านตอนเริ่มทำงาน
+ * ดู src/lib/server/app-env.ts
+ *
+ * ยังไม่มี: สร้างใหม่พร้อมสุ่ม PAYLOAD_SECRET (กุญแจอยู่บนเซิร์ฟเวอร์ที่เดียว ไม่เก็บในเครื่อง)
+ * มีแล้ว: ไม่แตะกุญแจ — เปลี่ยนแล้วทุกคนหลุดจากระบบ — แค่ปรับค่าที่ตามการ build
+ * (โดเมนและโหมดกันดัชนี) ให้ตรงกับบิลด์รอบนี้
+ */
+async function ensureAppEnv(client, work) {
+  const local = path.join(work, "app.env");
+  const managed = { NEXT_PUBLIC_SITE_URL: SITE_URL, SITE_NOINDEX: NOINDEX };
+  let text;
+
+  if (await exists(client, remote.appEnv)) {
+    await client.downloadTo(local, remote.appEnv);
+    const before = readFileSync(local, "utf8");
+    const values = parseEnv(before);
+    const missing = ["DATABASE_URI", "UPLOAD_DIR", "PAYLOAD_SECRET"].filter((key) => !values[key]);
+    if (missing.length) {
+      abort(`${remote.appEnv} ไม่มีค่า ${missing.join(", ")} — เปิดแก้ใน File Manager ของ Plesk`);
+    }
+    text = Object.entries(managed).reduce((acc, [key, value]) => setEnvLine(acc, key, value), before);
+    if (text === before) {
+      console.log("  มีครบแล้ว ไม่ต้องแก้");
+      return;
+    }
+    console.log(`  ปรับ ${Object.keys(managed).join(", ")} ให้ตรงกับบิลด์นี้ (กุญแจลับคงเดิม)`);
+  } else {
+    // เส้นทางนับจากโฟลเดอร์แอป — server.js ย้ายไปทำงานที่นั่นเสมอ
+    const data = posix.relative(remote.app, remote.data);
+    text = [
+      "# ค่าตั้งของเว็บ — แอปอ่านไฟล์นี้ทุกครั้งที่เริ่มทำงาน (src/lib/server/app-env.ts)",
+      `# สร้างโดย npm run deploy เมื่อ ${new Date().toISOString()}`,
+      "# แก้แล้วต้องกด Restart App ในหน้า Node.js ของ Plesk",
+      "# เส้นทางแบบสัมพัทธ์นับจากโฟลเดอร์แอป",
+      "# ห้ามเปลี่ยน PAYLOAD_SECRET (ทุกคนจะหลุดจากระบบ) และห้ามส่งไฟล์นี้ให้ใคร",
+      `DATABASE_URI=file:${data}/bantonpoo.db`,
+      `UPLOAD_DIR=${data}/uploads`,
+      `PAYLOAD_SECRET=${randomBytes(32).toString("hex")}`,
+      ...Object.entries(managed).map(([key, value]) => `${key}=${value}`),
+      "",
+    ].join("\n");
+    console.log(`  สร้างใหม่พร้อมสุ่ม PAYLOAD_SECRET`);
+  }
+
+  await writeFile(local, text, { mode: 0o600 });
+  // อัปโหลดชื่อชั่วคราว ตั้งสิทธิ์ให้เจ้าของอ่านได้คนเดียว แล้วค่อยเปลี่ยนชื่อทับ
+  const uploading = `${remote.appEnv}.uploading`;
+  await client.uploadFrom(local, uploading);
+  await client
+    .send(`SITE CHMOD 600 ${uploading}`)
+    .catch((error) => console.log(`  ⚠ ตั้งสิทธิ์ไฟล์เป็น 600 ไม่ได้ (${error.message})`));
+  await client.rename(uploading, remote.appEnv);
+  await rm(local, { force: true });
+}
+
 /* ------------------------------------------------------------------
    ขั้นตอนหลัก
    ------------------------------------------------------------------ */
@@ -401,6 +515,7 @@ async function deploy() {
         abort(`สร้างโฟลเดอร์ ${remote.data} ไม่ได้ (${error.message}) — ตรวจสิทธิ์ของ system user ใน Plesk`)
       );
       await client.cd(remote.home);
+      await lockDownData(client);
       const hasDb = await exists(client, remote.db);
 
       if (MODE === "init") {
@@ -427,6 +542,7 @@ async function deploy() {
         // อัปโหลดชื่อชั่วคราวก่อนแล้วค่อยเปลี่ยนชื่อ แอปจะไม่เจอไฟล์ครึ่งไฟล์
         await client.uploadFrom(buildDb, `${remote.db}.uploading`);
         await client.rename(`${remote.db}.uploading`, remote.db);
+        await lockDownData(client);
       } else {
         if (!hasDb) abort(`ยังไม่มีฐานข้อมูลบนเซิร์ฟเวอร์ — ติดตั้งครั้งแรกด้วย npm run deploy:init`);
         step("ดาวน์โหลดฐานข้อมูลจริงลงมาอ่านตอน build");
@@ -438,6 +554,9 @@ async function deploy() {
         }
         console.log(`  ขนาด ${((await stat(buildDb)).size / 1024 / 1024).toFixed(1)} MB (สำเนานี้ไม่ถูกส่งกลับขึ้นไป)`);
       }
+
+      step(`ตรวจไฟล์ค่าตั้ง ${remote.appEnv}`);
+      await ensureAppEnv(client, work);
     } finally {
       client.close();
     }
@@ -471,6 +590,19 @@ async function deploy() {
         console.log(`  ตัดไฟล์ที่ไม่ควรขึ้นเซิร์ฟเวอร์: ${rel}`);
       }
     }
+    /*
+      ถ้ามีโค้ดฝั่งเซิร์ฟเวอร์อ่านไฟล์ด้วยเส้นทางที่รู้ตอนรันโดยไม่ใส่ turbopackIgnore
+      Turbopack จะลากทั้งโปรเจกต์ (ซอร์สโค้ด เอกสาร ฐานข้อมูลเครื่องพัฒนา) เข้าบิลด์
+      เจอมาแล้วสองครั้ง จึงหยุดก่อนส่งอะไรขึ้นเซิร์ฟเวอร์
+    */
+    for (const leak of ["src", "docs", "scripts", ".env.local", "bantonpoo.db"]) {
+      if (existsSync(path.join(stage, leak))) {
+        abort(
+          `บิลด์มี ${leak} ติดมาด้วย — มีโค้ดอ่านไฟล์ด้วยเส้นทางแบบไดนามิก\n` +
+            "  ดูคำเตือน \"Dynamic filesystem access\" ในผล build แล้วใส่ /*turbopackIgnore: true*/"
+        );
+      }
+    }
     await addLinuxNatives(stage);
     await assertNoSymlinks(stage);
     await mkdir(path.join(stage, "tmp"), { recursive: true });
@@ -500,9 +632,8 @@ async function deploy() {
     if (code !== 200) {
       abort(
         `เว็บตอบ HTTP ${code}\n` +
-          "  • ตรวจ Custom environment variables ในหน้า Node.js ว่าครบทั้ง 6 ตัว\n" +
+          `  • ดูสาเหตุใน ${remote.data}/logs/app.log (เปิดได้ใน File Manager ของ Plesk)\n` +
           "  • กด Restart App ในหน้า Node.js ของ Plesk แล้วลองเปิดเว็บอีกครั้ง\n" +
-          "  • ดู log ที่ Plesk → Logs\n" +
           "  • ย้อนกลับเวอร์ชันเดิม: npm run deploy:rollback"
       );
     }
