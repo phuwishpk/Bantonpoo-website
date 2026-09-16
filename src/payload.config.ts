@@ -1,6 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { postgresAdapter } from "@payloadcms/db-postgres";
+import { sqliteAdapter } from "@payloadcms/db-sqlite";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import { en } from "@payloadcms/translations/languages/en";
 import { th } from "@payloadcms/translations/languages/th";
@@ -123,8 +123,18 @@ export default buildConfig({
 
   editor: lexicalEditor(),
 
-  db: postgresAdapter({
-    pool: { connectionString: process.env.DATABASE_URI || "" },
+  /**
+   * SQLite — เก็บทั้งฐานข้อมูลไว้ในไฟล์เดียว
+   *
+   * เลือกเพราะโฮสต์เป็น Plesk แบบแชร์ ซึ่งมีให้แค่ MariaDB ที่ Payload ไม่รองรับ
+   * และติดตั้ง PostgreSQL เองไม่ได้เพราะไม่มีสิทธิ์ root
+   *
+   * เหมาะกับเว็บนี้: ผู้ดูแลไม่กี่คน ปริมาณเขียนต่ำมาก และสำรองข้อมูลคือการคัดลอกไฟล์
+   * ข้อแลกเปลี่ยนคือการเขียนพร้อมกันถูกจัดคิวทีละคำสั่ง ถ้าวันหนึ่งมีคนแก้พร้อมกันมาก
+   * หรือทราฟฟิกสูงขึ้นมาก ค่อยย้ายไป PostgreSQL
+   */
+  db: sqliteAdapter({
+    client: { url: process.env.DATABASE_URI || "file:./bantonpoo.db" },
     /**
      * push ปรับโครงฐานข้อมูลให้อัตโนมัติ สะดวกตอนพัฒนา
      * แต่บนเซิร์ฟเวอร์จริงต้องปิด เพราะเมื่อมันไม่แน่ใจว่าคอลัมน์ถูก "สร้างใหม่"

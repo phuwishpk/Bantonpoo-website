@@ -1,4 +1,10 @@
-# คู่มือขึ้นเซิร์ฟเวอร์ — HostAtom Cloud VPS
+# คู่มือขึ้นเซิร์ฟเวอร์ — VPS เปล่า (ไม่มีแผงควบคุม)
+
+> **เครื่องที่ใช้อยู่ตอนนี้ลง Plesk ไว้ ให้ใช้ [deploy-plesk.md](./deploy-plesk.md) แทน**
+> เอกสารฉบับนี้เก็บไว้สำหรับกรณีย้ายไปเครื่องที่ไม่มีแผงควบคุม — ถ้าทำตามฉบับนี้
+> บนเครื่องที่มี Plesk การตั้งค่า nginx ที่แก้เองจะถูก Plesk เขียนทับ
+>
+> ส่วนที่ยังใช้ร่วมกันทั้งสองแบบคือ **หัวข้อ 9 การเปลี่ยนโครงฐานข้อมูล (migration)**
 
 สำหรับโดเมน **`bantonpoo.phuwish.com`**
 
@@ -90,14 +96,20 @@ NEXT_PUBLIC_SITE_URL=https://bantonpoo.phuwish.com
 # เมื่อจะเปิดเป็นเว็บจริง ให้ลบบรรทัดนี้แล้ว deploy ใหม่
 SITE_NOINDEX=1
 
-# ---- เฟสถัดไปตอนติดตั้ง Payload ----
-# DATABASE_URI=postgres://bantonpoo:<password>@127.0.0.1:5432/bantonpoo
-# PAYLOAD_SECRET=<openssl rand -hex 32>
+DATABASE_URI=postgres://bantonpoo:<รหัสผ่านจากหัวข้อ 3>@127.0.0.1:5432/bantonpoo
+PAYLOAD_SECRET=<openssl rand -hex 32>
+
+# ที่เก็บรูปที่อัปโหลดผ่าน CMS — ต้องอยู่นอก current/ ไม่งั้นหายทุกครั้งที่ deploy
+UPLOAD_DIR=/srv/bantonpoo/uploads
 ENV
 
 chmod 600 /etc/bantonpoo.env
 chown bantonpoo:bantonpoo /etc/bantonpoo.env
 ```
+
+> ⚠️ **`UPLOAD_DIR` ต้องตั้งเสมอ** ถ้าไม่ตั้ง Payload จะเก็บรูปไว้ข้างในโฟลเดอร์แอป
+> ซึ่ง (ก) ถูกลบทุกครั้งที่ deploy และ (ข) เขียนไม่ได้อยู่ดี เพราะ systemd ในหัวข้อ 6
+> เปิดสิทธิ์เขียนไว้เฉพาะ `/srv/bantonpoo/uploads` — อาการจะเป็นอัปโหลดรูปไม่ผ่าน
 
 > ⚠️ **`SITE_NOINDEX` และ `NEXT_PUBLIC_SITE_URL` ถูกอ่านตอน build ไม่ใช่ตอนรัน**
 > ทั้ง `robots.txt` และแท็ก `<meta name="robots">` ถูกสร้างตั้งแต่ตอน build
@@ -199,8 +211,40 @@ systemctl status certbot.timer     # ต้องขึ้น active
 
 ```bash
 export DEPLOY_HOST=root@<ไอพีของ VPS>
+export REMOTE_DIR=/srv/bantonpoo/current
+export RESTART_MODE=systemd
 export DB_PASSWORD=<รหัสผ่าน PostgreSQL บนเซิร์ฟเวอร์>
 
+npm run deploy
+```
+
+### ครั้งแรกเท่านั้น — สร้างผู้ใช้และใส่เนื้อหาตั้งต้น
+
+หลัง `npm run deploy` รอบแรกผ่าน ฐานข้อมูลมีตารางครบแล้วแต่ยังว่างเปล่า
+
+**1. สร้างบัญชีผู้ดูแลคนแรก** — เปิด `https://bantonpoo.phuwish.com/admin`
+จะเจอจอ "สร้างผู้ใช้คนแรก" ให้กรอกอีเมลและรหัสผ่าน บัญชีนี้จะได้สิทธิ์ `admin`
+(จอนี้จะหายไปเองทันทีที่มีผู้ใช้คนแรกแล้ว คนอื่นต้องให้ผู้ดูแลเชิญเข้ามา)
+
+**2. ใส่เนื้อหาตั้งต้น** (ข้ามได้ถ้าจะกรอกเองทั้งหมด) — รันจากเครื่องเราผ่านอุโมงค์ SSH
+
+```bash
+ssh -f -N -L 15432:127.0.0.1:5432 $DEPLOY_HOST
+DATABASE_URI="postgres://bantonpoo:$DB_PASSWORD@127.0.0.1:15432/bantonpoo" \
+  PAYLOAD_SECRET=<ค่าเดียวกับใน /etc/bantonpoo.env> \
+  NODE_ENV=production \
+  npx tsx scripts/seed.ts
+```
+
+> **ต้องใส่ `NODE_ENV=production`** ไม่งั้น Payload จะเข้าโหมดพัฒนาแล้วปรับโครง
+> ฐานข้อมูลของเซิร์ฟเวอร์เองอัตโนมัติ (`push`) ซึ่งเป็นสิ่งที่เราตั้งใจปิดไว้บนเครื่องจริง
+
+> ⚠️ `seed.ts` **ล้างเนื้อหาเดิมทิ้งก่อนเสมอ** (ไม่แตะบัญชีผู้ใช้)
+> ใช้ได้เฉพาะตอนติดตั้งครั้งแรก อย่ารันซ้ำหลังชุมชนเริ่มกรอกข้อมูลจริงแล้ว
+
+**3. deploy อีกรอบ** เพื่อสร้างหน้าสินค้าและบทความเป็นไฟล์สแตติกจากเนื้อหาที่เพิ่งใส่
+
+```bash
 npm run deploy
 ```
 
@@ -212,14 +256,85 @@ npm run deploy
 สคริปต์จะทำตามลำดับนี้ให้เอง
 
 ```
-ตรวจ typecheck + lint  →  build แบบ standalone (พร้อม SITE_NOINDEX)
-                       →  รวมไฟล์ที่ต้องใช้จริง
-                       →  rsync ขึ้น /srv/bantonpoo/current
-                       →  systemctl restart bantonpoo
-                       →  ตรวจว่าเว็บตอบ 200
+ตรวจ typecheck + lint + มีไฟล์ migration ครบ
+  →  เปิดอุโมงค์ SSH ไปฐานข้อมูลของเซิร์ฟเวอร์
+  →  payload migrate  (ปรับโครงฐานข้อมูลให้ตรงกับโค้ด)
+  →  build แบบ standalone (พร้อม SITE_NOINDEX)
+  →  รวมไฟล์ที่ต้องใช้จริง
+  →  rsync ขึ้น /srv/bantonpoo/current
+  →  systemctl restart bantonpoo
+  →  ตรวจว่าเว็บตอบ 200
 ```
 
-## 9. สำรองข้อมูล
+**migrate ทำงานก่อน build เสมอ** เพราะ build อ่านเนื้อหาจากฐานข้อมูลตัวนั้น
+ถ้าสคีมายังเป็นของเก่า build จะล้มตอนอ่านฟิลด์ที่เพิ่งเพิ่มเข้ามา
+
+## 9. การเปลี่ยนโครงฐานข้อมูล (migration)
+
+ทุกครั้งที่ **เพิ่ม ลบ หรือเปลี่ยนชนิดฟิลด์** ใน `src/collections/*` หรือ `src/globals/*`
+โครงตารางในฐานข้อมูลต้องเปลี่ยนตาม
+
+| สภาพแวดล้อม | วิธีปรับโครง |
+| --- | --- |
+| เครื่องพัฒนา | Payload ปรับให้อัตโนมัติตอน `npm run dev` (`push: true`) |
+| เซิร์ฟเวอร์จริง | ต้องมีไฟล์ migration และรัน `payload migrate` (`push: false`) |
+
+**ทำไมแยกกัน** — `push` เดาการเปลี่ยนแปลงเอง ซึ่งสะดวกมากตอนพัฒนา
+แต่บนฐานข้อมูลที่มีข้อมูลจริง การเดาผิดครั้งเดียวอาจลบคอลัมน์ที่ยังมีข้อมูลอยู่
+migration เป็นไฟล์ SQL ที่อ่านตรวจก่อนได้ และเก็บไว้ใน git ตามประวัติโค้ด
+
+### ขั้นตอนหลังแก้ฟิลด์
+
+```bash
+# 1. ที่เครื่องพัฒนา — ให้ Payload สร้างไฟล์ migration จากส่วนต่าง
+npm run migrate:create ชื่อสั้น-อธิบายการเปลี่ยน
+
+# 2. อ่านไฟล์ที่ได้ใน src/migrations/ ก่อนเสมอ
+#    ระวังคำสั่ง DROP COLUMN / DROP TABLE ที่ทำให้ข้อมูลหาย
+#    ถ้าเป็นการ "เปลี่ยนชื่อฟิลด์" Payload จะมองเป็นลบของเก่า+เพิ่มของใหม่
+#    ต้องแก้ไฟล์เองให้เป็น ALTER TABLE ... RENAME COLUMN แทน
+
+# 3. commit ไฟล์ migration ไปพร้อมกับโค้ดที่แก้
+git add src/migrations && git commit
+
+# 4. deploy ตามปกติ — scripts/deploy.sh รัน migrate ให้ก่อน build อัตโนมัติ
+npm run deploy
+```
+
+> **`migrate:create` เทียบกับฐานข้อมูลที่ต่ออยู่** ถ้ารันโดยต่อกับฐานข้อมูลพัฒนา
+> ที่ `push` ปรับโครงไปแล้ว จะได้ migration เปล่า — ต้องรันกับฐานข้อมูลที่ยัง
+> เป็นโครงเก่าอยู่ หรือสร้างฐานข้อมูลเปล่าขึ้นมาใหม่เพื่อเทียบ เช่น
+>
+> ```bash
+> docker exec bantonpoo-pg psql -U bantonpoo -d postgres \
+>   -c "CREATE DATABASE bantonpoo_diff OWNER bantonpoo;"
+> DATABASE_URI="postgres://bantonpoo:devpassword@127.0.0.1:5433/bantonpoo_diff" \
+>   NODE_ENV=production npm run migrate:create ชื่อ
+> ```
+>
+> **อย่ารัน `npm run migrate` กับฐานข้อมูลพัฒนาของตัวเอง** — ฐานข้อมูลนั้นถูกสร้างด้วย
+> `push` จึงมีตารางครบอยู่แล้ว การรัน migration ทับจะล้มเพราะพยายามสร้างตารางซ้ำ
+
+### ตรวจสถานะ
+
+```bash
+# ดูว่า migration ไหนรันไปแล้วบ้างบนเซิร์ฟเวอร์
+ssh -f -N -L 15432:127.0.0.1:5432 $DEPLOY_HOST
+DATABASE_URI="postgres://bantonpoo:$DB_PASSWORD@127.0.0.1:15432/bantonpoo" \
+  NODE_ENV=production npm run migrate:status
+```
+
+### ถ้า migration ล้มกลางทาง
+
+1. **สำรองก่อนเสมอ** — `ssh $DEPLOY_HOST /usr/local/bin/bantonpoo-backup`
+2. อ่านข้อความผิดพลาดว่าค้างที่คำสั่งไหน
+3. Payload ห่อแต่ละ migration ไว้ใน transaction เดียว ปกติจึงย้อนกลับเองทั้งก้อน
+   ฐานข้อมูลควรอยู่ในสภาพก่อนรัน
+4. แก้ไฟล์ migration แล้วรันใหม่ · ถ้าต้องกู้จริง `gunzip -c backups/db-<วันที่>.sql.gz | sudo -u postgres psql bantonpoo`
+
+---
+
+## 10. สำรองข้อมูล
 
 ```bash
 cat > /usr/local/bin/bantonpoo-backup <<'SH'
@@ -242,7 +357,7 @@ echo "15 3 * * * root /usr/local/bin/bantonpoo-backup" > /etc/cron.d/bantonpoo-b
 > สำรองไว้บนเครื่องเดียวกันยังไม่พอ ถ้า VPS เสียหายก็หายไปพร้อมกัน
 > ควรตั้ง `rsync` ดึงโฟลเดอร์ `backups/` มาเก็บที่อื่นอีกชุดอย่างน้อยสัปดาห์ละครั้ง
 
-## 10. ตรวจหลัง deploy
+## 11. ตรวจหลัง deploy
 
 ```bash
 curl -I https://bantonpoo.phuwish.com                 # 200 และ redirect จาก http แล้ว
@@ -252,7 +367,7 @@ systemctl status bantonpoo
 journalctl -u bantonpoo -n 50 --no-pager
 ```
 
-## 11. เมื่อจะเปลี่ยนเป็นเว็บจริง
+## 12. เมื่อจะเปลี่ยนเป็นเว็บจริง
 
 1. ลบบรรทัด `SITE_NOINDEX=1` ออกจาก `/etc/bantonpoo.env`
 2. แก้ `NEXT_PUBLIC_SITE_URL` เป็นโดเมนจริง
@@ -267,10 +382,12 @@ journalctl -u bantonpoo -n 50 --no-pager
 | --- | --- |
 | ลิงก์ในเว็บเป็น `http://` ทั้งที่เปิด https | nginx ไม่ได้ส่ง `X-Forwarded-Proto` — ตรวจ config หัวข้อ 7 |
 | ปุ่มแชร์ส่งลิงก์ผิดโดเมน | `NEXT_PUBLIC_SITE_URL` ผิด และต้อง **build ใหม่** ไม่ใช่แค่รีสตาร์ต |
-| รูปที่อัปโหลดหายหลัง deploy | เก็บรูปไว้ใน `current/` — ต้องอยู่ใน `uploads/` (หัวข้อ 4) |
+| รูปที่อัปโหลดหายหลัง deploy | ลืมตั้ง `UPLOAD_DIR` — ดูหัวข้อ 5 |
+| อัปโหลดรูปไม่ผ่านในหน้าแอดมิน | `UPLOAD_DIR` ชี้ไปโฟลเดอร์ที่ systemd ไม่ให้เขียน — ต้องเป็น `/srv/bantonpoo/uploads` |
 | `502 Bad Gateway` | บริการไม่ได้รัน — `journalctl -u bantonpoo -n 50` |
+| เข้า `/admin` แล้วขึ้นจอสร้างผู้ใช้ทั้งที่เคยมีบัญชีแล้ว | ต่อฐานข้อมูลผิดตัว — ตรวจ `DATABASE_URI` ใน `/etc/bantonpoo.env` |
 | เครื่องค้างตอน deploy | เผลอ build บนเซิร์ฟเวอร์ — ต้อง build ที่เครื่องตัวเอง |
-| เว็บขึ้นไม่ได้หลังแก้ฟิลด์ใน CMS | ยังไม่ได้รัน migration — ดูหัวข้อ "การเปลี่ยนโครงฐานข้อมูล" |
+| เว็บขึ้นไม่ได้หลังแก้ฟิลด์ใน CMS | ยังไม่ได้สร้าง/รัน migration — ดูหัวข้อ 9 |
 | เนื้อหาบนเว็บไม่ตรงกับที่แก้ในหลังบ้าน | build ด้วยฐานข้อมูลผิดตัว — ตรวจว่าตั้ง `DB_PASSWORD` แล้วและอุโมงค์ SSH เปิดได้ |
 | แก้เนื้อหาแล้วเว็บไม่เปลี่ยน | hook revalidate ไม่ทำงาน — ดู `journalctl -u bantonpoo` |
 | `robots.txt` ยังขึ้น `Allow: /` | ตั้ง `SITE_NOINDEX` แล้วแต่ไม่ได้ build ใหม่ — รัน `npm run deploy` อีกครั้ง |

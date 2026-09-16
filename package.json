@@ -15,16 +15,15 @@
     "check:public": "node scripts/check-public.mjs",
     "placeholders": "node scripts/generate-placeholders.mjs",
     "deploy": "./scripts/deploy.sh",
-    "db:start": "docker start bantonpoo-pg || docker run -d --name bantonpoo-pg -e POSTGRES_USER=bantonpoo -e POSTGRES_PASSWORD=devpassword -e POSTGRES_DB=bantonpoo -p 5433:5432 postgres:16-alpine",
-    "db:stop": "docker stop bantonpoo-pg",
     "payload": "payload",
     "cms:types": "payload generate:types && payload generate:importmap",
     "seed": "tsx --env-file=.env.local scripts/seed.ts",
     "migrate:create": "payload migrate:create",
-    "migrate": "payload migrate"
+    "migrate": "payload migrate",
+    "migrate:status": "payload migrate:status"
   },
   "dependencies": {
-    "@payloadcms/db-postgres": "^3.89.0",
+    "@payloadcms/db-sqlite": "^3.89.0",
     "@payloadcms/next": "^3.89.0",
     "@payloadcms/richtext-lexical": "^3.89.0",
     "@payloadcms/translations": "^3.89.0",

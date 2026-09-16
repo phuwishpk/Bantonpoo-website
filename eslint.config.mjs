@@ -17,6 +17,8 @@ const config = [
       // ไฟล์ที่ Payload สร้างอัตโนมัติ
       "src/payload-types.ts",
       "src/app/(payload)/admin/importMap.js",
+      // migration ถูกสร้างจากส่วนต่างของสคีมา ห้ามแก้ด้วยมือเพื่อให้ผ่าน lint
+      "src/migrations/**",
     ],
   },
 ];

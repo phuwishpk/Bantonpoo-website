@@ -9,3 +9,8 @@ next-env.d.ts
 
 # รูปที่อัปโหลดผ่าน CMS — ไม่เก็บใน Git
 uploads/
+
+# ฐานข้อมูล SQLite ของเครื่องพัฒนา
+*.db
+*.db-shm
+*.db-wal
