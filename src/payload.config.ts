@@ -13,6 +13,8 @@ import { Enquiries } from "@/collections/Enquiries";
 import { Media } from "@/collections/Media";
 import { Places } from "@/collections/Places";
 import { Redirects } from "@/collections/Redirects";
+import { migrateOnStart } from "@/lib/cms/migrate-on-start";
+import { migrations } from "./migrations";
 import { Pages } from "@/collections/Pages";
 import { Products } from "@/collections/Products";
 import { Users } from "@/collections/Users";
@@ -124,6 +126,16 @@ export default buildConfig({
   editor: lexicalEditor(),
 
   /**
+   * ปรับโครงฐานข้อมูลเองทุกครั้งที่แอปเริ่มทำงานในโหมด production
+   *
+   * โฮสต์ปิด SSH ไว้ จึงเข้าไปรัน `payload migrate` บนเซิร์ฟเวอร์ไม่ได้ ให้แอปรัน
+   * migration ที่ยังค้างเองตอนเปิด (ที่รันไปแล้วจะถูกข้าม ต้นทุนแค่อ่านตารางเดียว)
+   * มีผลตอน `next build` ด้วย สำเนาฐานข้อมูลที่ใช้ build จึงตรงกับโค้ดเสมอ
+   * รายละเอียดเรื่องการล็อกดูที่ src/lib/cms/migrate-on-start.ts
+   */
+  onInit: (payload) => migrateOnStart(payload, migrations),
+
+  /**
    * SQLite — เก็บทั้งฐานข้อมูลไว้ในไฟล์เดียว
    *
    * เลือกเพราะโฮสต์เป็น Plesk แบบแชร์ ซึ่งมีให้แค่ MariaDB ที่ Payload ไม่รองรับ
@@ -135,6 +147,11 @@ export default buildConfig({
    */
   db: sqliteAdapter({
     client: { url: process.env.DATABASE_URI || "file:./bantonpoo.db" },
+    /**
+     * รอสูงสุด 5 วินาทีเมื่อไฟล์ถูกล็อก แทนที่จะล้มทันที
+     * กันกรณี Passenger เปิดแอปหลายโพรเซสพร้อมกันแล้วแย่งกันเขียน
+     */
+    busyTimeout: 5000,
     /**
      * push ปรับโครงฐานข้อมูลให้อัตโนมัติ สะดวกตอนพัฒนา
      * แต่บนเซิร์ฟเวอร์จริงต้องปิด เพราะเมื่อมันไม่แน่ใจว่าคอลัมน์ถูก "สร้างใหม่"

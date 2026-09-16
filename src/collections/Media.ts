@@ -18,8 +18,16 @@ export const Media: CollectionConfig = {
   admin: { group: "เนื้อหา", description: "รูปทั้งหมดที่ใช้บนเว็บไซต์" },
   access: { read: anyone, create: isEditor, update: isEditor, delete: isAdmin },
   upload: {
-    // เก็บนอกโฟลเดอร์แอป เพราะตอน deploy จะเขียนทับโฟลเดอร์แอปทั้งหมด
-    staticDir: process.env.UPLOAD_DIR || path.resolve(dirname, "../../uploads"),
+    /*
+      เก็บนอกโฟลเดอร์แอป เพราะตอน deploy จะแทนที่โฟลเดอร์แอปทั้งหมด
+
+      แปลงเป็นที่อยู่เต็มจากโฟลเดอร์ที่แอปทำงานอยู่ (server.js ของ Next ย้ายไปอยู่
+      โฟลเดอร์ของตัวเองตอนเริ่ม) จึงตั้งเป็นเส้นทางสัมพัทธ์อย่าง ../bantonpoo-data/uploads
+      ได้ ไม่ต้องรู้ที่อยู่เต็มของโฮสต์ ซึ่งดูไม่ได้เพราะไม่มี SSH
+    */
+    staticDir: process.env.UPLOAD_DIR
+      ? path.resolve(/*turbopackIgnore: true*/ process.cwd(), process.env.UPLOAD_DIR)
+      : path.resolve(dirname, "../../uploads"),
     // svg อยู่ในรายการเพราะชุดภาพตัวอย่างของ prototype เป็น svg
     // เมื่อแทนที่ด้วยรูปถ่ายจริงครบแล้ว เอา svg ออกได้เพื่อความปลอดภัย
     mimeTypes: ["image/jpeg", "image/png", "image/webp", "image/avif", "image/svg+xml"],

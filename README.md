@@ -56,11 +56,14 @@ npm run dev                        # เปิด http://localhost:3100
 ฐานข้อมูลเป็น **SQLite** เก็บอยู่ในไฟล์ `bantonpoo.db` ที่รากโปรเจกต์
 ไม่ต้องติดตั้งเซิร์ฟเวอร์ฐานข้อมูล · อยากเริ่มใหม่ก็ลบไฟล์แล้วรันสองคำสั่งข้างบนซ้ำ
 
-**ขึ้นเซิร์ฟเวอร์** — คู่มือตั้งเครื่องครั้งแรกอยู่ที่ [docs/deploy-plesk.md](docs/deploy-plesk.md)
-หลังตั้งเสร็จแล้ว การอัปเดตเหลือคำสั่งเดียว
+**ขึ้นเซิร์ฟเวอร์** — โฮสต์เป็น Plesk แบบแชร์ ไม่มี SSH จึงส่งไฟล์ผ่าน FTP
+คู่มือตั้งค่าครั้งแรกอยู่ที่ [docs/deploy-plesk.md](docs/deploy-plesk.md)
 
 ```bash
-DEPLOY_HOST=phuwishs@<ไอพี> REMOTE_DIR=<app root> REMOTE_DB=<ไฟล์ฐานข้อมูล> npm run deploy
+cp .env.deploy.example .env.deploy.local   # ใส่รหัสผ่าน FTP ครั้งเดียว
+npm run deploy:init                        # ติดตั้งครั้งแรก
+npm run deploy                             # อัปเดตครั้งต่อ ๆ ไป
+npm run deploy:rollback                    # ย้อนกลับเวอร์ชันก่อนหน้า
 ```
 
 คำสั่งอื่น
@@ -73,11 +76,13 @@ DEPLOY_HOST=phuwishs@<ไอพี> REMOTE_DIR=<app root> REMOTE_DB=<ไฟล�
 | `npm run lint` | ตรวจคุณภาพโค้ด |
 | `npm run typecheck` | ตรวจชนิดข้อมูล TypeScript |
 | `npm run placeholders` | สร้างภาพตัวอย่างใหม่ (ดูหัวข้อ "ภาพ") |
-| `npm run deploy` | build แล้วส่งขึ้นเซิร์ฟเวอร์และรีสตาร์ตแอป |
+| `npm run deploy` | build แล้วส่งขึ้นเซิร์ฟเวอร์ผ่าน FTP และรีสตาร์ตแอป |
+| `npm run deploy:init` | ติดตั้งครั้งแรก พร้อมเนื้อหาตั้งต้น |
+| `npm run deploy:rollback` | สลับกลับไปใช้เวอร์ชันก่อนหน้า |
 | `npm run seed` | ใส่เนื้อหาตัวอย่าง (ล้างของเดิมก่อนเสมอ) |
 | `npm run cms:types` | สร้าง TypeScript types ของ CMS ใหม่ (รันหลังแก้ collection) |
 | `npm run migrate:create` | สร้างไฟล์ migration หลังแก้โครงฟิลด์ (ต้องรันก่อน deploy) |
-| `npm run migrate` | ปรับโครงฐานข้อมูลตามไฟล์ migration |
+| `npm run migrate` | ปรับโครงฐานข้อมูลตามไฟล์ migration (บนเซิร์ฟเวอร์แอปทำเองตอนเริ่มทำงาน) |
 | `npm run migrate:status` | ดูว่า migration ไหนรันไปแล้ว |
 | `npm run check:public` | ตรวจว่าหน้าสาธารณะไม่มีข้อมูลหลังบ้านหลุด |
 | `npm run check:inline` | ตรวจการแก้ข้อความบนหน้าเว็บ (20 ข้อ) |
