@@ -80,6 +80,24 @@ export function editLinksForCustomPage(id: string | number, title: string) {
   };
 }
 
+const DOC_KINDS = {
+  product: { collection: "products", label: "สินค้า", list: "สินค้าทั้งหมด" },
+  article: { collection: "articles", label: "บทความ", list: "บทความทั้งหมด" },
+} as const;
+
+/** ทางลัดของหน้ารายละเอียดสินค้า/บทความ — ลิงก์ไปที่เอกสารนั้นโดยตรง */
+export function editLinksForDoc(kind: keyof typeof DOC_KINDS, id: string | number, title: string) {
+  const config = DOC_KINDS[kind];
+  return {
+    pageLabel: title ? `${config.label} "${title}"` : `${config.label}นี้`,
+    links: [
+      { label: `${config.label}นี้ (ราคา สถานะ รูปทั้งหมด)`, href: adminDoc(config.collection, id) },
+      { label: config.list, href: adminList(config.collection) },
+      ...SHARED,
+    ],
+  };
+}
+
 export function editLinksFor(page: PageKey) {
   const config = PAGE_GLOBAL[page];
   return {

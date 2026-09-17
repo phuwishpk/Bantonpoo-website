@@ -1,6 +1,7 @@
 import type { ElementType } from "react";
 import { isDraftMode } from "@/lib/cms/draft";
 import { InlineEditable } from "./inline-editable";
+import { EmptyImageSlot, InlineImageEdit } from "./inline-image";
 
 /**
  * ข้อความที่แก้ได้จากหน้าเว็บ
@@ -54,4 +55,37 @@ export async function Ed({
       {text}
     </InlineEditable>
   );
+}
+
+/**
+ * ปุ่มเปลี่ยนรูปที่วางทับรูปบนหน้าเว็บ (เฉพาะโหมดแก้ไข)
+ *
+ * วางไว้ในกล่อง relative เดียวกับรูป ผู้เข้าชมทั่วไปไม่ได้อะไรเลย — ไม่มีแม้แต่ที่อยู่ของฟิลด์
+ *
+ *   <div className="relative ...">
+ *     <Image ... />
+ *     <EdImage at={at("hero.image")} label="ภาพหลัก" current={image.id} />
+ *   </div>
+ *
+ * ถ้ารูปยังไม่มี (ช่องไม่บังคับ) ใช้ empty เพื่อแสดงกล่อง "เพิ่มรูป" ตรงตำแหน่งนั้นแทน
+ */
+export async function EdImage({
+  empty = false,
+  compact = false,
+  className,
+  ...target
+}: {
+  at: string;
+  label: string;
+  current?: string | number;
+  removable?: boolean;
+  hint?: string;
+  compact?: boolean;
+  /** ยังไม่มีรูป — แสดงกล่องให้กดเพิ่มรูป แทนปุ่มที่วางทับรูป */
+  empty?: boolean;
+  className?: string;
+}) {
+  if (!(await isDraftMode())) return null;
+  if (empty) return <EmptyImageSlot {...target} className={className} />;
+  return <InlineImageEdit {...target} compact={compact} className={className} />;
 }

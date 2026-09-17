@@ -1,7 +1,7 @@
 import Image from "next/image";
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/json-ld";
-import { Ed } from "@/components/editable";
+import { Ed, EdImage } from "@/components/editable";
 import { EditToolbar } from "@/components/edit-mode";
 import { PageHero } from "@/components/page-hero";
 import { ArrowLink, ButtonLink, Container, OrnamentDivider } from "@/components/ui";
@@ -116,8 +116,21 @@ export default async function AboutPage() {
                           sizes="(max-width: 1024px) 100vw, 45vw"
                           className="h-full w-full object-cover"
                         />
+                        <EdImage
+                          at={at("historyImage")}
+                          label="ภาพประกอบประวัติ"
+                          current={heritageImage.id}
+                          removable
+                        />
                       </div>
-                    ) : null}
+                    ) : (
+                      <EdImage
+                        empty
+                        at={at("historyImage")}
+                        label="ภาพประกอบประวัติ"
+                        className="aspect-4/3 w-full lg:sticky lg:top-24"
+                      />
+                    )}
 
                     <div className="flex flex-col gap-6">
                       <SectionHeading
@@ -234,6 +247,12 @@ export default async function AboutPage() {
                             sizes="(max-width: 640px) 100vw, 25vw"
                             className="h-full w-full object-cover"
                           />
+                          <EdImage
+                            at={atArtisan("photo")}
+                            label="ภาพโปรไฟล์"
+                            current={artisan.photo.id}
+                            removable
+                          />
                         </div>
                         <div className="flex flex-1 flex-col gap-2.5 p-5">
                           <h3 className="font-serif text-base font-semibold text-ink-800">
@@ -284,8 +303,16 @@ export default async function AboutPage() {
                           sizes="(max-width: 1024px) 100vw, 50vw"
                           className="h-full w-full object-cover"
                         />
+                        <EdImage at={at("closing.image")} label="ภาพ" current={closingImage.id} removable />
                       </div>
-                    ) : null}
+                    ) : (
+                      <EdImage
+                        empty
+                        at={at("closing.image")}
+                        label="ภาพ"
+                        className="m-4 aspect-video lg:aspect-auto lg:h-full"
+                      />
+                    )}
                     <div className="flex flex-col gap-5 p-8 sm:p-10">
                       <h2 className="font-serif text-2xl leading-snug font-semibold text-ink-800">
                         <Ed at={at("closing.title")}>{t(closing.title)}</Ed>

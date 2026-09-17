@@ -5,14 +5,27 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Media } from "@/content/types";
 import { t } from "@/lib/i18n";
 import { ChevronLeftIcon, ChevronRightIcon, CloseIcon, SearchIcon } from "./icons";
+import { InlineImageEdit } from "./inline-image";
 
 /**
  * แกลเลอรีรูปสินค้า
  *
  * เดสก์ท็อป — รูปหลักขนาดใหญ่ + แถบ thumbnail ด้านล่าง กดที่รูปเพื่อซูมเต็มจอ
  * มือถือ     — ปัดเลื่อนดูรูปได้ด้วยนิ้ว (scroll snap) พร้อมจุดบอกตำแหน่ง
+ *
+ * โหมดแก้ไข — ปุ่มเปลี่ยนรูปวางทับรูปที่กำลังแสดง (รูปอยู่ในปุ่มซูม จึงวางซ้อนข้างนอกแทน
+ * เพราะปุ่มซ้อนในปุ่มไม่ได้) เลือกรูปอื่นจากแถบรูปย่อหรือปัด แล้วกดเปลี่ยนได้ทีละรูป
  */
-export function ProductGallery({ images, productName }: { images: Media[]; productName: string }) {
+export function ProductGallery({
+  images,
+  productName,
+  editAt,
+}: {
+  images: Media[];
+  productName: string;
+  /** ที่อยู่ของช่องรูปแต่ละรูป เรียงตาม images — ส่งมาเฉพาะโหมดแก้ไข */
+  editAt?: string[];
+}) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -51,36 +64,48 @@ export function ProductGallery({ images, productName }: { images: Media[]; produ
   }
 
   const active = images[activeIndex];
+  const activeEdit = editAt?.[activeIndex] ? (
+    <InlineImageEdit
+      key={editAt[activeIndex]}
+      at={editAt[activeIndex]}
+      label={total > 1 ? `รูปที่ ${activeIndex + 1}` : "รูปสินค้า"}
+      current={active.id}
+      hint="การเพิ่ม ลบ หรือสลับลำดับรูป ทำในหลังบ้าน"
+    />
+  ) : null;
 
   return (
     <div className="flex flex-col gap-3">
       {/* ---- มือถือ: ปัดเลื่อนดูรูป ---- */}
       <div className="lg:hidden">
-        <div
-          ref={trackRef}
-          onScroll={handleTrackScroll}
-          className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain rounded-card bg-ink-800"
-          aria-label={`รูปภาพ ${productName}`}
-        >
-          {images.map((media, index) => (
-            <button
-              key={media.url}
-              type="button"
-              onClick={() => setLightboxIndex(index)}
-              className="relative aspect-square w-full shrink-0 snap-center"
-              aria-label={`ดูภาพขยาย: ${t(media.alt)}`}
-            >
-              <Image
-                src={media.url}
-                alt={t(media.alt)}
-                width={media.width}
-                height={media.height}
-                priority={index === 0}
-                sizes="100vw"
-                className="h-full w-full object-cover"
-              />
-            </button>
-          ))}
+        <div className="relative rounded-card">
+          {activeEdit}
+          <div
+            ref={trackRef}
+            onScroll={handleTrackScroll}
+            className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain rounded-card bg-ink-800"
+            aria-label={`รูปภาพ ${productName}`}
+          >
+            {images.map((media, index) => (
+              <button
+                key={media.url}
+                type="button"
+                onClick={() => setLightboxIndex(index)}
+                className="relative aspect-square w-full shrink-0 snap-center"
+                aria-label={`ดูภาพขยาย: ${t(media.alt)}`}
+              >
+                <Image
+                  src={media.url}
+                  alt={t(media.alt)}
+                  width={media.width}
+                  height={media.height}
+                  priority={index === 0}
+                  sizes="100vw"
+                  className="h-full w-full object-cover"
+                />
+              </button>
+            ))}
+          </div>
         </div>
 
         {total > 1 ? (
@@ -106,26 +131,29 @@ export function ProductGallery({ images, productName }: { images: Media[]; produ
 
       {/* ---- เดสก์ท็อป: รูปหลัก + thumbnail ---- */}
       <div className="hidden lg:block">
-        <button
-          type="button"
-          onClick={() => setLightboxIndex(activeIndex)}
-          className="group relative block aspect-square w-full overflow-hidden rounded-card bg-ink-800"
-          aria-label={`ดูภาพขยาย: ${t(active.alt)}`}
-        >
-          <Image
-            src={active.url}
-            alt={t(active.alt)}
-            width={active.width}
-            height={active.height}
-            priority
-            sizes="(max-width: 1024px) 100vw, 55vw"
-            className="h-full w-full object-cover transition duration-500 ease-craft group-hover:scale-[1.03]"
-          />
-          <span className="absolute bottom-4 right-4 flex items-center gap-1.5 rounded-lg bg-ink-950/70 px-3 py-2 text-xs font-medium text-rice-100 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-            <SearchIcon className="h-4 w-4" />
-            คลิกเพื่อซูม
-          </span>
-        </button>
+        <div className="relative rounded-card">
+          {activeEdit}
+          <button
+            type="button"
+            onClick={() => setLightboxIndex(activeIndex)}
+            className="group relative block aspect-square w-full overflow-hidden rounded-card bg-ink-800"
+            aria-label={`ดูภาพขยาย: ${t(active.alt)}`}
+          >
+            <Image
+              src={active.url}
+              alt={t(active.alt)}
+              width={active.width}
+              height={active.height}
+              priority
+              sizes="(max-width: 1024px) 100vw, 55vw"
+              className="h-full w-full object-cover transition duration-500 ease-craft group-hover:scale-[1.03]"
+            />
+            <span className="absolute bottom-4 right-4 flex items-center gap-1.5 rounded-lg bg-ink-950/70 px-3 py-2 text-xs font-medium text-rice-100 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+              <SearchIcon className="h-4 w-4" />
+              คลิกเพื่อซูม
+            </span>
+          </button>
+        </div>
 
         {total > 1 ? (
           <div className="mt-3 grid grid-cols-5 gap-3">

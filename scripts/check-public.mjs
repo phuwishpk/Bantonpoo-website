@@ -16,6 +16,7 @@ const FORBIDDEN = [
   "g:tourism-page", "g:contact-page", "g:site-settings", "g:navigation", "g:ui-labels",
   "c:products:", "c:articles:", "c:workshops:", "c:places:", "c:artisans:", "c:pages:",
   "inline-edit", "/admin/collections", "/admin/globals", "api/inline-edit",
+  "api/inline-media", "image-edit",
 ];
 
 const PATHS = ["/", "/about", "/shop", "/stories", "/tourism", "/contact"];

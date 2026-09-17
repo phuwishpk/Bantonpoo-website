@@ -19,11 +19,15 @@ export type Localized<T = string> = {
 
 /** ไฟล์รูปภาพ — ตรงกับ Payload Media collection */
 export type Media = {
+  /** id ในคลังรูป — ใช้บอกตัวเลือกรูปตอนแก้บนหน้าเว็บว่ารูปไหนใช้อยู่ */
+  id?: string | number;
   url: string;
   alt: Localized;
   width: number;
   height: number;
   caption?: Localized;
+  /** รูปย่อสี่เหลี่ยมจัตุรัส 320×320 (ตัดตามจุดโฟกัส) — ไม่มีเมื่อเป็น svg */
+  thumbUrl?: string;
 };
 
 /** Categories — ใช้ร่วมกันทั้งบทความและสินค้า แยกด้วยฟิลด์ type */
@@ -102,6 +106,12 @@ export type Product = {
   /** ป้ายจุดเด่น เช่น "ทำมือในชุมชน", "สินค้าเรือธง" */
   badges: Localized<string[]>;
   gallery: Media[];
+  /**
+   * ลำดับแถวในหลังบ้านของรูปแต่ละรูปใน gallery
+   * ปกติตรงกับตำแหน่งในอาร์เรย์ แต่ถ้ามีแถวที่รูปถูกลบไป รูปหลังจากนั้นจะเลื่อน
+   * การแก้รูปจากหน้าเว็บต้องใช้ลำดับจริง ไม่งั้นจะไปเปลี่ยนรูปของแถวอื่น
+   */
+  galleryRows?: number[];
   /** ระยะเวลาสั่งทำ แสดงเฉพาะสินค้าสถานะ made-to-order */
   leadTime?: Localized;
   careInstructions: Localized<string[]>;
@@ -130,13 +140,20 @@ export type Article = {
  * ชุดนี้ครอบคลุมสิ่งที่สเปกต้องการ: หัวข้อ, ย่อหน้า, รายการ,
  * ภาพพร้อมคำบรรยาย, คำพูดของช่าง (blockquote) และวิดีโอ YouTube
  */
-export type ContentBlock =
+export type ContentBlock = (
   | { type: "heading"; level: 2 | 3; text: Localized }
   | { type: "paragraph"; text: Localized }
   | { type: "list"; style: "bullet" | "number"; items: Localized<string[]> }
   | { type: "image"; media: Media }
   | { type: "quote"; text: Localized; attribution?: Localized }
-  | { type: "youtube"; videoId: string; title: Localized };
+  | { type: "youtube"; videoId: string; title: Localized }
+) & {
+  /**
+   * ลำดับบล็อกในหลังบ้าน — บล็อกที่อ่านไม่ได้ (เช่นรูปถูกลบ) ถูกตัดทิ้งตอนแปลง
+   * ตำแหน่งในอาร์เรย์จึงอาจไม่ตรงกับลำดับจริง ต้องใช้ค่านี้ตอนแก้บนหน้าเว็บ
+   */
+  sourceIndex?: number;
+};
 
 export type Workshop = {
   id: string | number;
@@ -190,6 +207,8 @@ export type SiteSettings = {
   /** เวอร์ชันสั้นสำหรับที่แคบ เช่น drawer บนมือถือ */
   openingHoursShort: Localized;
   logo?: Media;
+  /** ไอคอนบนแท็บเบราว์เซอร์ — ถ้าไม่มีใช้โลโก้ */
+  favicon?: Media;
   // โดเมนไม่ได้อยู่ที่นี่ — อ่านจาก NEXT_PUBLIC_SITE_URL ใน src/lib/site-url.ts
   // เพราะเป็นค่าที่ต่างกันระหว่างเครื่องทดสอบกับเครื่องจริง ไม่ใช่เนื้อหาที่แอดมินแก้
 };

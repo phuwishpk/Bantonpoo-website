@@ -10,7 +10,7 @@ import {
   TempleIcon,
   UsersIcon,
 } from "@/components/icons";
-import { Ed } from "@/components/editable";
+import { Ed, EdImage } from "@/components/editable";
 import { EditToolbar } from "@/components/edit-mode";
 import { ProductCard } from "@/components/product-card";
 import { ArrowLink, ButtonLink, buttonClass, Container, EyebrowLabel } from "@/components/ui";
@@ -203,14 +203,24 @@ export default async function HomePage() {
                     aria-hidden
                     className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-ink-950/80 to-transparent"
                   />
-                  <figcaption className="absolute inset-x-0 bottom-0 p-5 text-sm text-rice-100">
+                  <EdImage at={at("hero.image")} label="ภาพหลัก" current={heroImage.id} removable />
+                  {/* อยู่เหนือปุ่มเปลี่ยนรูป คำบรรยายจึงยังคลิกแก้ได้ในโหมดแก้ไข */}
+                  <figcaption className="absolute inset-x-0 bottom-0 z-30 p-5 text-sm text-rice-100">
                     <Ed at={at("hero.imageCaption")} tone="light" placeholder="คำบรรยายใต้ภาพ">
                       {t(loc(heroGroup.imageCaption as never))}
                     </Ed>
                   </figcaption>
                 </div>
               </div>
-            ) : null}
+            ) : (
+              <EdImage
+                empty
+                at={at("hero.image")}
+                label="ภาพหลัก"
+                hint="แนะนำภาพแนวตั้ง สัดส่วน 4:5"
+                className="aspect-4/5 w-full"
+              />
+            )}
           </div>
         </Container>
       </section>
@@ -300,6 +310,11 @@ export default async function HomePage() {
                           sizes="(max-width: 1024px) 100vw, 50vw"
                           className="h-full w-full object-cover"
                         />
+                        <EdImage
+                          at={`c:articles:${spotlight.id}:coverImage`}
+                          label="ภาพหน้าปกบทความ"
+                          current={spotlight.coverImage.id}
+                        />
                       </div>
                       <div className="flex flex-col justify-center gap-5 p-8 sm:p-12">
                         <EyebrowLabel tone="light">
@@ -372,6 +387,11 @@ export default async function HomePage() {
                             height={workshop.image.height}
                             sizes="(max-width: 768px) 100vw, 33vw"
                             className="h-full w-full object-cover transition duration-500 ease-craft group-hover:scale-[1.04]"
+                          />
+                          <EdImage
+                            at={`c:workshops:${workshop.id}:image`}
+                            label="ภาพกิจกรรม"
+                            current={workshop.image.id}
                           />
                         </div>
                         <div className="flex flex-1 flex-col gap-3 p-5">

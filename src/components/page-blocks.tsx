@@ -10,13 +10,14 @@ import {
   getProducts,
   getWorkshops,
 } from "@/lib/cms/queries";
+import { adminDoc } from "@/lib/cms/edit-links";
 import { atDoc } from "@/lib/cms/inline";
 import type { Labels } from "@/lib/labels";
 import { formatPrice } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import { ArticleCard } from "./article-card";
 import { CtaBand } from "./cta-band";
-import { Ed } from "./editable";
+import { Ed, EdImage } from "./editable";
 import { CARD_ICONS, type CardIconName, LeafIcon } from "./icons";
 import { ProductCard } from "./product-card";
 import { SectionHeading } from "./section-heading";
@@ -170,6 +171,7 @@ async function PageBlock({ block, at, make, site, labels, editing }: BlockProps)
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     className="h-full w-full object-cover"
                   />
+                  <EdImage at={make(`${at}.image`)} label="ภาพ" current={image.id} />
                 </div>
               ) : null}
 
@@ -294,9 +296,10 @@ async function PageBlock({ block, at, make, site, labels, editing }: BlockProps)
 
     /* ---------------- แกลเลอรีภาพ ---------------- */
     case "gallery": {
-      const images = rowsOf(block, "images", (row) => mapMedia(row.image)).filter(
-        (image): image is NonNullable<typeof image> => image !== null
-      );
+      // จำลำดับแถวก่อนตัดแถวที่ไม่มีรูป — ปุ่มเปลี่ยนรูปต้องชี้แถวจริงในหลังบ้าน
+      const images = rowsOf(block, "images", (row) => mapMedia(row.image))
+        .map((image, row) => (image ? { ...image, row } : null))
+        .filter((image): image is NonNullable<typeof image> => image !== null);
       return (
         <section className={`py-12 sm:py-16 ${skin.className}`} style={style}>
           <Container size="wide">
@@ -312,6 +315,11 @@ async function PageBlock({ block, at, make, site, labels, editing }: BlockProps)
                       height={image.height}
                       sizes="(max-width: 640px) 100vw, 33vw"
                       className="h-full w-full object-cover"
+                    />
+                    <EdImage
+                      at={make(`${at}.images.${image.row}.image`)}
+                      label={`ภาพที่ ${image.row + 1}`}
+                      current={image.id}
                     />
                   </div>
                   {t(image.caption ?? { th: "" }) ? (
@@ -400,6 +408,7 @@ async function CollectionItems({
   columns,
   labels,
   tone,
+  editing,
 }: {
   source: string;
   limit?: number;
@@ -415,7 +424,12 @@ async function CollectionItems({
     return (
       <div className={`grid gap-4 lg:gap-5 ${columns ?? "grid-cols-2 lg:grid-cols-4"}`}>
         {products.map((product) => (
-          <ProductCard key={product.slug} product={product} labels={labels.general} />
+          <ProductCard
+            key={product.slug}
+            product={product}
+            labels={labels.general}
+            editHref={editing ? adminDoc("products", product.id) : undefined}
+          />
         ))}
       </div>
     );
@@ -426,7 +440,12 @@ async function CollectionItems({
     return (
       <div className={`grid gap-5 ${columns ?? "md:grid-cols-3"}`}>
         {articles.map((article) => (
-          <ArticleCard key={article.slug} article={article} labels={labels.article} />
+          <ArticleCard
+            key={article.slug}
+            article={article}
+            labels={labels.article}
+            editHref={editing ? adminDoc("articles", article.id) : undefined}
+          />
         ))}
       </div>
     );
@@ -436,6 +455,7 @@ async function CollectionItems({
     source === "workshops"
       ? take(await getWorkshops()).map((workshop) => ({
           key: workshop.slug,
+          imageAt: `c:workshops:${workshop.id}:image`,
           href: "/tourism",
           image: workshop.image,
           title: t(workshop.title),
@@ -447,6 +467,7 @@ async function CollectionItems({
         }))
       : take(await getPlaces()).map((place) => ({
           key: place.slug,
+          imageAt: `c:places:${place.id}:image`,
           href: "/tourism",
           image: place.image,
           title: t(place.name),
@@ -474,6 +495,7 @@ async function CollectionItems({
               sizes="(max-width: 768px) 100vw, 33vw"
               className="h-full w-full object-cover transition duration-500 ease-craft group-hover:scale-[1.04]"
             />
+            <EdImage at={item.imageAt} label="ภาพ" current={item.image.id} />
           </div>
           <div className="flex flex-1 flex-col gap-3 p-5">
             <h3

@@ -1,49 +1,45 @@
-import { getCms } from "@/lib/cms/client";
 import {
   getAtPath,
   MAX_VALUE_LENGTH,
   parseAddress,
+  parseMediaId,
   parseTarget,
   scopeOf,
   setAtPath,
+  type Address,
   type Target,
 } from "@/lib/cms/inline";
-import { findTextField } from "@/lib/cms/inline-schema";
+import {
+  deny,
+  messageOf,
+  requireEditor,
+  type Cms,
+  type CmsUser as User,
+} from "@/lib/cms/inline-request";
+import { findMediaField, findTextField } from "@/lib/cms/inline-schema";
 
 /**
  * บันทึกข้อความที่แก้จากหน้าเว็บ
  *
  * หลักการที่ยึดไว้สามข้อ
  *   1. ตรวจสิทธิ์จากคุกกี้ล็อกอินของ Payload เสมอ ไม่ใช้กุญแจลับในลิงก์
- *   2. รับเฉพาะเอกสารและเส้นทางที่อยู่ในรายการอนุญาต และเฉพาะช่องที่เดิมเป็นข้อความ
- *      สตริงจึงไม่มีทางไปทับโครงสร้างข้อมูล เช่น อาร์เรย์หรือความสัมพันธ์
+ *   2. รับเฉพาะเอกสารและเส้นทางที่อยู่ในรายการอนุญาต และเฉพาะช่องที่ตรงชนิด
+ *      ตามสคีมา (ข้อความรับสตริง ช่องรูปรับ id ของคลังรูป) ค่าที่ส่งมาจึงไม่มีทาง
+ *      ไปทับโครงสร้างข้อมูลอื่น เช่น อาร์เรย์หรือความสัมพันธ์
  *   3. ส่งกลับเฉพาะกิ่งบนสุดของเส้นทางที่แก้ ไม่ส่งเอกสารทั้งก้อน เพื่อไม่ให้ทับ
  *      ฟิลด์อื่นที่คนอื่นอาจกำลังแก้อยู่พร้อมกัน
  *
  * ทุกการบันทึกลงเป็น "ฉบับร่าง" เมื่อเอกสารนั้นรองรับ ผู้เข้าชมทั่วไปจึงยังไม่เห็น
  * จนกว่าจะกดเผยแพร่
+ *
+ * คำขอมีสามแบบ แยกด้วย action
+ *   (ไม่มี)   { at, value, multiline }  แก้ข้อความ
+ *   "image"   { at, media }             เปลี่ยนรูป (media = id ในคลังรูป หรือ null เพื่อนำรูปออก)
+ *   "publish" { scopes }                เผยแพร่ฉบับร่างของเอกสารที่แก้ไว้
  */
 
 /** ภาษาที่หน้าเว็บใช้อยู่ตอนนี้ (ดู src/lib/i18n.ts) */
 const LOCALE = "th" as const;
-
-type Cms = Awaited<ReturnType<typeof getCms>>;
-type User = Parameters<Cms["updateGlobal"]>[0]["user"];
-
-function deny(message: string, status: number) {
-  return Response.json({ ok: false, message }, { status });
-}
-
-/** กันการถูกเว็บอื่นยิงคำขอแทนผู้ใช้ที่ล็อกอินค้างไว้ */
-function sameOrigin(request: Request): boolean {
-  const origin = request.headers.get("origin");
-  if (!origin) return true; // คำขอที่ไม่ได้ข้ามโดเมนจะไม่ส่ง Origin มา
-  try {
-    return new URL(origin).host === request.headers.get("host");
-  } catch {
-    return false;
-  }
-}
 
 /**
  * ทำความสะอาดข้อความที่รับมา
@@ -68,19 +64,13 @@ function clean(raw: unknown, multiline: boolean): string | null {
 }
 
 export async function POST(request: Request) {
-  if (!sameOrigin(request)) return deny("คำขอมาจากโดเมนอื่น", 403);
   if (!request.headers.get("content-type")?.includes("application/json")) {
     return deny("รูปแบบคำขอไม่ถูกต้อง", 415);
   }
 
-  const cms = await getCms();
-  const { user } = await cms.auth({ headers: request.headers });
-  if (!user) return deny("ต้องเข้าสู่ระบบหลังบ้านก่อนจึงจะแก้ไขได้", 401);
-
-  const role = (user as { role?: string }).role;
-  if (role !== "admin" && role !== "editor") {
-    return deny("บัญชีนี้ดูได้อย่างเดียว ยังแก้ไขเนื้อหาไม่ได้", 403);
-  }
+  const auth = await requireEditor(request);
+  if (auth instanceof Response) return auth;
+  const { cms, user } = auth;
 
   let body: Record<string, unknown>;
   try {
@@ -89,9 +79,9 @@ export async function POST(request: Request) {
     return deny("อ่านคำขอไม่ได้", 400);
   }
 
-  return body.action === "publish"
-    ? publish(cms, user as User, body)
-    : save(cms, user as User, body);
+  if (body.action === "publish") return publish(cms, user, body);
+  if (body.action === "image") return saveImage(cms, user, body);
+  return save(cms, user, body);
 }
 
 /* ------------------------------------------------------------------
@@ -105,18 +95,87 @@ async function save(cms: Cms, user: User, body: Record<string, unknown>) {
   const value = clean(body.value, body.multiline === true);
   if (value === null) return deny("ข้อความยาวเกินไปหรือรูปแบบไม่ถูกต้อง", 400);
 
-  // เทียบกับสคีมาก่อนแตะฐานข้อมูล — ชื่อฟิลด์ที่พิมพ์ผิดหรือช่องที่ไม่ใช่ข้อความจะตกที่นี่
-  if (!findTextField(fieldsOf(cms, address), address.path)) {
+  const doc = await readDoc(cms, address, user);
+  if (!doc) return deny("ไม่พบเอกสารที่ต้องการแก้", 404);
+
+  // เทียบกับสคีมาก่อนเขียน — ชื่อฟิลด์ที่พิมพ์ผิดหรือช่องที่ไม่ใช่ข้อความจะตกที่นี่
+  if (!findTextField(fieldsOf(cms, address), address.path, doc)) {
     return deny("ช่องนี้แก้จากหน้าเว็บไม่ได้ ต้องแก้จากหลังบ้าน", 400);
   }
+
+  return writeValue(cms, user, address, doc, value);
+}
+
+/* ------------------------------------------------------------------
+   เปลี่ยนรูป
+   ------------------------------------------------------------------ */
+
+/**
+ * ผูกรูปจากคลังรูปเข้ากับช่องรูปหนึ่งช่อง
+ *
+ * รับแค่ id ของรูปที่มีอยู่แล้ว — การอัปโหลดไฟล์ใหม่แยกไปที่ /api/inline-media
+ * ซึ่งบังคับกรอกคำบรรยายภาพและเจ้าของภาพก่อน รูปทุกรูปบนเว็บจึงตรวจที่มาได้เสมอ
+ */
+async function saveImage(cms: Cms, user: User, body: Record<string, unknown>) {
+  const address = parseAddress(body.at);
+  if (!address) return deny("ไม่รู้จักช่องที่ต้องการแก้", 400);
+
+  const removing = body.media === null;
+  const mediaId = removing ? null : parseMediaId(body.media);
+  if (!removing && mediaId === null) return deny("ไม่รู้จักรูปที่เลือก", 400);
 
   const doc = await readDoc(cms, address, user);
   if (!doc) return deny("ไม่พบเอกสารที่ต้องการแก้", 404);
 
-  const current = getAtPath(doc, address.path);
-  if (current === value) return Response.json({ ok: true, unchanged: true });
+  const field = findMediaField(fieldsOf(cms, address), address.path, doc);
+  if (!field) return deny("ช่องนี้เปลี่ยนรูปจากหน้าเว็บไม่ได้ ต้องแก้จากหลังบ้าน", 400);
+  if (removing && field.required) return deny("ช่องนี้ต้องมีรูปเสมอ เลือกรูปอื่นแทนได้", 400);
 
-  // ส่งกลับเฉพาะกิ่งบนสุดของเส้นทาง ไม่ส่งเอกสารทั้งก้อน
+  let value: number | string | null = null;
+  if (mediaId !== null) {
+    const media = (await cms
+      .findByID({
+        collection: "media",
+        id: mediaId,
+        depth: 0,
+        user,
+        overrideAccess: false,
+        disableErrors: true,
+      })
+      .catch(() => null)) as { id: number | string; usageRights?: string } | null;
+    if (!media) return deny("ไม่พบรูปนี้ในคลังรูป อาจถูกลบไปแล้ว", 404);
+    // รูปที่ยังไม่ได้ขออนุญาตห้ามขึ้นเว็บ (ดูคำอธิบายในคอลเลกชัน Media)
+    if (media.usageRights === "pending") {
+      return deny("รูปนี้ยังไม่ได้รับอนุญาตให้ใช้ แก้สิทธิ์การใช้งานในคลังรูปก่อน", 400);
+    }
+    value = media.id;
+  }
+
+  return writeValue(cms, user, address, doc, value);
+}
+
+/**
+ * เขียนค่าหนึ่งช่องลงเอกสาร
+ *
+ * ส่งกลับเฉพาะกิ่งบนสุดของเส้นทาง ไม่ส่งเอกสารทั้งก้อน เพื่อไม่ให้ทับฟิลด์อื่น
+ * ที่คนอื่นอาจกำลังแก้อยู่พร้อมกัน เอกสารอ่านด้วย depth 0 รูปในกิ่งเดียวกันจึงเป็น id
+ * อยู่แล้ว เขียนกลับไปได้ตรง ๆ
+ */
+async function writeValue(
+  cms: Cms,
+  user: User,
+  address: Address,
+  doc: Record<string, unknown>,
+  value: unknown
+) {
+  const current = getAtPath(doc, address.path);
+  // ช่องรูปที่ถูก populate มาจะเป็นอ็อบเจกต์ เทียบด้วย id
+  const currentValue =
+    current && typeof current === "object" && "id" in current ? (current as { id: unknown }).id : current;
+  if (currentValue === value || (value === null && currentValue === undefined)) {
+    return Response.json({ ok: true, unchanged: true });
+  }
+
   const [top, ...rest] = address.path;
   let branch: unknown = value;
   if (rest.length > 0) {
@@ -239,11 +298,4 @@ async function writeDoc(
     return cms.updateGlobal({ slug: target.slug as never, ...common });
   }
   return cms.update({ collection: target.collection as never, id: target.id, ...common });
-}
-
-function messageOf(error: unknown): string {
-  if (error && typeof error === "object" && "message" in error) {
-    return String((error as { message: unknown }).message);
-  }
-  return "บันทึกไม่สำเร็จ";
 }

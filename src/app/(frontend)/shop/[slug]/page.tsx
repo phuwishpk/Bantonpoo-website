@@ -6,13 +6,16 @@ import { PhoneIcon } from "@/components/icons";
 import { JsonLd } from "@/components/json-ld";
 import { ProductOrderButton } from "@/components/line-order-button";
 import { ProductCard } from "@/components/product-card";
-import { Ed } from "@/components/editable";
+import { Ed, EdImage } from "@/components/editable";
+import { EditToolbar } from "@/components/edit-mode";
 import { ProductGallery } from "@/components/product-gallery";
 import { StickyBuyBar } from "@/components/sticky-buy-bar";
 import { Badge, buttonClass, Container, OrnamentDivider } from "@/components/ui";
 import { SectionHeading } from "@/components/section-heading";
 import type { Product } from "@/content/types";
 import { getProduct, getProducts, getRelatedProducts, getSite } from "@/lib/cms/queries";
+import { isDraftMode } from "@/lib/cms/draft";
+import { adminDoc, editLinksForDoc } from "@/lib/cms/edit-links";
 import { atDoc } from "@/lib/cms/inline";
 import { atLabel } from "@/lib/labels";
 import { getLabels } from "@/lib/cms/labels";
@@ -75,7 +78,12 @@ const STATUS_TONE = {
 
 export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
-  const [product, site, labels] = await Promise.all([getProduct(slug), getSite(), getLabels()]);
+  const [product, site, labels, editing] = await Promise.all([
+    getProduct(slug),
+    getSite(),
+    getLabels(),
+    isDraftMode(),
+  ]);
   // ลิงก์เก่าที่เคยแชร์ไว้ควรพาไปหน้าใหม่ ไม่ใช่ตกหน้า 404 เงียบ ๆ
   if (!product) return redirectOrNotFound(`/shop/${slug}`);
 
@@ -106,7 +114,18 @@ export default async function ProductPage({ params }: PageProps) {
         <Container size="wide">
           <div className="grid gap-8 lg:grid-cols-[3fr_2fr] lg:gap-12">
             {/* ---------------- แกลเลอรี ---------------- */}
-            <ProductGallery images={product.gallery} productName={t(product.name)} />
+            <ProductGallery
+              images={product.gallery}
+              productName={t(product.name)}
+              // ส่งเฉพาะโหมดแก้ไข ผู้เข้าชมทั่วไปไม่ได้ที่อยู่ของฟิลด์
+              editAt={
+                editing
+                  ? product.gallery.map((_, index) =>
+                      at(`gallery.${product.galleryRows?.[index] ?? index}.image`)
+                    )
+                  : undefined
+              }
+            />
 
             {/* ---------------- ข้อมูลและการสั่งซื้อ ---------------- */}
             <div className="flex flex-col gap-6">
@@ -222,14 +241,23 @@ export default async function ProductPage({ params }: PageProps) {
               {/* ---- ประวัติผู้ตี ---- */}
               {artisan ? (
                 <div className="flex gap-4 rounded-card border border-rice-300 bg-ink-800 p-5">
-                  <Image
-                    src={artisan.photo.url}
-                    alt={t(artisan.photo.alt)}
-                    width={artisan.photo.width}
-                    height={artisan.photo.height}
-                    sizes="64px"
-                    className="h-16 w-16 shrink-0 rounded-full object-cover"
-                  />
+                  <div className="relative shrink-0 self-start rounded-full">
+                    <Image
+                      src={artisan.photo.url}
+                      alt={t(artisan.photo.alt)}
+                      width={artisan.photo.width}
+                      height={artisan.photo.height}
+                      sizes="64px"
+                      className="h-16 w-16 rounded-full object-cover"
+                    />
+                    <EdImage
+                      at={`c:artisans:${artisan.id}:photo`}
+                      label="ภาพโปรไฟล์ผู้ผลิต"
+                      current={artisan.photo.id}
+                      removable
+                      compact
+                    />
+                  </div>
                   <div className="flex flex-col gap-1.5">
                     <p className="text-2xs font-semibold tracking-label text-leaf-300">
                       <Ed at={atLabel("product", "madeBy")} tone="light">
@@ -342,7 +370,12 @@ export default async function ProductPage({ params }: PageProps) {
               />
               <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-3 lg:gap-5">
                 {related.map((item) => (
-                  <ProductCard key={item.slug} product={item} labels={labels.general} />
+                  <ProductCard
+                    key={item.slug}
+                    product={item}
+                    labels={labels.general}
+                    editHref={editing ? adminDoc("products", item.id) : undefined}
+                  />
                 ))}
               </div>
             </div>
@@ -351,6 +384,8 @@ export default async function ProductPage({ params }: PageProps) {
       ) : null}
 
       <StickyBuyBar product={product} anchorId={ORDER_ANCHOR_ID} />
+
+      {editing ? <EditToolbar {...editLinksForDoc("product", product.id, t(product.name))} /> : null}
 
       <JsonLd data={[productJsonLd(product, site), breadcrumbJsonLd(crumbs)]} />
     </>

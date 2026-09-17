@@ -120,7 +120,7 @@ export function getAtPath(root: unknown, path: string[]): unknown {
  * ผู้เรียกต้องตรวจเส้นทางกับสคีมาก่อน (ดู findTextField) ไม่งั้นชื่อฟิลด์ที่พิมพ์ผิด
  * จะกลายเป็นคีย์ใหม่ในเอกสาร
  */
-export function setAtPath(root: unknown, path: string[], value: string): boolean {
+export function setAtPath(root: unknown, path: string[], value: unknown): boolean {
   if (path.length === 0) return false;
 
   let current: unknown = root;
@@ -141,6 +141,13 @@ export function setAtPath(root: unknown, path: string[], value: string): boolean
   if (current === null || typeof current !== "object") return false;
   (current as Record<string, unknown>)[path[path.length - 1]] = value;
   return true;
+}
+
+/** id ของรูปในคลัง — ตัวเลขของ SQLite หรือสตริงถ้าเปลี่ยนฐานข้อมูลภายหลัง */
+export function parseMediaId(raw: unknown): number | string | null {
+  if (typeof raw === "number") return Number.isSafeInteger(raw) && raw > 0 ? raw : null;
+  if (typeof raw === "string" && /^[A-Za-z0-9-]{1,64}$/.test(raw)) return raw;
+  return null;
 }
 
 /** ตัวช่วยสร้างที่อยู่ ใช้ในหน้าเว็บเพื่อไม่ต้องพิมพ์ prefix ซ้ำทุกจุด */

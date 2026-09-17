@@ -1,7 +1,7 @@
 import type { Field } from "payload";
 
 /**
- * ตรวจว่าเส้นทางที่ส่งมาชี้ไปยัง "ช่องข้อความ" จริงตามสคีมาของ Payload
+ * ตรวจว่าเส้นทางที่ส่งมาชี้ไปยัง "ช่องข้อความ" หรือ "ช่องรูป" จริงตามสคีมาของ Payload
  *
  * ทำไมต้องตรวจกับสคีมา ไม่ใช่กับข้อมูล:
  * ช่องข้อความที่ยังว่างอยู่ Payload จะไม่ส่งคีย์นั้นกลับมาเลย การเช็กว่า "มีคีย์นี้
@@ -10,24 +10,58 @@ import type { Field } from "payload";
  * แล้วจะเกิดฉบับร่างใหม่ทั้งที่ไม่มีอะไรเปลี่ยน
  */
 
-/** ชนิดฟิลด์ที่แก้จากหน้าเว็บได้ — ที่เหลือต้องแก้ในหลังบ้านที่มีตัวช่วยครบกว่า */
-const EDITABLE_TYPES = new Set(["text", "textarea"]);
-
 type AnyField = Field & {
   name?: string;
+  required?: boolean;
+  relationTo?: unknown;
+  hasMany?: boolean;
   fields?: Field[];
   tabs?: { name?: string; fields: Field[] }[];
-  blocks?: { fields: Field[] }[];
+  blocks?: { slug: string; fields: Field[] }[];
 };
+
+/** ชนิดฟิลด์ข้อความที่แก้จากหน้าเว็บได้ — ที่เหลือต้องแก้ในหลังบ้านที่มีตัวช่วยครบกว่า */
+const TEXT_TYPES = new Set(["text", "textarea"]);
+
+const isText = (field: AnyField) => TEXT_TYPES.has(field.type);
+
+/** ช่องรูปเดี่ยวที่ผูกกับคลังรูป — ช่องที่เลือกได้หลายรูปหรือผูกคอลเลกชันอื่นไม่นับ */
+const isMediaUpload = (field: AnyField) =>
+  field.type === "upload" && field.relationTo === "media" && !field.hasMany;
 
 const isIndex = (segment: string) => /^\d{1,3}$/.test(segment);
 
 /**
- * เดินตามเส้นทางในผังฟิลด์ คืนฟิลด์ปลายทางเมื่อเป็นช่องข้อความ
+ * ช่องข้อความตามเส้นทาง หรือ null
  *
- * @returns ฟิลด์ที่แก้ได้ หรือ null เมื่อเส้นทางไม่มีอยู่จริง/ไม่ใช่ช่องข้อความ
+ * @param data เอกสารปัจจุบัน (ถ้ามี) — ใช้เลือกชนิดบล็อกให้ตรงกับแถวจริง
  */
-export function findTextField(fields: Field[], path: string[]): AnyField | null {
+export function findTextField(fields: Field[], path: string[], data?: unknown): AnyField | null {
+  return findField(fields, path, isText, data);
+}
+
+/** ช่องรูปภาพตามเส้นทาง หรือ null — ใช้ required ของผลลัพธ์ตัดสินว่านำรูปออกได้ไหม */
+export function findMediaField(fields: Field[], path: string[], data?: unknown): AnyField | null {
+  return findField(fields, path, isMediaUpload, data);
+}
+
+const child = (data: unknown, key: string): unknown =>
+  data !== null && typeof data === "object" ? (data as Record<string, unknown>)[key] : undefined;
+
+/**
+ * เดินตามเส้นทางในผังฟิลด์ คืนฟิลด์ปลายทางเมื่อผ่านเงื่อนไข accept
+ *
+ * บล็อกต่างชนิดอาจมีฟิลด์ชื่อเดียวกันแต่ตั้งค่าต่างกัน (เช่น image ที่บังคับกับไม่บังคับ)
+ * ถ้าส่งเอกสารมาด้วย จะเลือกเฉพาะชนิดบล็อกของแถวนั้นจริง ๆ ไม่งั้นลองทุกชนิด
+ *
+ * @returns ฟิลด์ที่แก้ได้ หรือ null เมื่อเส้นทางไม่มีอยู่จริง/ชนิดไม่ตรง
+ */
+function findField(
+  fields: Field[],
+  path: string[],
+  accept: (field: AnyField) => boolean,
+  data?: unknown
+): AnyField | null {
   if (path.length === 0) return null;
   const [segment, ...rest] = path;
 
@@ -40,15 +74,15 @@ export function findTextField(fields: Field[], path: string[]): AnyField | null 
         for (const tab of field.tabs) {
           const inner = tab.name
             ? tab.name === segment
-              ? findTextField(tab.fields, rest)
+              ? findField(tab.fields, rest, accept, child(data, tab.name))
               : null
-            : findTextField(tab.fields, path);
+            : findField(tab.fields, path, accept, data);
           if (inner) return inner;
         }
         continue;
       }
       if (field.fields) {
-        const inner = findTextField(field.fields, path);
+        const inner = findField(field.fields, path, accept, data);
         if (inner) return inner;
       }
       continue;
@@ -57,21 +91,27 @@ export function findTextField(fields: Field[], path: string[]): AnyField | null 
     if (field.name !== segment) continue;
 
     if (rest.length === 0) {
-      return EDITABLE_TYPES.has(field.type) ? field : null;
+      return accept(field) ? field : null;
     }
 
     if (field.type === "group" && field.fields) {
-      return findTextField(field.fields, rest);
+      return findField(field.fields, rest, accept, child(data, segment));
     }
 
     // อาร์เรย์และบล็อกกินเลขลำดับอีกหนึ่งชั้นก่อนถึงฟิลด์ข้างใน
     if (field.type === "array" && field.fields && isIndex(rest[0])) {
-      return findTextField(field.fields, rest.slice(1));
+      return findField(field.fields, rest.slice(1), accept, child(child(data, segment), rest[0]));
     }
 
     if (field.type === "blocks" && field.blocks && isIndex(rest[0])) {
-      for (const block of field.blocks) {
-        const inner = findTextField(block.fields, rest.slice(1));
+      const row = child(child(data, segment), rest[0]);
+      const blockType = child(row, "blockType");
+      const candidates =
+        typeof blockType === "string"
+          ? field.blocks.filter((block) => block.slug === blockType)
+          : field.blocks;
+      for (const block of candidates) {
+        const inner = findField(block.fields, rest.slice(1), accept, row);
         if (inner) return inner;
       }
     }

@@ -15,6 +15,7 @@ import {
 } from "./icons";
 import { adminDoc } from "@/lib/cms/edit-links";
 import { EditButton } from "./edit-mode";
+import { InlineImageEdit } from "./inline-image";
 import { QuickOrderButton } from "./line-order-button";
 import { Badge, buttonClass } from "./ui";
 import { useLabels } from "./site-context";
@@ -318,6 +319,13 @@ function CatalogSlide({
           aria-hidden
           className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-ink-950/70 to-transparent"
         />
+        {editing ? (
+          <InlineImageEdit
+            at={`c:products:${product.id}:gallery.${product.galleryRows?.[0] ?? 0}.image`}
+            label="รูปหลักของสินค้า"
+            current={cover.id}
+          />
+        ) : null}
         <span className="absolute bottom-5 right-5 font-serif text-sm tabular-nums text-rice-100/80">
           {String(position).padStart(2, "0")} / {String(total).padStart(2, "0")}
         </span>

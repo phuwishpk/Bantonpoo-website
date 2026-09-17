@@ -3,12 +3,15 @@ import type { Metadata } from "next";
 import { ArticleCard } from "@/components/article-card";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { JsonLd } from "@/components/json-ld";
-import { Ed } from "@/components/editable";
+import { Ed, EdImage } from "@/components/editable";
+import { EditToolbar } from "@/components/edit-mode";
 import { RichText } from "@/components/rich-text";
 import { ShareButtons } from "@/components/share-buttons";
 import { ButtonLink, Container, OrnamentDivider } from "@/components/ui";
 import { SectionHeading } from "@/components/section-heading";
 import { getArticle, getArticles, getRelatedArticles, getSite } from "@/lib/cms/queries";
+import { isDraftMode } from "@/lib/cms/draft";
+import { adminDoc, editLinksForDoc } from "@/lib/cms/edit-links";
 import { atDoc } from "@/lib/cms/inline";
 import { atLabel } from "@/lib/labels";
 import { getLabels } from "@/lib/cms/labels";
@@ -43,7 +46,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ArticlePage({ params }: PageProps) {
   const { slug } = await params;
-  const [article, site, labels] = await Promise.all([getArticle(slug), getSite(), getLabels()]);
+  const [article, site, labels, editing] = await Promise.all([
+    getArticle(slug),
+    getSite(),
+    getLabels(),
+    isDraftMode(),
+  ]);
   // ลิงก์เก่าที่เคยแชร์ไว้ควรพาไปหน้าใหม่ ไม่ใช่ตกหน้า 404 เงียบ ๆ
   if (!article) return redirectOrNotFound(`/stories/${slug}`);
 
@@ -127,6 +135,7 @@ export default async function ArticlePage({ params }: PageProps) {
               sizes="(max-width: 1280px) 100vw, 1280px"
               className="h-full w-full object-cover"
             />
+            <EdImage at={at("coverImage")} label="ภาพหน้าปก" current={article.coverImage.id} />
           </div>
         </Container>
       </div>
@@ -143,14 +152,23 @@ export default async function ArticlePage({ params }: PageProps) {
           {/* กล่องประวัติผู้เขียน */}
           <aside className="mt-8 flex flex-col gap-4 rounded-card border border-rice-300 bg-rice-50 p-6 sm:flex-row sm:items-start sm:gap-6">
             {artisan ? (
-              <Image
-                src={artisan.photo.url}
-                alt={t(artisan.photo.alt)}
-                width={artisan.photo.width}
-                height={artisan.photo.height}
-                sizes="80px"
-                className="h-20 w-20 shrink-0 rounded-full object-cover"
-              />
+              <div className="relative shrink-0 self-start rounded-full">
+                <Image
+                  src={artisan.photo.url}
+                  alt={t(artisan.photo.alt)}
+                  width={artisan.photo.width}
+                  height={artisan.photo.height}
+                  sizes="80px"
+                  className="h-20 w-20 rounded-full object-cover"
+                />
+                <EdImage
+                  at={`c:artisans:${artisan.id}:photo`}
+                  label="ภาพโปรไฟล์ผู้เขียน"
+                  current={artisan.photo.id}
+                  removable
+                  compact
+                />
+              </div>
             ) : null}
             <div className="flex flex-col gap-2">
               <p className="text-xs font-semibold tracking-label text-leaf-600">
@@ -186,13 +204,20 @@ export default async function ArticlePage({ params }: PageProps) {
               />
               <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {related.map((item) => (
-                  <ArticleCard key={item.slug} article={item} labels={labels.article} />
+                  <ArticleCard
+                    key={item.slug}
+                    article={item}
+                    labels={labels.article}
+                    editHref={editing ? adminDoc("articles", item.id) : undefined}
+                  />
                 ))}
               </div>
             </div>
           </Container>
         </section>
       ) : null}
+
+      {editing ? <EditToolbar {...editLinksForDoc("article", article.id, t(article.title))} /> : null}
 
       <JsonLd data={[articleJsonLd(article, site), breadcrumbJsonLd(crumbs)]} />
     </article>

@@ -6,6 +6,7 @@ import { formatPrice } from "@/lib/format";
 import { DEFAULT_LABELS, type Labels } from "@/lib/labels";
 import { t } from "@/lib/i18n";
 import { EditButton } from "./edit-mode";
+import { InlineImageEdit } from "./inline-image";
 import { QuickOrderButton } from "./line-order-button";
 import { Badge } from "./ui";
 
@@ -25,7 +26,10 @@ export function ProductCard({
   product: Product;
   showQuickOrder?: boolean;
   priority?: boolean;
-  /** ส่งมาเฉพาะตอนอยู่ในโหมดแก้ไข เพื่อไม่ให้ลิงก์หลังบ้านหลุดไปหาผู้เข้าชมทั่วไป */
+  /**
+   * ส่งมาเฉพาะตอนอยู่ในโหมดแก้ไข เพื่อไม่ให้ลิงก์หลังบ้านหลุดไปหาผู้เข้าชมทั่วไป
+   * ใช้เป็นสัญญาณเปิดปุ่มเปลี่ยนรูปหลักด้วย
+   */
   editHref?: string;
   /**
    * ป้ายกำกับจากหลังบ้าน — รับเป็น prop ไม่ใช่เรียก hook เอง
@@ -72,6 +76,14 @@ export function ProductCard({
         >
           {t(productStatusLabels[product.status])}
         </span>
+
+        {editHref ? (
+          <InlineImageEdit
+            at={`c:products:${product.id}:gallery.${product.galleryRows?.[0] ?? 0}.image`}
+            label="รูปหลักของสินค้า"
+            current={cover.id}
+          />
+        ) : null}
       </div>
 
       <div className="flex flex-1 flex-col gap-3 p-4">

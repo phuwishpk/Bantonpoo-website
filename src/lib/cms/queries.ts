@@ -155,6 +155,7 @@ export const getSite = cache(async (): Promise<SiteSettings> => {
   })) as unknown as Record<string, unknown>;
 
   const logo = mapMedia(doc.logo);
+  const favicon = mapMedia(doc.favicon);
   return {
     communityName: loc(doc.communityName as never),
     communityShortName: loc(doc.communityShortName as never),
@@ -175,6 +176,7 @@ export const getSite = cache(async (): Promise<SiteSettings> => {
     openingHours: loc(doc.openingHours as never),
     openingHoursShort: loc(doc.openingHoursShort as never),
     ...(logo ? { logo } : {}),
+    ...(favicon ? { favicon } : {}),
   };
 });
 

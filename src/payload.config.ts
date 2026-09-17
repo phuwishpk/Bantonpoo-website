@@ -85,9 +85,22 @@ export default buildConfig({
       ],
     },
     importMap: { baseDir: path.resolve(dirname) },
+    /**
+     * ให้ผู้ดูแลแต่ละคนเลือกโหมดสว่าง/มืดเอง (ค่าเริ่มต้นของ Payload อยู่แล้ว เขียนไว้ให้เห็นชัด)
+     * ปุ่มเลือกอยู่บนแถบด้านบน — ดู src/components/admin/ThemeToggle.tsx
+     */
+    theme: "all",
     components: {
-      // ปุ่มเปิดเว็บไซต์ในโหมดแก้ไข วางไว้เหนือเมนูหลังบ้าน
-      beforeNavLinks: ["/components/admin/OpenSiteButton#OpenSiteButton"],
+      beforeNavLinks: [
+        // เปิดเมนูค้างไว้บนจอโน้ตบุ๊ก (Payload ปิดเองทุกครั้งที่จอกว้างไม่เกิน 1440px)
+        "/components/admin/NavKeeper#NavKeeper",
+        // ปุ่มเปิดเว็บไซต์ในโหมดแก้ไข วางไว้เหนือเมนูหลังบ้าน
+        "/components/admin/OpenSiteButton#OpenSiteButton",
+        // ลิงก์กลับแดชบอร์ด — เมนูของ Payload ไม่มีให้
+        "/components/admin/DashboardLink#DashboardLink",
+      ],
+      // ปุ่มสลับโหมดสว่าง/มืด บนแถบด้านบนของทุกหน้า
+      actions: ["/components/admin/ThemeToggle#ThemeToggle"],
     },
     meta: {
       titleSuffix: " — หลังบ้านบ้านต้นโพธิ์",

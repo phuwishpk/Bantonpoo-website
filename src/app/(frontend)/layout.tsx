@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans_Thai, Noto_Serif_Thai, Prompt, Sarabun, Trirong } from "next/font/google";
 import { JsonLd } from "@/components/json-ld";
+import type { SiteSettings } from "@/content/types";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { SiteProvider } from "@/components/site-context";
@@ -64,10 +65,26 @@ const FONT_VARIABLES = [plexThai, serifThai, sarabun, trirong, prompt]
   .map((font) => font.variable)
   .join(" ");
 
+/**
+ * ไอคอนบนแท็บเบราว์เซอร์ — ไอคอนเว็บจากหลังบ้าน ถ้าไม่มีใช้โลโก้ ถ้าไม่มีทั้งคู่ใช้ใบโพธิ์
+ *
+ * ไม่ใช้ไฟล์ icon.* ในโฟลเดอร์ app เพราะไฟล์แบบนั้นชนะค่าที่ตั้งในนี้เสมอ
+ * ผู้ดูแลจะเปลี่ยนไอคอนไม่ได้ ใบโพธิ์สำรองจึงย้ายไปอยู่ที่ public/icon.svg
+ *
+ * ใช้รูปย่อสี่เหลี่ยมจัตุรัสของคลังรูป (ตัดตามจุดโฟกัส) ไอคอนจึงไม่ถูกบีบแม้รูปต้นฉบับไม่จัตุรัส
+ */
+function siteIcons(site: SiteSettings): Metadata["icons"] {
+  const source = site.favicon ?? site.logo;
+  if (!source) return { icon: [{ url: "/icon.svg", type: "image/svg+xml" }] };
+  const url = source.thumbUrl ?? source.url;
+  return { icon: [{ url }], apple: [{ url }] };
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const [site, seo] = await Promise.all([getSite(), getPageGlobal("seo-settings")]);
 
   return {
+    icons: siteIcons(site),
     metadataBase: new URL(siteUrl),
     title: {
       default: `${t(site.communityName)} — ${t(site.tagline)}`,

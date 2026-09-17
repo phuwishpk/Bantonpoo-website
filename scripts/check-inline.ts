@@ -43,7 +43,9 @@ async function readCta(payload: Payload, draft: boolean): Promise<Record<string,
 }
 
 async function writeCta(payload: Payload, cta: Record<string, unknown>, draft: boolean) {
-  await payload.updateGlobal({ slug: "home-page", data: { cta } as never, locale: "th", draft });
+  // ฉบับเผยแพร่ต้องระบุสถานะเอง — ไม่งั้น Payload ยึดสถานะจากฉบับร่างล่าสุด แล้วได้ฉบับร่างอีกฉบับแทน
+  const status = draft ? {} : { _status: "published" };
+  await payload.updateGlobal({ slug: "home-page", data: { cta, ...status } as never, locale: "th", draft });
 }
 
 async function main() {

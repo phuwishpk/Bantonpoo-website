@@ -5,7 +5,7 @@ import { CtaBand } from "@/components/cta-band";
 import { JsonLd } from "@/components/json-ld";
 import { WorkshopBookingButton } from "@/components/line-order-button";
 import { directionsUrl, MapEmbed } from "@/components/map-embed";
-import { Ed } from "@/components/editable";
+import { Ed, EdImage } from "@/components/editable";
 import { EditToolbar } from "@/components/edit-mode";
 import { PageHero } from "@/components/page-hero";
 import { buttonClass, Container, OrnamentDivider } from "@/components/ui";
@@ -146,6 +146,7 @@ export default async function TourismPage() {
                     sizes="(max-width: 1024px) 100vw, 45vw"
                     className="h-full w-full object-cover"
                   />
+                  <EdImage at={atWorkshop("image")} label="ภาพกิจกรรม" current={workshop.image.id} />
                 </div>
 
                 <div className="flex flex-col gap-5 p-6 sm:p-8">
@@ -277,6 +278,7 @@ export default async function TourismPage() {
                   <span className="absolute left-3 top-3 rounded-full bg-ink-950/80 px-2.5 py-1 text-2xs font-semibold text-leaf-300">
                     {PLACE_KIND_LABELS[place.kind]}
                   </span>
+                  <EdImage at={atPlace("image")} label="ภาพสถานที่" current={place.image.id} />
                 </div>
                 <div className="flex flex-1 flex-col gap-2.5 p-5">
                   <h3 className="font-serif text-base font-semibold text-rice-100">

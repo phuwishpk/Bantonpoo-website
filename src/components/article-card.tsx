@@ -5,6 +5,7 @@ import { estimateReadingMinutes, formatThaiDateShort } from "@/lib/format";
 import { DEFAULT_LABELS, type Labels } from "@/lib/labels";
 import { t } from "@/lib/i18n";
 import { EditButton } from "./edit-mode";
+import { InlineImageEdit } from "./inline-image";
 
 export function ArticleCard({
   article,
@@ -16,13 +17,20 @@ export function ArticleCard({
   article: Article;
   layout?: "vertical" | "horizontal";
   priority?: boolean;
-  /** ส่งมาเฉพาะตอนอยู่ในโหมดแก้ไข */
+  /** ส่งมาเฉพาะตอนอยู่ในโหมดแก้ไข — เปิดปุ่มเปลี่ยนภาพหน้าปกด้วย */
   editHref?: string;
   /** ป้ายกำกับจากหลังบ้าน — รับเป็น prop ด้วยเหตุผลเดียวกับ ProductCard */
   labels?: Labels["article"];
 }) {
   const category = article.category;
   const minutes = estimateReadingMinutes(article);
+  const coverEdit = editHref ? (
+    <InlineImageEdit
+      at={`c:articles:${article.id}:coverImage`}
+      label="ภาพหน้าปก"
+      current={article.coverImage.id}
+    />
+  ) : null;
 
   if (layout === "horizontal") {
     return (
@@ -36,6 +44,7 @@ export function ArticleCard({
             sizes="112px"
             className="h-full w-full object-cover transition duration-500 ease-craft group-hover:scale-105"
           />
+          {coverEdit}
         </div>
         <div className="flex min-w-0 flex-col justify-center gap-1.5">
           {category ? (
@@ -68,6 +77,7 @@ export function ArticleCard({
           sizes="(max-width: 768px) 100vw, 33vw"
           className="h-full w-full object-cover transition duration-500 ease-craft group-hover:scale-[1.04]"
         />
+        {coverEdit}
       </div>
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div className="flex items-center gap-2 text-2xs font-semibold">

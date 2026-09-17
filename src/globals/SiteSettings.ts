@@ -38,7 +38,26 @@ export const SiteSettings: GlobalConfig = {
               localized: true,
               label: "บรรทัดรองใต้โลโก้",
             },
-            { name: "logo", type: "upload", relationTo: "media", label: "โลโก้" },
+            {
+              name: "logo",
+              type: "upload",
+              relationTo: "media",
+              label: "โลโก้",
+              admin: {
+                description:
+                  "แสดงบนแถบเมนูและท้ายเว็บตามสัดส่วนจริงของรูป (ไม่ตัดขอบ) · พื้นหลังตรงนั้นเป็นสีเข้ม ใช้ PNG พื้นโปร่งใสจะดูดีที่สุด — ถ้าว่างจะใช้ใบโพธิ์",
+              },
+            },
+            {
+              name: "favicon",
+              type: "upload",
+              relationTo: "media",
+              label: "ไอคอนเว็บ (favicon)",
+              admin: {
+                description:
+                  "รูปเล็กบนแท็บเบราว์เซอร์และหน้าจอโทรศัพท์ ใช้ PNG สี่เหลี่ยมจัตุรัสอย่างน้อย 512×512 — ถ้าว่างจะใช้โลโก้",
+              },
+            },
             {
               name: "aboutSummary",
               type: "textarea",

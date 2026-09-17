@@ -1,7 +1,7 @@
 import Image from "next/image";
 import type { ContentBlock } from "@/content/types";
 import { t } from "@/lib/i18n";
-import { Ed } from "./editable";
+import { Ed, EdImage } from "./editable";
 
 /**
  * เรนเดอร์เนื้อหาบทความจากบล็อก
@@ -17,7 +17,8 @@ export function RichText({ blocks, at }: { blocks: ContentBlock[]; at?: string }
   return (
     <div className="prose-craft">
       {blocks.map((block, index) => (
-        <Block key={index} block={block} at={at ? `${at}.${index}` : undefined} />
+        // ใช้ลำดับจริงในหลังบ้าน บล็อกที่อ่านไม่ได้ถูกตัดทิ้งไปแล้ว ตำแหน่งในอาร์เรย์จึงอาจเลื่อน
+        <Block key={index} block={block} at={at ? `${at}.${block.sourceIndex ?? index}` : undefined} />
       ))}
     </div>
   );
@@ -59,7 +60,7 @@ function Block({ block, at }: { block: ContentBlock; at?: string }) {
     case "image":
       return (
         <figure className="!mt-10">
-          <div className="overflow-hidden rounded-xl bg-ink-800">
+          <div className="relative overflow-hidden rounded-xl bg-ink-800">
             <Image
               src={block.media.url}
               alt={t(block.media.alt)}
@@ -68,6 +69,7 @@ function Block({ block, at }: { block: ContentBlock; at?: string }) {
               sizes="(max-width: 768px) 100vw, 46rem"
               className="h-auto w-full"
             />
+            {at ? <EdImage at={`${at}.media`} label="ภาพประกอบ" current={block.media.id} /> : null}
           </div>
           {block.media.caption ? (
             <figcaption className="mt-3 text-sm leading-relaxed text-river-500">

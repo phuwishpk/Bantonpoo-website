@@ -41,11 +41,13 @@ export function locList(value: unknown): Localized<string[]> {
 }
 
 type MediaDoc = {
+  id?: string | number;
   url?: string | null;
   width?: number | null;
   height?: number | null;
   alt?: LocaleMap;
   caption?: LocaleMap;
+  sizes?: { thumb?: { url?: string | null } | null } | null;
 };
 
 export function mapMedia(value: unknown): Media | null {
@@ -53,12 +55,15 @@ export function mapMedia(value: unknown): Media | null {
   const doc = value as MediaDoc;
   if (!doc.url) return null;
   const caption = loc(doc.caption);
+  const thumbUrl = doc.sizes?.thumb?.url;
   return {
+    ...(doc.id !== undefined ? { id: doc.id } : {}),
     url: doc.url,
     width: doc.width ?? 1200,
     height: doc.height ?? 1200,
     alt: loc(doc.alt),
     ...(caption.th ? { caption } : {}),
+    ...(thumbUrl ? { thumbUrl } : {}),
   };
 }
 
@@ -110,9 +115,12 @@ export function mapProduct(doc: Record<string, unknown>): Product {
   if (!category) throw new Error(`สินค้า ${String(doc.slug)} ไม่มีหมวดหมู่`);
   if (!artisan) throw new Error(`สินค้า ${String(doc.slug)} ไม่มีผู้ผลิต`);
 
-  const gallery = ((doc.gallery as { image?: unknown }[] | undefined) ?? [])
-    .map((row) => mapMedia(row?.image))
-    .filter((media): media is Media => media !== null);
+  // จำลำดับแถวไว้ก่อนตัดแถวที่ไม่มีรูป — ใช้ตอนแก้รูปจากหน้าเว็บ (ดู Product.galleryRows)
+  const rows = ((doc.gallery as { image?: unknown }[] | undefined) ?? [])
+    .map((row, index) => ({ media: mapMedia(row?.image), index }))
+    .filter((row): row is { media: Media; index: number } => row.media !== null);
+  const gallery = rows.map((row) => row.media);
+  const galleryRows = rows.map((row) => row.index);
 
   const leadTime = loc(doc.leadTime as LocaleMap);
   const shelfLife = loc(doc.shelfLife as LocaleMap);
@@ -138,6 +146,7 @@ export function mapProduct(doc: Record<string, unknown>): Product {
     story: locList(doc.story),
     badges: locList(doc.badges),
     gallery,
+    galleryRows,
     ...(leadTime.th ? { leadTime } : {}),
     careInstructions: locList(doc.careInstructions),
     featured: Boolean(doc.featured),
@@ -202,7 +211,10 @@ export function mapArticle(doc: Record<string, unknown>): Article {
     // Payload เก็บวันที่เป็น ISO เต็ม แต่หน้าเว็บใช้แค่ส่วนวันที่
     publishedAt: String(doc.publishedAt ?? "").slice(0, 10),
     content: ((doc.content as Block[] | undefined) ?? [])
-      .map(mapBlock)
+      .map((block, index): ContentBlock | null => {
+        const mapped = mapBlock(block);
+        return mapped ? { ...mapped, sourceIndex: index } : null;
+      })
       .filter((block): block is ContentBlock => block !== null),
     featured: Boolean(doc.featured),
   };
