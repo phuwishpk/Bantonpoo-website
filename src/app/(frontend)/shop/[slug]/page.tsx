@@ -112,23 +112,30 @@ export default async function ProductPage({ params }: PageProps) {
 
       <section className="py-8 sm:py-12">
         <Container size="wide">
-          <div className="grid gap-8 lg:grid-cols-[3fr_2fr] lg:gap-12">
+          {/*
+            แท็บเล็ตแบ่งสองคอลัมน์ตั้งแต่ md ไม่งั้นรูปสี่เหลี่ยมจัตุรัสกว้างเต็มจอ
+            ดันชื่อสินค้าและราคาตกขอบล่างจอ
+            min-w-0 กันคอลัมน์ถูกเนื้อหาที่ตัดบรรทัดไม่ได้ดันจนหน้าเลื่อนข้างได้
+          */}
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-[3fr_2fr] lg:gap-12">
             {/* ---------------- แกลเลอรี ---------------- */}
-            <ProductGallery
-              images={product.gallery}
-              productName={t(product.name)}
-              // ส่งเฉพาะโหมดแก้ไข ผู้เข้าชมทั่วไปไม่ได้ที่อยู่ของฟิลด์
-              editAt={
-                editing
-                  ? product.gallery.map((_, index) =>
-                      at(`gallery.${product.galleryRows?.[index] ?? index}.image`)
-                    )
-                  : undefined
-              }
-            />
+            <div className="min-w-0 md:sticky md:top-24 md:self-start">
+              <ProductGallery
+                images={product.gallery}
+                productName={t(product.name)}
+                // ส่งเฉพาะโหมดแก้ไข ผู้เข้าชมทั่วไปไม่ได้ที่อยู่ของฟิลด์
+                editAt={
+                  editing
+                    ? product.gallery.map((_, index) =>
+                        at(`gallery.${product.galleryRows?.[index] ?? index}.image`)
+                      )
+                    : undefined
+                }
+              />
+            </div>
 
             {/* ---------------- ข้อมูลและการสั่งซื้อ ---------------- */}
-            <div className="flex flex-col gap-6">
+            <div className="flex min-w-0 flex-col gap-6">
               <div className="flex flex-col gap-3">
                 <Link
                   href={`/shop?category=${category.slug}`}
@@ -201,10 +208,13 @@ export default async function ProductPage({ params }: PageProps) {
               {/* ---- ปุ่มสั่งซื้อ ---- */}
               <div id={ORDER_ANCHOR_ID} className="flex flex-col gap-3">
                 <ProductOrderButton product={product} />
-                <a href={telUrl(site)} className={buttonClass("secondary", "w-full")}>
+                <a href={telUrl(site)} className={buttonClass("secondary", "w-full", { wrap: true })}>
                   <PhoneIcon />
-                  <Ed at={atLabel("product", "callGroup")}>{labels.product.callGroup}</Ed>{" "}
-                  {site.phoneDisplay}
+                  {/* ปุ่มนี้ตัดบรรทัดได้ แต่เบอร์โทรห้ามแตกตรงขีด — ครอบเป็นก้อนเดียวให้ช่องว่างปกติ ไม่ใช่ gap ของ flex */}
+                  <span>
+                    <Ed at={atLabel("product", "callGroup")}>{labels.product.callGroup}</Ed>{" "}
+                    <span className="whitespace-nowrap">{site.phoneDisplay}</span>
+                  </span>
                 </a>
                 <a
                   href={site.facebookUrl}
@@ -229,7 +239,7 @@ export default async function ProductPage({ params }: PageProps) {
                         index > 0 ? "border-t border-rice-200" : ""
                       }`}
                     >
-                      <dt className="text-river-500">
+                      <dt className="max-w-1/2 shrink-0 text-river-500">
                         <Ed at={`g:ui-labels:product.${row.key}`}>{row.label}</Ed>
                       </dt>
                       <dd className="text-right font-medium text-ink-800">{row.value}</dd>

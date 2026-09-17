@@ -29,8 +29,9 @@ export function SiteFooter({
   return (
     <footer className="mt-24 bg-ink-800 text-ink-200">
       <Container size="wide" className="py-14">
-        <div className="grid gap-12 lg:grid-cols-[1.4fr_1fr_1.3fr]">
-          <div className="flex flex-col gap-5">
+        {/* แท็บเล็ต: ข้อมูลชุมชนเต็มแถว แล้ววางเมนูคู่ช่องทางติดต่อ แทนการเรียงยาวลงมาทีละคอลัมน์ */}
+        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1.3fr]">
+          <div className="flex flex-col gap-5 md:col-span-2 lg:col-span-1">
             <SiteLogo site={site} editing={editing} />
             <p className="max-w-sm text-sm leading-relaxed text-ink-300">
               <Ed at={atSite("aboutSummary")} multiline tone="light">

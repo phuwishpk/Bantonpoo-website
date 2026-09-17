@@ -80,12 +80,13 @@ export function ArticleCard({
         {coverEdit}
       </div>
       <div className="flex flex-1 flex-col gap-3 p-5">
-        <div className="flex items-center gap-2 text-2xs font-semibold">
+        {/* การ์ดแคบ (สามคอลัมน์บนแท็บเล็ต) ให้วันที่ขึ้นบรรทัดใหม่ทั้งก้อน ไม่แตกเป็น "3 ก.ย." กับ "69" */}
+        <div className="flex flex-wrap items-center gap-x-2 text-2xs font-semibold">
           {category ? <span className="text-leaf-600">{t(category.title)}</span> : null}
           <span aria-hidden className="text-rice-400">
             ·
           </span>
-          <span className="text-river-500">{formatThaiDateShort(article.publishedAt)}</span>
+          <span className="whitespace-nowrap text-river-500">{formatThaiDateShort(article.publishedAt)}</span>
         </div>
 
         <h3 className="font-serif text-lg leading-snug font-semibold text-ink-800">

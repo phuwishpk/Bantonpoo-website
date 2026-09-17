@@ -183,7 +183,8 @@ export default async function TourismPage() {
                         {labels.tourism.participantsUnit}
                       </dd>
                     </div>
-                    <div className="flex flex-col gap-1">
+                    {/* บนมือถือค่าบริการอยู่แถวที่สองคนเดียว ให้กินเต็มแถว ไม่งั้น "สอบถามค่าบริการ" แตกบรรทัด */}
+                    <div className="col-span-2 flex flex-col gap-1 sm:col-span-1">
                       <dt className="text-xs text-river-500">
                         <Ed at={atLabel("tourism", "price")}>{labels.tourism.price}</Ed>
                       </dt>
@@ -360,7 +361,7 @@ export default async function TourismPage() {
                   <Ed at={at("notice.body")} multiline>
                     {t(notice.body)}
                   </Ed>{" "}
-                  (โทร {site.phoneDisplay} หรือไลน์ {site.lineId})
+                  (โทร <span className="whitespace-nowrap">{site.phoneDisplay}</span> หรือไลน์ {site.lineId})
                 </p>
               </div>
             </div>

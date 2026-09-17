@@ -203,8 +203,12 @@ export function ShopBrowser({
       {/* min-w-0 จำเป็น: กริดคอลัมน์ 1fr มี min-width: auto โดยปริยาย
           ถ้าไม่ใส่ แถบสไลด์ที่กว้างรวมกันหลายเท่าจอจะดันคอลัมน์นี้จนล้นออกนอกหน้า */}
       <div className="flex min-w-0 flex-col gap-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="relative flex-1">
+        {/*
+          วางช่องค้นหาแถวเดียวกับปุ่มตั้งแต่ md — ที่ sm ถ้าวางแถวเดียวกัน ช่องค้นหาเหลือแคบจนอ่านคำแนะนำไม่ได้
+          บนมือถือกล่องเรียงลำดับขึ้นบรรทัดใหม่เต็มความกว้าง ไม่งั้นทั้งแถวล้นขอบจอ
+        */}
+        <div className="flex flex-col gap-3 md:flex-row md:items-center">
+          <div className="relative min-w-0 flex-1">
             <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-river-400" />
             <input
               type="search"
@@ -216,7 +220,7 @@ export function ShopBrowser({
             />
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
@@ -262,14 +266,14 @@ export function ShopBrowser({
               })}
             </div>
 
-            <label className="flex items-center gap-2 rounded-lg border border-rice-300 bg-rice-50 px-3 text-sm">
+            <label className="flex w-full items-center gap-2 rounded-lg border border-rice-300 bg-rice-50 px-3 text-sm sm:w-auto">
               <span className="whitespace-nowrap text-river-500">{labels.product.sortBy}</span>
               <select
                 value={filters.sort}
                 onChange={(event) =>
                   setFilters((current) => ({ ...current, sort: event.target.value as SortKey }))
                 }
-                className="bg-transparent py-3 pr-1 font-medium text-ink-800 focus:outline-none"
+                className="min-w-0 flex-1 bg-transparent py-3 pr-1 font-medium text-ink-800 focus:outline-none"
               >
                 {SORT_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -318,7 +322,13 @@ export function ShopBrowser({
       </div>
 
       {/* แถบตัวกรอง — มือถือ */}
-      <div className={`fixed inset-0 z-50 lg:hidden ${drawerOpen ? "" : "pointer-events-none"}`} aria-hidden={!drawerOpen}>
+      {/* invisible ตอนปิด เพื่อให้ปุ่มในแผงที่เลื่อนออกนอกจอไม่ถูกโฟกัสด้วย Tab (ดู drawer ใน site-header) */}
+      <div
+        className={`fixed inset-0 z-50 transition-[visibility] duration-300 lg:hidden ${
+          drawerOpen ? "visible" : "pointer-events-none invisible"
+        }`}
+        aria-hidden={!drawerOpen}
+      >
         <button
           type="button"
           tabIndex={-1}

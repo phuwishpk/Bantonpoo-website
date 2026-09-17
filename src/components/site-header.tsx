@@ -54,7 +54,7 @@ export function SiteHeader({ nav, editing = false }: { nav: NavData; editing?: b
       <header className="sticky top-0 z-50 border-b border-white/10 bg-ink-800/95 backdrop-blur supports-[backdrop-filter]:bg-ink-800/85">
         <Container size="wide">
           <div className="flex h-[4.5rem] items-center justify-between gap-4">
-          <SiteLogo site={site} editing={editing} />
+          <SiteLogo site={site} editing={editing} hideTaglineOnLg />
 
           <nav aria-label="เมนูหลัก" className="hidden lg:block">
             <ul className="flex items-center gap-1">
@@ -62,11 +62,12 @@ export function SiteHeader({ nav, editing = false }: { nav: NavData; editing?: b
                 const active = isActivePath(pathname, item.href);
                 return (
                   <li key={item.href}>
+                    {/* ห้ามตัดบรรทัด — จอ 1024px พื้นที่พอดี ๆ ชื่อเมนูจะแตกเป็นสองบรรทัด */}
                     <Link
                       href={item.href}
                       aria-current={active ? "page" : undefined}
                       {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                      className={`relative rounded-md px-3 py-2 text-md transition-colors duration-200 ${
+                      className={`relative whitespace-nowrap rounded-md px-2.5 py-2 text-md transition-colors duration-200 xl:px-3 ${
                         active ? "text-white" : "text-ink-200 hover:text-white"
                       }`}
                     >
@@ -137,9 +138,15 @@ export function SiteHeader({ nav, editing = false }: { nav: NavData; editing?: b
         เพราะ backdrop-blur สร้าง containing block ใหม่ ทำให้ position: fixed
         ที่อยู่ข้างในไปยึดกับกรอบของ header แทนกรอบหน้าจอ เมนูจึงสูงแค่แถบบน
       */}
-      {/* Drawer บนมือถือ */}
+      {/*
+        Drawer บนมือถือ
+        ตอนปิดต้อง invisible ด้วย ไม่ใช่แค่เลื่อนออกนอกจอ — ไม่งั้นเงาของแผงล้นเข้ามาเป็นแถบมืดที่ขอบขวา
+        และลิงก์ข้างในยังกด Tab เข้าไปได้ (visibility เปลี่ยนหลังเลื่อนปิดเสร็จ ภาพเคลื่อนไหวจึงไม่ขาด)
+      */}
       <div
-        className={`fixed inset-0 z-50 lg:hidden ${open ? "" : "pointer-events-none"}`}
+        className={`fixed inset-0 z-50 transition-[visibility] duration-300 lg:hidden ${
+          open ? "visible" : "pointer-events-none invisible"
+        }`}
         aria-hidden={!open}
       >
         <button
@@ -228,7 +235,7 @@ export function SiteHeader({ nav, editing = false }: { nav: NavData; editing?: b
                 href={site.lineUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={buttonClass("primary", "w-full")}
+                className={buttonClass("primary", "w-full", { wrap: true })}
               >
                 <LineIcon className="h-[18px] w-[18px]" />
                 {editing ? (
@@ -240,16 +247,19 @@ export function SiteHeader({ nav, editing = false }: { nav: NavData; editing?: b
                 )}{" "}
                 {site.lineId}
               </a>
-              <a href={telUrl(site)} onClick={() => setOpen(false)} className={buttonClass("onDark", "w-full")}>
+              <a href={telUrl(site)} onClick={() => setOpen(false)} className={buttonClass("onDark", "w-full", { wrap: true })}>
                 <PhoneIcon className="h-[18px] w-[18px]" />
-                {editing ? (
-                  <InlineEditable at={at("mobileMenu.phoneButtonPrefix")} tone="light">
-                    {t(nav.mobileMenu.phoneButtonPrefix)}
-                  </InlineEditable>
-                ) : (
-                  t(nav.mobileMenu.phoneButtonPrefix)
-                )}{" "}
-                {site.phoneDisplay}
+                {/* ครอบเป็นก้อนเดียว ไม่งั้นเบอร์กลายเป็นอีกชิ้นใน flex และห่างจากคำนำด้วย gap แทนช่องว่าง */}
+                <span>
+                  {editing ? (
+                    <InlineEditable at={at("mobileMenu.phoneButtonPrefix")} tone="light">
+                      {t(nav.mobileMenu.phoneButtonPrefix)}
+                    </InlineEditable>
+                  ) : (
+                    t(nav.mobileMenu.phoneButtonPrefix)
+                  )}{" "}
+                  <span className="whitespace-nowrap">{site.phoneDisplay}</span>
+                </span>
               </a>
             </div>
             <p className="mt-3 text-center text-xs text-ink-400">

@@ -46,10 +46,13 @@ export function SiteLogo({
   site,
   tone = "light",
   editing = false,
+  hideTaglineOnLg = false,
 }: {
   site: SiteSettings;
   tone?: "light" | "dark";
   editing?: boolean;
+  /** ซ่อนบรรทัดรองช่วงจอ lg–xl ที่เมนูหลักใช้พื้นที่แถบบนเกือบหมด (ใช้กับ header) */
+  hideTaglineOnLg?: boolean;
 }) {
   const title = tone === "light" ? "text-rice-100" : "text-ink-800";
   const subtitle = tone === "light" ? "text-ink-300" : "text-river-500";
@@ -95,7 +98,9 @@ export function SiteLogo({
           จึงซ่อนไว้จนถึงจอ sm เมื่อมีโลโก้ (ชื่อชุมชนยังแสดงอยู่)
         */}
         <span
-          className={`hidden whitespace-nowrap text-2xs tracking-wide ${site.logo ? "sm:block" : "xs:block"} ${subtitle}`}
+          className={`hidden whitespace-nowrap text-2xs tracking-wide ${site.logo ? "sm:block" : "xs:block"} ${
+            hideTaglineOnLg ? "lg:hidden xl:block" : ""
+          } ${subtitle}`}
         >
           {editing ? (
             <InlineEditable at={at("tagline")} tone={tone}>

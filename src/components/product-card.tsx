@@ -86,7 +86,7 @@ export function ProductCard({
         ) : null}
       </div>
 
-      <div className="flex flex-1 flex-col gap-3 p-4">
+      <div className="@container flex flex-1 flex-col gap-3 p-4">
         {category ? (
           <p className="text-2xs font-semibold tracking-wide text-river-500">{t(category.title)}</p>
         ) : null}
@@ -104,7 +104,11 @@ export function ProductCard({
           </div>
         ) : null}
 
-        <div className="mt-auto flex items-end justify-between gap-3 pt-2">
+        {/*
+          วัดจากความกว้างการ์ด ไม่ใช่จอ — การ์ดสองคอลัมน์บนมือถือแคบเกินจะวางราคาคู่ปุ่มสั่งซื้อ
+          จึงเรียงซ้อนกันและให้ปุ่มเต็มความกว้างแทน
+        */}
+        <div className="mt-auto flex flex-col gap-2 pt-2 @[12rem]:flex-row @[12rem]:items-end @[12rem]:justify-between @[12rem]:gap-3">
           <p className="font-serif text-lg font-semibold text-ink-800">
             {product.price === null ? (
               <span className="text-base text-river-500">{labels.askPrice}</span>

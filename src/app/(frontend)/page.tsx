@@ -189,7 +189,8 @@ export default async function HomePage() {
 
             {heroImage ? (
               <div className="relative">
-                <div className="relative aspect-4/5 overflow-hidden rounded-2xl border border-white/10 shadow-lift-lg">
+                {/* แท็บเล็ตใช้ภาพแนวนอน — ภาพ 4:5 กว้างเต็มจอสูงเกือบ 900px */}
+                <div className="relative aspect-4/5 overflow-hidden rounded-2xl border border-white/10 shadow-lift-lg sm:aspect-4/3 lg:aspect-4/5">
                   <Image
                     src={heroImage.url}
                     alt={t(heroImage.alt)}
@@ -218,7 +219,7 @@ export default async function HomePage() {
                 at={at("hero.image")}
                 label="ภาพหลัก"
                 hint="แนะนำภาพแนวตั้ง สัดส่วน 4:5"
-                className="aspect-4/5 w-full"
+                className="aspect-4/5 w-full sm:aspect-4/3 lg:aspect-4/5"
               />
             )}
           </div>

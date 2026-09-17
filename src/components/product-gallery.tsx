@@ -100,7 +100,7 @@ export function ProductGallery({
                   width={media.width}
                   height={media.height}
                   priority={index === 0}
-                  sizes="100vw"
+                  sizes="(max-width: 768px) 100vw, 50vw"
                   className="h-full w-full object-cover"
                 />
               </button>
@@ -109,8 +109,9 @@ export function ProductGallery({
         </div>
 
         {total > 1 ? (
-          <div className="mt-3 flex justify-center gap-1.5" role="tablist" aria-label="เลือกรูปภาพ">
+          <div className="mt-2 flex justify-center" role="tablist" aria-label="เลือกรูปภาพ">
             {images.map((media, index) => (
+              // จุดที่มองเห็นเล็กแค่ 6px แต่พื้นที่กดต้องได้อย่างน้อย 24px ไม่งั้นนิ้วกดไม่โดน
               <button
                 key={media.url}
                 type="button"
@@ -120,10 +121,15 @@ export function ProductGallery({
                 onClick={() => {
                   trackRef.current?.scrollTo({ left: index * trackRef.current.clientWidth, behavior: "smooth" });
                 }}
-                className={`h-1.5 rounded-full transition-all duration-300 ease-craft ${
-                  index === activeIndex ? "w-6 bg-leaf-500" : "w-1.5 bg-rice-400"
-                }`}
-              />
+                className="flex h-6 min-w-6 items-center justify-center"
+              >
+                <span
+                  aria-hidden
+                  className={`block h-1.5 rounded-full transition-all duration-300 ease-craft ${
+                    index === activeIndex ? "w-6 bg-leaf-500" : "w-1.5 bg-rice-400"
+                  }`}
+                />
+              </button>
             ))}
           </div>
         ) : null}

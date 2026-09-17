@@ -45,7 +45,7 @@ export function EyebrowLabel({ children, tone = "ember" }: { children: ReactNode
 type ButtonVariant = "primary" | "secondary" | "ghost" | "onDark";
 
 const BUTTON_BASE =
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg px-5 py-3 text-md font-semibold transition duration-200 ease-craft disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-md font-semibold transition duration-200 ease-craft disabled:cursor-not-allowed disabled:opacity-50";
 
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
   primary: "bg-leaf-500 text-white shadow-lift hover:bg-leaf-600 active:translate-y-px",
@@ -55,8 +55,13 @@ const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
   onDark: "border border-white/25 bg-white/5 text-rice-100 hover:border-white/50 hover:bg-white/10",
 };
 
-export function buttonClass(variant: ButtonVariant = "primary", extra = ""): string {
-  return `${BUTTON_BASE} ${BUTTON_VARIANTS[variant]} ${extra}`;
+/**
+ * @param wrap ให้ข้อความขึ้นบรรทัดใหม่ได้ — ใช้กับปุ่มเต็มความกว้างที่ข้อความยาว
+ *             ปกติห้ามตัดบรรทัดเพื่อให้ปุ่มที่วางเรียงกันไม่หดจนข้อความแตก
+ *             แต่ปุ่มเต็มความกว้างบนจอ 320–375px ข้อความยาวจะดันทั้งคอลัมน์จนหน้าเลื่อนข้างได้
+ */
+export function buttonClass(variant: ButtonVariant = "primary", extra = "", { wrap = false } = {}): string {
+  return `${BUTTON_BASE} ${wrap ? "text-center" : "whitespace-nowrap"} ${BUTTON_VARIANTS[variant]} ${extra}`;
 }
 
 export function ButtonLink({

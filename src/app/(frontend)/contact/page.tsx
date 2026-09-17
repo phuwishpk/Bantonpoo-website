@@ -61,6 +61,19 @@ const CHANNEL_META = {
 
 type ChannelKey = keyof typeof CHANNEL_META;
 
+/** อีเมลไม่มีจุดตัดบรรทัด — เปิดให้ขึ้นบรรทัดใหม่หลัง @ แทนการแตกกลางชื่อโดเมนบนจอแคบ */
+function breakableEmail(email: string) {
+  const index = email.indexOf("@");
+  if (index < 0) return email;
+  return (
+    <>
+      {email.slice(0, index + 1)}
+      <wbr />
+      {email.slice(index + 1)}
+    </>
+  );
+}
+
 export default async function ContactPage() {
   const editing = await isDraftMode();
   const [page, site, labels] = await Promise.all([
@@ -131,7 +144,8 @@ export default async function ContactPage() {
                   key={channel.key}
                   href={channel.href}
                   {...(channel.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                  className={`group flex gap-4 rounded-card border p-5 transition duration-300 ease-craft hover:-translate-y-0.5 hover:shadow-lift ${
+                  // min-w-0 ทั้งการ์ดและกล่องข้อความ — ค่าที่ตัดบรรทัดไม่ได้ (อีเมลยาว) จะได้ไม่ดันการ์ดล้นจอ 320px
+                  className={`group flex min-w-0 gap-4 rounded-card border p-5 transition duration-300 ease-craft hover:-translate-y-0.5 hover:shadow-lift ${
                     channel.highlight
                       ? "border-leaf-200 bg-leaf-50"
                       : "border-rice-300 bg-rice-50 hover:border-ink-400"
@@ -144,11 +158,13 @@ export default async function ContactPage() {
                   >
                     <Icon className="h-5 w-5" />
                   </span>
-                  <div className="flex flex-col gap-1">
+                  <div className="flex min-w-0 flex-col gap-1">
                     <p className="text-xs font-semibold tracking-label text-river-500">
                       <Ed at={at(`channels.${channelIndex}.label`)}>{t(channel.label)}</Ed>
                     </p>
-                    <p className="font-serif text-lg font-semibold text-ink-800">{channel.value}</p>
+                    <p className="font-serif text-lg font-semibold text-ink-800">
+                      {channel.key === "email" ? breakableEmail(channel.value) : channel.value}
+                    </p>
                     <p className="mt-1 text-sm leading-relaxed text-river-500">
                       <Ed at={at(`channels.${channelIndex}.note`)} multiline>
                         {t(channel.note)}
