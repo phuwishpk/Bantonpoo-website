@@ -3,6 +3,7 @@ import { anyone, isEditor } from "@/access";
 import {
   heroFields,
   linkFields,
+  pageStyleField,
   proseBlocksField,
   sectionHeadingField,
   sectionsField,
@@ -27,6 +28,7 @@ export const AboutPage: GlobalConfig = {
           label: "หัวหน้าเพจและลำดับส่วน",
           fields: [
             heroFields(),
+            pageStyleField(),
             sectionsField({
               types: [
                 { label: "ประวัติชุมชนและตัวเลข", value: "history" },

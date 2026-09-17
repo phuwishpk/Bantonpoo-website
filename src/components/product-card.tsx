@@ -5,6 +5,7 @@ import type { Product } from "@/content/types";
 import { formatPrice } from "@/lib/format";
 import { DEFAULT_LABELS, type Labels } from "@/lib/labels";
 import { t } from "@/lib/i18n";
+import { INK, type Tone } from "@/lib/tone";
 import { EditButton } from "./edit-mode";
 import { InlineImageEdit } from "./inline-image";
 import { QuickOrderButton } from "./line-order-button";
@@ -22,6 +23,7 @@ export function ProductCard({
   priority = false,
   editHref,
   labels = DEFAULT_LABELS.general,
+  tone = "dark",
 }: {
   product: Product;
   showQuickOrder?: boolean;
@@ -37,13 +39,20 @@ export function ProductCard({
    * ถ้าใช้ hook จะต้องประกาศเป็น client component ทั้งไฟล์โดยไม่จำเป็น
    */
   labels?: Labels["general"];
+  /** โทนตัวอักษรบนการ์ด — "light" เมื่อการ์ดเป็นสีเข้ม (ดู skin.cardTone) */
+  tone?: Tone;
 }) {
+  const ink = INK[tone];
   const category = product.category;
   const [cover, hoverImage] = product.gallery;
   const badge = t(product.badges)[0];
 
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-card border border-rice-300 bg-rice-50 transition duration-300 ease-craft hover:-translate-y-1 hover:border-rice-400 hover:shadow-lift">
+    <article
+      className={`box group relative flex flex-col overflow-hidden rounded-card border transition duration-300 ease-craft hover:-translate-y-1 hover:shadow-lift ${
+        tone === "light" ? "border-white/10 bg-white/[0.04] hover:border-white/25" : "border-rice-300 bg-rice-50 hover:border-rice-400"
+      }`}
+    >
       {editHref ? <EditButton href={editHref} label="แก้สินค้านี้" /> : null}
 
       <div className="relative aspect-square overflow-hidden bg-ink-800">
@@ -88,10 +97,10 @@ export function ProductCard({
 
       <div className="@container flex flex-1 flex-col gap-3 p-4">
         {category ? (
-          <p className="text-2xs font-semibold tracking-wide text-river-500">{t(category.title)}</p>
+          <p className={`text-2xs font-semibold tracking-wide ${ink.body}`}>{t(category.title)}</p>
         ) : null}
 
-        <h3 className="font-serif text-base leading-snug font-semibold text-ink-800">
+        <h3 className={`font-serif text-base leading-snug font-semibold ${ink.title}`}>
           {/* ลิงก์ครอบทั้งการ์ดด้วย ::after เพื่อให้กดตรงไหนก็เข้าหน้าสินค้าได้ */}
           <Link href={`/shop/${product.slug}`} className="after:absolute after:inset-0 after:content-['']">
             {t(product.name)}
@@ -100,7 +109,7 @@ export function ProductCard({
 
         {badge ? (
           <div className="flex flex-wrap gap-1.5">
-            <Badge tone="ember">{badge}</Badge>
+            <Badge tone={tone === "light" ? "dark" : "ember"}>{badge}</Badge>
           </div>
         ) : null}
 
@@ -109,14 +118,14 @@ export function ProductCard({
           จึงเรียงซ้อนกันและให้ปุ่มเต็มความกว้างแทน
         */}
         <div className="mt-auto flex flex-col gap-2 pt-2 @[12rem]:flex-row @[12rem]:items-end @[12rem]:justify-between @[12rem]:gap-3">
-          <p className="font-serif text-lg font-semibold text-ink-800">
+          <p className={`font-serif text-lg font-semibold ${ink.title}`}>
             {product.price === null ? (
-              <span className="text-base text-river-500">{labels.askPrice}</span>
+              <span className={`text-base ${ink.body}`}>{labels.askPrice}</span>
             ) : (
               formatPrice(product.price)
             )}
           </p>
-          {showQuickOrder ? <QuickOrderButton product={product} /> : null}
+          {showQuickOrder ? <QuickOrderButton product={product} tone={tone} /> : null}
         </div>
       </div>
     </article>

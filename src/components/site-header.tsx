@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { NavData } from "@/lib/cms/navigation";
+import type { ChromeSkin } from "@/lib/cms/page-content";
 import { atGlobal } from "@/lib/cms/inline";
 import { t } from "@/lib/i18n";
 import { telUrl } from "@/lib/line";
@@ -16,12 +17,60 @@ import { buttonClass, Container } from "./ui";
 
 const at = atGlobal("navigation");
 
+/** คลาสของแถบเมนูตามโทนของพื้น — พื้นเข้มเป็นค่าเริ่มต้นของดีไซน์ */
+const HEADER_INK = {
+  light: {
+    border: "border-white/10",
+    link: "text-ink-200 hover:text-white",
+    active: "text-white",
+    icon: "text-rice-100 hover:bg-white/10",
+    title: "text-rice-100",
+    item: "text-ink-200 hover:bg-white/5",
+    itemActive: "bg-white/10 font-semibold text-white",
+    muted: "text-ink-300",
+    fine: "text-ink-400",
+  },
+  dark: {
+    border: "border-rice-300",
+    link: "text-ink-600 hover:text-ink-900",
+    active: "text-ink-900",
+    icon: "text-ink-800 hover:bg-ink-900/5",
+    title: "text-ink-800",
+    item: "text-ink-700 hover:bg-ink-900/5",
+    itemActive: "bg-ink-900/5 font-semibold text-ink-900",
+    muted: "text-river-500",
+    fine: "text-river-400",
+  },
+} as const;
+
+const DEFAULT_BAR: ChromeSkin = {
+  className: "bg-ink-800/95 backdrop-blur supports-[backdrop-filter]:bg-ink-800/85",
+  onDark: true,
+};
+const DEFAULT_PANEL: ChromeSkin = { className: "bg-ink-800", onDark: true };
+
 /**
  * @param editing เปิดโหมดแก้ไขบนหน้าเว็บหรือไม่ — ตัดสินจากฝั่งเซิร์ฟเวอร์ใน layout
  *                เพื่อไม่ให้ที่อยู่ของฟิลด์ติดไปกับข้อมูลที่ส่งให้ผู้เข้าชมทั่วไป
+ * @param bar     สีของแถบเมนู (แบบโปร่งเล็กน้อย) · panel สีของเมนูที่เลื่อนออกมาบนมือถือ
+ *                คำนวณจากหน้า "ธีมและหน้าตาเว็บ" ด้วย chromeSkin
  */
-export function SiteHeader({ nav, editing = false }: { nav: NavData; editing?: boolean }) {
+export function SiteHeader({
+  nav,
+  editing = false,
+  bar = DEFAULT_BAR,
+  panel = DEFAULT_PANEL,
+}: {
+  nav: NavData;
+  editing?: boolean;
+  bar?: ChromeSkin;
+  panel?: ChromeSkin;
+}) {
   const site = useSite();
+  const tone = bar.onDark ? "light" : "dark";
+  const ink = HEADER_INK[tone];
+  const panelTone = panel.onDark ? "light" : "dark";
+  const panelInk = HEADER_INK[panelTone];
   const pathname = usePathname();
 
   /** ปลายทางของปุ่ม CTA มุมขวาบน ตามที่เลือกไว้ในหลังบ้าน */
@@ -51,10 +100,10 @@ export function SiteHeader({ nav, editing = false }: { nav: NavData; editing?: b
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-ink-800/95 backdrop-blur supports-[backdrop-filter]:bg-ink-800/85">
+      <header className={`sticky top-0 z-50 border-b ${ink.border} ${bar.className}`} style={bar.style}>
         <Container size="wide">
           <div className="flex h-[4.5rem] items-center justify-between gap-4">
-          <SiteLogo site={site} editing={editing} hideTaglineOnLg />
+          <SiteLogo site={site} editing={editing} hideTaglineOnLg tone={tone} />
 
           <nav aria-label="เมนูหลัก" className="hidden lg:block">
             <ul className="flex items-center gap-1">
@@ -68,11 +117,11 @@ export function SiteHeader({ nav, editing = false }: { nav: NavData; editing?: b
                       aria-current={active ? "page" : undefined}
                       {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                       className={`relative whitespace-nowrap rounded-md px-2.5 py-2 text-md transition-colors duration-200 xl:px-3 ${
-                        active ? "text-white" : "text-ink-200 hover:text-white"
+                        active ? ink.active : ink.link
                       }`}
                     >
                       {editing ? (
-                        <InlineEditable at={at(`mainMenu.${itemIndex}.label`)} tone="light">
+                        <InlineEditable at={at(`mainMenu.${itemIndex}.label`)} tone={tone}>
                           {t(item.label)}
                         </InlineEditable>
                       ) : (
@@ -113,7 +162,7 @@ export function SiteHeader({ nav, editing = false }: { nav: NavData; editing?: b
 
             <a
               href={telUrl(site)}
-              className="rounded-lg p-2.5 text-rice-100 transition-colors hover:bg-white/10 lg:hidden"
+              className={`rounded-lg p-2.5 transition-colors lg:hidden ${ink.icon}`}
               aria-label={`โทรหาชุมชน ${site.phoneDisplay}`}
             >
               <PhoneIcon />
@@ -122,7 +171,7 @@ export function SiteHeader({ nav, editing = false }: { nav: NavData; editing?: b
             <button
               type="button"
               onClick={() => setOpen(true)}
-              className="rounded-lg p-2.5 text-rice-100 transition-colors hover:bg-white/10 lg:hidden"
+              className={`rounded-lg p-2.5 transition-colors lg:hidden ${ink.icon}`}
               aria-label="เปิดเมนู"
               aria-expanded={open}
             >
@@ -162,18 +211,19 @@ export function SiteHeader({ nav, editing = false }: { nav: NavData; editing?: b
           role="dialog"
           aria-modal="true"
           aria-label="เมนูนำทาง"
-          className={`absolute inset-y-0 right-0 flex w-[min(20rem,85vw)] flex-col bg-ink-800 shadow-lift-lg transition-transform duration-300 ease-craft ${
-            open ? "translate-x-0" : "translate-x-full"
-          }`}
+          className={`absolute inset-y-0 right-0 flex w-[min(20rem,85vw)] flex-col shadow-lift-lg transition-transform duration-300 ease-craft ${
+            panel.className
+          } ${open ? "translate-x-0" : "translate-x-full"}`}
           style={{
+            ...panel.style,
             paddingTop: "env(safe-area-inset-top, 0px)",
             paddingBottom: "env(safe-area-inset-bottom, 0px)",
           }}
         >
-          <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
-            <span className="font-serif text-base font-semibold text-rice-100">
+          <div className={`flex items-center justify-between border-b px-5 py-4 ${panelInk.border}`}>
+            <span className={`font-serif text-base font-semibold ${panelInk.title}`}>
               {editing ? (
-                <InlineEditable at={at("mobileMenu.title")} tone="light">
+                <InlineEditable at={at("mobileMenu.title")} tone={panelTone}>
                   {t(nav.mobileMenu.title) || "เมนู"}
                 </InlineEditable>
               ) : (
@@ -183,7 +233,7 @@ export function SiteHeader({ nav, editing = false }: { nav: NavData; editing?: b
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="rounded-lg p-2 text-rice-100 transition-colors hover:bg-white/10"
+              className={`rounded-lg p-2 transition-colors ${panelInk.icon}`}
               aria-label="ปิดเมนู"
             >
               <CloseIcon className="h-6 w-6" />
@@ -202,11 +252,11 @@ export function SiteHeader({ nav, editing = false }: { nav: NavData; editing?: b
                       // ปิด drawer ทันทีที่กดลิงก์ ไม่งั้นเมนูจะค้างทับหน้าใหม่
                       onClick={() => setOpen(false)}
                       className={`flex items-center justify-between rounded-lg px-4 py-3 text-base transition-colors ${
-                        active ? "bg-white/10 font-semibold text-white" : "text-ink-200 hover:bg-white/5"
+                        active ? panelInk.itemActive : panelInk.item
                       }`}
                     >
                       {editing ? (
-                        <InlineEditable at={at(`mainMenu.${itemIndex}.label`)} tone="light">
+                        <InlineEditable at={at(`mainMenu.${itemIndex}.label`)} tone={panelTone}>
                           {t(item.label)}
                         </InlineEditable>
                       ) : (
@@ -220,10 +270,10 @@ export function SiteHeader({ nav, editing = false }: { nav: NavData; editing?: b
             </ul>
           </nav>
 
-          <div className="border-t border-white/10 p-4">
-            <p className="mb-3 text-xs text-ink-300">
+          <div className={`border-t p-4 ${panelInk.border}`}>
+            <p className={`mb-3 text-xs ${panelInk.muted}`}>
               {editing ? (
-                <InlineEditable at={at("mobileMenu.contactHeading")} tone="light">
+                <InlineEditable at={at("mobileMenu.contactHeading")} tone={panelTone}>
                   {t(nav.mobileMenu.contactHeading)}
                 </InlineEditable>
               ) : (
@@ -247,12 +297,16 @@ export function SiteHeader({ nav, editing = false }: { nav: NavData; editing?: b
                 )}{" "}
                 {site.lineId}
               </a>
-              <a href={telUrl(site)} onClick={() => setOpen(false)} className={buttonClass("onDark", "w-full", { wrap: true })}>
+              <a
+                href={telUrl(site)}
+                onClick={() => setOpen(false)}
+                className={buttonClass(panelTone === "light" ? "onDark" : "secondary", "w-full", { wrap: true })}
+              >
                 <PhoneIcon className="h-[18px] w-[18px]" />
                 {/* ครอบเป็นก้อนเดียว ไม่งั้นเบอร์กลายเป็นอีกชิ้นใน flex และห่างจากคำนำด้วย gap แทนช่องว่าง */}
                 <span>
                   {editing ? (
-                    <InlineEditable at={at("mobileMenu.phoneButtonPrefix")} tone="light">
+                    <InlineEditable at={at("mobileMenu.phoneButtonPrefix")} tone={panelTone}>
                       {t(nav.mobileMenu.phoneButtonPrefix)}
                     </InlineEditable>
                   ) : (
@@ -262,9 +316,9 @@ export function SiteHeader({ nav, editing = false }: { nav: NavData; editing?: b
                 </span>
               </a>
             </div>
-            <p className="mt-3 text-center text-xs text-ink-400">
+            <p className={`mt-3 text-center text-xs ${panelInk.fine}`}>
               {editing ? (
-                <InlineEditable at={`g:site-settings:openingHoursShort`} tone="light">
+                <InlineEditable at={`g:site-settings:openingHoursShort`} tone={panelTone}>
                   {t(site.openingHoursShort)}
                 </InlineEditable>
               ) : (

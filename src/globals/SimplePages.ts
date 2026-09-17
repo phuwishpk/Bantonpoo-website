@@ -1,6 +1,13 @@
 import type { GlobalConfig } from "payload";
 import { anyone, isEditor } from "@/access";
-import { heroFields, linkFields, sectionHeadingField, sectionsField, textListField } from "@/fields";
+import {
+  heroFields,
+  linkFields,
+  pageStyleField,
+  sectionHeadingField,
+  sectionsField,
+  textListField,
+} from "@/fields";
 import { revalidatePage } from "@/hooks/revalidate";
 
 /** ข้อความตอนที่ตัวกรองไม่เจอผลลัพธ์ */
@@ -37,6 +44,7 @@ export const ShopPage: GlobalConfig = {
   hooks: { afterChange: [revalidatePage("/shop")] },
   fields: [
     heroFields(),
+    pageStyleField(),
     sectionsField({
       types: [
         { label: "ตัวกรองและรายการสินค้า", value: "catalogue" },
@@ -59,6 +67,7 @@ export const StoriesPage: GlobalConfig = {
   hooks: { afterChange: [revalidatePage("/stories")] },
   fields: [
     heroFields(),
+    pageStyleField(),
     sectionsField({
       types: [
         { label: "ตัวกรองและรายการบทความ", value: "list" },
@@ -80,6 +89,7 @@ export const TourismPage: GlobalConfig = {
   hooks: { afterChange: [revalidatePage("/tourism")] },
   fields: [
     heroFields(),
+    pageStyleField(),
     sectionsField({
       types: [
         { label: "ฐานเรียนรู้และกิจกรรม", value: "workshops" },
@@ -126,6 +136,7 @@ export const ContactPage: GlobalConfig = {
   hooks: { afterChange: [revalidatePage("/contact")] },
   fields: [
     heroFields(),
+    pageStyleField(),
     sectionsField({
       types: [
         { label: "การ์ดช่องทางติดต่อ", value: "channels" },

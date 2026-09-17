@@ -8,6 +8,7 @@ import { ArticleCard } from "./article-card";
 import { SearchIcon } from "./icons";
 import { buttonClass } from "./ui";
 import { useLabels } from "./site-context";
+import { INK, type Tone } from "@/lib/tone";
 
 /**
  * หน้ารวมบทความ พร้อมตัวกรองหมวดหมู่และช่องค้นหา
@@ -20,6 +21,8 @@ export function StoriesBrowser({
   initialQuery,
   emptyState,
   editing = false,
+  tone = "dark",
+  cardTone = "dark",
 }: {
   articles: Article[];
   categories: Category[];
@@ -27,8 +30,13 @@ export function StoriesBrowser({
   initialQuery: string;
   emptyState: { title: string; body: string };
   editing?: boolean;
+  /** โทนตัวอักษรของส่วนนี้ (ตามสีพื้นที่ผู้ดูแลเลือก) */
+  tone?: Tone;
+  /** โทนของการ์ดบทความ */
+  cardTone?: Tone;
 }) {
   const labels = useLabels();
+  const ink = INK[tone];
   const [category, setCategory] = useState<string | null>(initialCategory);
   const [query, setQuery] = useState(initialQuery);
 
@@ -70,8 +78,10 @@ export function StoriesBrowser({
                 onClick={() => setCategory(tab.slug)}
                 className={`shrink-0 rounded-full px-4 py-2.5 text-sm font-medium transition duration-200 ease-craft ${
                   active
-                    ? "bg-ink-800 text-rice-100"
-                    : "border border-rice-300 bg-rice-50 text-ink-700 hover:border-ink-400"
+                    ? tone === "light"
+                      ? "bg-rice-100 text-ink-800"
+                      : "bg-ink-800 text-rice-100"
+                    : `border ${ink.control}`
                 }`}
               >
                 {tab.label}
@@ -81,20 +91,22 @@ export function StoriesBrowser({
         </div>
 
         <div className="relative lg:w-80">
-          <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-river-400" />
+          <SearchIcon
+            className={`pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 ${ink.muted}`}
+          />
           <input
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="ค้นหาเรื่องเล่าและข่าวกิจกรรม"
             aria-label="ค้นหาบทความ"
-            className="w-full rounded-lg border border-rice-300 bg-rice-50 py-3 pl-11 pr-4 text-sm text-ink-800 placeholder:text-river-400 focus:border-ink-800 focus:outline-none"
+            className={`w-full rounded-lg border py-3 pl-11 pr-4 text-sm focus:outline-none ${ink.field}`}
           />
         </div>
       </div>
 
-      <p className="text-sm text-river-500" aria-live="polite">
-        พบ <span className="font-semibold text-ink-800">{visible.length}</span> บทความ
+      <p className={`text-sm ${ink.body}`} aria-live="polite">
+        พบ <span className={`font-semibold ${ink.title}`}>{visible.length}</span> บทความ
       </p>
 
       {visible.length > 0 ? (
@@ -105,20 +117,21 @@ export function StoriesBrowser({
               article={article}
               priority={index < 3}
               editHref={editing ? adminDoc("articles", article.id) : undefined}
+              tone={cardTone}
             />
           ))}
         </div>
       ) : (
-        <div className="rounded-card border border-dashed border-rice-400 bg-rice-50 px-6 py-16 text-center">
-          <p className="font-serif text-lg text-ink-800">{emptyState.title}</p>
-          <p className="mt-2 text-sm text-river-500">{emptyState.body}</p>
+        <div className={`rounded-card border border-dashed px-6 py-16 text-center ${INK[cardTone].empty}`}>
+          <p className={`font-serif text-lg ${INK[cardTone].title}`}>{emptyState.title}</p>
+          <p className={`mt-2 text-sm ${INK[cardTone].body}`}>{emptyState.body}</p>
           <button
             type="button"
             onClick={() => {
               setCategory(null);
               setQuery("");
             }}
-            className={buttonClass("secondary", "mt-5")}
+            className={buttonClass(cardTone === "light" ? "onDark" : "secondary", "mt-5")}
           >
             ล้างตัวกรอง
           </button>

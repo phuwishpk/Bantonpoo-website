@@ -1,15 +1,16 @@
-import type { CSSProperties, ReactNode } from "react";
-import { type Typography, typographySkin } from "@/lib/cms/page-content";
+import type { ReactNode } from "react";
+import { type SectionConfig, heroConfig, sectionSkin } from "@/lib/cms/page-content";
+import { INK } from "@/lib/tone";
 import { Breadcrumbs, type Crumb } from "./breadcrumbs";
-import { Ed } from "./editable";
+import { Ed, EdStyle } from "./editable";
 import { Container, EyebrowLabel } from "./ui";
 
 /**
- * แถบหัวหน้าเพจด้านใน — พื้นเข้มพร้อมเส้นทางนำทาง ใช้เหมือนกันทุกหน้า
+ * แถบหัวหน้าเพจด้านใน — พื้นเข้มเป็นค่าเริ่มต้น พร้อมเส้นทางนำทาง ใช้เหมือนกันทุกหน้า
  *
- * @param at         ที่อยู่ของกลุ่มฟิลด์แบนเนอร์ เช่น g:about-page:hero
- *                   ส่งมาเพื่อให้คลิกแก้ข้อความบนหน้าเว็บได้
- * @param typography ตัวอักษรและการจัดวางที่ผู้ดูแลเลือกไว้สำหรับแบนเนอร์นี้
+ * @param at     ที่อยู่ของกลุ่มฟิลด์แบนเนอร์ เช่น g:about-page:hero
+ *               ส่งมาเพื่อให้คลิกแก้ข้อความและเปลี่ยนสีบนหน้าเว็บได้
+ * @param config สี ตัวอักษร และการจัดวางที่ผู้ดูแลเลือกไว้ (อ่านด้วย heroConfig)
  */
 export function PageHero({
   eyebrow,
@@ -17,7 +18,7 @@ export function PageHero({
   description,
   crumbs,
   at,
-  typography,
+  config = heroConfig({}),
   children,
 }: {
   eyebrow?: string;
@@ -25,28 +26,35 @@ export function PageHero({
   description?: string;
   crumbs: Crumb[];
   at?: string;
-  typography?: Typography;
+  config?: SectionConfig;
   children?: ReactNode;
 }) {
-  const skin = typography ? typographySkin(typography) : { className: "", style: {} };
+  const skin = sectionSkin(config);
+  const tone = skin.tone;
+  const ink = INK[tone];
 
   return (
-    <section
-      className={`relative overflow-hidden bg-ink-800 ${skin.className}`}
-      style={Object.keys(skin.style).length ? (skin.style as CSSProperties) : undefined}
-    >
+    <section className={`overflow-hidden ${skin.className}`} style={skin.style}>
+      <EdStyle
+        at={at}
+        label="แถบหัวหน้าเพจ"
+        config={config}
+        cards={false}
+        fallbackBackground="dark"
+        placement="inside"
+      />
       <div
         aria-hidden
         className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-leaf-500/15 blur-[100px]"
       />
       <Container size="wide">
         <div className="relative flex flex-col gap-5 py-10 sm:py-14">
-          <Breadcrumbs items={crumbs} tone="light" />
+          <Breadcrumbs items={crumbs} tone={tone} />
           <div className="flex max-w-3xl flex-col gap-4">
             {eyebrow ? (
-              <EyebrowLabel tone="light">
+              <EyebrowLabel tone={tone === "light" ? "light" : "ember"}>
                 {at ? (
-                  <Ed at={`${at}.eyebrow`} tone="light">
+                  <Ed at={`${at}.eyebrow`} tone={tone}>
                     {eyebrow}
                   </Ed>
                 ) : (
@@ -54,9 +62,9 @@ export function PageHero({
                 )}
               </EyebrowLabel>
             ) : null}
-            <h1 className="font-serif text-display-sm leading-snug font-bold text-rice-100 sm:text-4xl">
+            <h1 className={`font-serif text-display-sm leading-snug font-bold sm:text-4xl ${ink.title}`}>
               {at ? (
-                <Ed at={`${at}.title`} tone="light">
+                <Ed at={`${at}.title`} tone={tone}>
                   {title}
                 </Ed>
               ) : (
@@ -64,9 +72,9 @@ export function PageHero({
               )}
             </h1>
             {description ? (
-              <p className="text-base leading-relaxed text-ink-200">
+              <p className={`text-base leading-relaxed ${tone === "light" ? "text-ink-200" : "text-river-500"}`}>
                 {at ? (
-                  <Ed at={`${at}.description`} multiline tone="light">
+                  <Ed at={`${at}.description`} multiline tone={tone}>
                     {description}
                   </Ed>
                 ) : (

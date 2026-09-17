@@ -3,7 +3,14 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import type { SiteSettings } from "@/content/types";
 import { loc, mapMedia } from "@/lib/cms/map";
-import { COLUMN_CLASS, readBlockConfig, rowsOf, sectionSkin } from "@/lib/cms/page-content";
+import {
+  COLUMN_CLASS,
+  type PageStyle,
+  readBlockConfig,
+  rowsOf,
+  sectionLabel,
+  sectionSkin,
+} from "@/lib/cms/page-content";
 import {
   getArticles,
   getPlaces,
@@ -15,9 +22,10 @@ import { atDoc } from "@/lib/cms/inline";
 import type { Labels } from "@/lib/labels";
 import { formatPrice } from "@/lib/format";
 import { t } from "@/lib/i18n";
+import { INK, type Tone } from "@/lib/tone";
 import { ArticleCard } from "./article-card";
 import { CtaBand } from "./cta-band";
-import { Ed, EdImage } from "./editable";
+import { Ed, EdImage, EdStyle } from "./editable";
 import { CARD_ICONS, type CardIconName, LeafIcon } from "./icons";
 import { ProductCard } from "./product-card";
 import { SectionHeading } from "./section-heading";
@@ -30,6 +38,7 @@ import { ArrowLink, ButtonLink, Container } from "./ui";
  * หน้าประจำ (sectionSkin) ผลลัพธ์จึงเข้าชุดกับที่เหลือของเว็บเสมอ
  *
  * @param pageId id ของหน้า ใช้ผูกข้อความกับช่องกรอกในหลังบ้านเพื่อคลิกแก้บนหน้าเว็บ
+ * @param page   สีของทั้งหน้า — บล็อกที่ไม่ได้ตั้งสีเองจะใช้ค่านี้
  */
 export async function PageBlocks({
   blocks,
@@ -37,12 +46,14 @@ export async function PageBlocks({
   site,
   labels,
   editing,
+  page,
 }: {
   blocks: Record<string, unknown>[];
   pageId: string | number;
   site: SiteSettings;
   labels: Labels;
   editing: boolean;
+  page?: PageStyle;
 }) {
   const at = atDoc("pages", pageId);
 
@@ -57,6 +68,7 @@ export async function PageBlocks({
           site={site}
           labels={labels}
           editing={editing}
+          page={page}
         />
       ))}
     </>
@@ -72,14 +84,16 @@ type BlockProps = {
   site: SiteSettings;
   labels: Labels;
   editing: boolean;
+  page?: PageStyle;
 };
 
-async function PageBlock({ block, at, make, site, labels, editing }: BlockProps) {
-  const config = readBlockConfig(block);
+async function PageBlock({ block, at, make, site, labels, editing, page }: BlockProps) {
+  const config = readBlockConfig(block, page);
   const skin = sectionSkin(config);
   const columns = COLUMN_CLASS[config.columns];
-  const tone = skin.onDark ? "light" : "dark";
+  const tone = skin.tone;
   const style = skin.style as CSSProperties | undefined;
+  const styleButton = <EdStyle at={make(at)} label={sectionLabel(config.type)} config={config} />;
 
   const headingGroup = (block.heading ?? {}) as Record<string, unknown>;
   const sectionHeading = (
@@ -99,8 +113,9 @@ async function PageBlock({ block, at, make, site, labels, editing }: BlockProps)
       const items = rowsOf(block, "content", (row) => row);
       return (
         <section className={`py-12 sm:py-16 ${skin.className}`} style={style}>
+          {styleButton}
           <Container size="wide">
-            <div className="prose-craft">
+            <div className={`prose-craft ${tone === "light" ? "prose-on-dark" : ""}`}>
               {items.map((item, itemIndex) => {
                 const path = make(`${at}.content.${itemIndex}`);
                 if (item.blockType === "heading") {
@@ -155,6 +170,7 @@ async function PageBlock({ block, at, make, site, labels, editing }: BlockProps)
 
       return (
         <section className={`py-12 sm:py-16 ${skin.className}`} style={style}>
+          {styleButton}
           <Container size="wide">
             <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-14">
               {image ? (
@@ -209,8 +225,11 @@ async function PageBlock({ block, at, make, site, labels, editing }: BlockProps)
     /* ---------------- การ์ดหลายใบ ---------------- */
     case "cards": {
       const items = rowsOf(block, "items", (row) => row);
+      const cardTone = skin.cardTone(tone);
+      const ink = INK[cardTone];
       return (
         <section className={`py-12 sm:py-16 ${skin.className}`} style={style}>
+          {styleButton}
           <Container size="wide">
             {hasHeading ? sectionHeading : null}
             <div className={`grid gap-5 ${hasHeading ? "mt-8" : ""} ${columns ?? "md:grid-cols-3"}`}>
@@ -220,32 +239,20 @@ async function PageBlock({ block, at, make, site, labels, editing }: BlockProps)
                 return (
                   <div
                     key={itemIndex}
-                    className={`flex flex-col gap-4 rounded-card border p-6 transition duration-300 ease-craft ${
-                      skin.onDark
-                        ? "border-white/10 bg-white/[0.03] hover:border-leaf-500/50"
-                        : "border-rice-300 bg-rice-50 hover:border-leaf-200 hover:shadow-lift"
-                    }`}
+                    className={`box flex flex-col gap-4 rounded-card border p-6 transition duration-300 ease-craft hover:shadow-lift ${ink.card}`}
                   >
                     {item.icon !== "none" ? (
                       <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-leaf-50 text-leaf-600">
                         <Icon className="h-6 w-6" />
                       </span>
                     ) : null}
-                    <h3
-                      className={`font-serif text-lg font-semibold ${
-                        skin.onDark ? "text-rice-100" : "text-ink-800"
-                      }`}
-                    >
-                      <Ed at={make(`${at}.items.${itemIndex}.title`)} tone={tone}>
+                    <h3 className={`font-serif text-lg font-semibold ${ink.title}`}>
+                      <Ed at={make(`${at}.items.${itemIndex}.title`)} tone={cardTone}>
                         {t(loc(item.title as never))}
                       </Ed>
                     </h3>
-                    <p
-                      className={`text-sm leading-relaxed ${
-                        skin.onDark ? "text-ink-300" : "text-river-500"
-                      }`}
-                    >
-                      <Ed at={make(`${at}.items.${itemIndex}.body`)} multiline tone={tone}>
+                    <p className={`text-sm leading-relaxed ${ink.body}`}>
+                      <Ed at={make(`${at}.items.${itemIndex}.body`)} multiline tone={cardTone}>
                         {t(loc(item.body as never))}
                       </Ed>
                     </p>
@@ -263,6 +270,7 @@ async function PageBlock({ block, at, make, site, labels, editing }: BlockProps)
       const items = rowsOf(block, "items", (row) => row);
       return (
         <section className={`py-12 sm:py-16 ${skin.className}`} style={style}>
+          {styleButton}
           <Container size="wide">
             {hasHeading ? sectionHeading : null}
             <dl
@@ -272,7 +280,7 @@ async function PageBlock({ block, at, make, site, labels, editing }: BlockProps)
             >
               {items.map((item, itemIndex) => (
                 <div key={itemIndex}>
-                  <dt className="font-serif text-2xl font-bold text-leaf-600">
+                  <dt className={`font-serif text-2xl font-bold ${INK[tone].accent}`}>
                     <Ed at={make(`${at}.items.${itemIndex}.value`)} tone={tone}>
                       {t(loc(item.value as never))}
                     </Ed>
@@ -300,13 +308,16 @@ async function PageBlock({ block, at, make, site, labels, editing }: BlockProps)
       const images = rowsOf(block, "images", (row) => mapMedia(row.image))
         .map((image, row) => (image ? { ...image, row } : null))
         .filter((image): image is NonNullable<typeof image> => image !== null);
+      // กรอบรูปเป็นพื้นเข้มโดยตั้งต้น คำบรรยายจึงใช้ตัวอักษรสีอ่อน เว้นแต่ตั้งสีการ์ดเป็นสีอ่อน
+      const cardTone = skin.cardTone("light");
       return (
         <section className={`py-12 sm:py-16 ${skin.className}`} style={style}>
+          {styleButton}
           <Container size="wide">
             {hasHeading ? sectionHeading : null}
             <div className={`grid gap-4 ${hasHeading ? "mt-8" : ""} ${columns ?? "sm:grid-cols-3"}`}>
               {images.map((image, imageIndex) => (
-                <figure key={imageIndex} className="overflow-hidden rounded-card bg-ink-800">
+                <figure key={imageIndex} className="box overflow-hidden rounded-card bg-ink-800">
                   <div className="relative aspect-4/3">
                     <Image
                       src={image.url}
@@ -323,11 +334,7 @@ async function PageBlock({ block, at, make, site, labels, editing }: BlockProps)
                     />
                   </div>
                   {t(image.caption ?? { th: "" }) ? (
-                    <figcaption
-                      className={`px-4 py-3 text-xs leading-relaxed ${
-                        skin.onDark ? "text-ink-300" : "text-river-500"
-                      }`}
-                    >
+                    <figcaption className={`px-4 py-3 text-xs leading-relaxed ${INK[cardTone].body}`}>
                       {t(image.caption ?? { th: "" })}
                     </figcaption>
                   ) : null}
@@ -343,6 +350,7 @@ async function PageBlock({ block, at, make, site, labels, editing }: BlockProps)
     case "collection":
       return (
         <section className={`py-12 sm:py-16 ${skin.className}`} style={style}>
+          {styleButton}
           <Container size="wide">
             {hasHeading ? sectionHeading : null}
             <div className={`${hasHeading ? "mt-8" : ""}`}>
@@ -351,7 +359,8 @@ async function PageBlock({ block, at, make, site, labels, editing }: BlockProps)
                 limit={typeof block.limit === "number" ? block.limit : undefined}
                 columns={columns}
                 labels={labels}
-                tone={tone}
+                lightCardTone={skin.cardTone("dark")}
+                cardTone={skin.cardTone(tone)}
                 editing={editing}
               />
             </div>
@@ -369,6 +378,7 @@ async function PageBlock({ block, at, make, site, labels, editing }: BlockProps)
           title={loc(block.title as never)}
           body={loc(block.body as never)}
           at={make(at)}
+          styleAt={make(at)}
           config={config}
           editing={editing}
         />
@@ -407,16 +417,21 @@ async function CollectionItems({
   limit,
   columns,
   labels,
-  tone,
+  lightCardTone,
+  cardTone,
   editing,
 }: {
   source: string;
   limit?: number;
   columns?: string;
   labels: Labels;
-  tone: "dark" | "light";
+  /** โทนของการ์ดสินค้า/บทความ ซึ่งเป็นพื้นอ่อนโดยตั้งต้น */
+  lightCardTone: Tone;
+  /** โทนของการ์ดกิจกรรม/สถานที่ ซึ่งตามพื้นของส่วนโดยตั้งต้น */
+  cardTone: Tone;
   editing: boolean;
 }) {
+  const ink = INK[cardTone];
   const take = <T,>(items: T[]) => items.slice(0, limit ?? items.length);
 
   if (source === "products") {
@@ -429,6 +444,7 @@ async function CollectionItems({
             product={product}
             labels={labels.general}
             editHref={editing ? adminDoc("products", product.id) : undefined}
+            tone={lightCardTone}
           />
         ))}
       </div>
@@ -445,6 +461,7 @@ async function CollectionItems({
             article={article}
             labels={labels.article}
             editHref={editing ? adminDoc("articles", article.id) : undefined}
+            tone={lightCardTone}
           />
         ))}
       </div>
@@ -480,11 +497,7 @@ async function CollectionItems({
       {items.map((item) => (
         <article
           key={item.key}
-          className={`group relative flex flex-col overflow-hidden rounded-card border transition duration-300 ease-craft hover:-translate-y-1 ${
-            tone === "light"
-              ? "border-white/10 bg-white/[0.03]"
-              : "border-rice-300 bg-rice-50 hover:shadow-lift"
-          }`}
+          className={`box group relative flex flex-col overflow-hidden rounded-card border transition duration-300 ease-craft hover:-translate-y-1 hover:shadow-lift ${ink.card}`}
         >
           <div className="relative aspect-3/2 overflow-hidden bg-ink-800">
             <Image
@@ -498,20 +511,16 @@ async function CollectionItems({
             <EdImage at={item.imageAt} label="ภาพ" current={item.image.id} />
           </div>
           <div className="flex flex-1 flex-col gap-3 p-5">
-            <h3
-              className={`font-serif text-lg leading-snug font-semibold ${
-                tone === "light" ? "text-rice-100" : "text-ink-800"
-              }`}
-            >
+            <h3 className={`font-serif text-lg leading-snug font-semibold ${ink.title}`}>
               <Link href={item.href} className="after:absolute after:inset-0 after:content-['']">
                 {item.title}
               </Link>
             </h3>
-            <p className={`text-sm leading-relaxed ${tone === "light" ? "text-ink-300" : "text-river-500"}`}>
+            <p className={`text-sm leading-relaxed ${ink.body}`}>
               {item.body}
             </p>
             {item.meta ? (
-              <p className="mt-auto pt-2 text-sm font-semibold text-leaf-600">{item.meta}</p>
+              <p className={`mt-auto pt-2 text-sm font-semibold ${ink.accent}`}>{item.meta}</p>
             ) : null}
           </div>
         </article>

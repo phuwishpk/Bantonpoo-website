@@ -11,6 +11,7 @@ import { adminDoc } from "@/lib/cms/edit-links";
 import { ProductCatalog } from "./product-catalog";
 import { buttonClass } from "./ui";
 import { useLabels } from "./site-context";
+import { INK, type Tone } from "@/lib/tone";
 
 export type ShopFilters = {
   categories: string[];
@@ -58,6 +59,9 @@ export function ShopBrowser({
   initial,
   emptyState,
   editing = false,
+  tone = "dark",
+  cardTone = "dark",
+  slideTone = "light",
 }: {
   products: Product[];
   categories: Category[];
@@ -65,7 +69,14 @@ export function ShopBrowser({
   emptyState: { title: string; body: string };
   /** อยู่ในโหมดแก้ไขหรือไม่ — ตัดสินใจฝั่งเซิร์ฟเวอร์แล้วส่งมา */
   editing?: boolean;
+  /** โทนตัวอักษรของส่วนนี้ (ตามสีพื้นที่ผู้ดูแลเลือก) */
+  tone?: Tone;
+  /** โทนของการ์ดในมุมมองตาราง */
+  cardTone?: Tone;
+  /** โทนของแคตตาล็อกสไลด์ — พื้นเข้มโดยตั้งต้น */
+  slideTone?: Tone;
 }) {
+  const ink = INK[tone];
   const [filters, setFilters] = useState<ShopFilters>(initial);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const labels = useLabels();
@@ -150,9 +161,11 @@ export function ShopBrowser({
   const resetFilters = () =>
     setFilters({ categories: [], forms: [], statuses: [], query: "", sort: filters.sort, view: filters.view });
 
-  const filterPanel = (
+  // แผงตัวกรองใช้สองที่: แถบด้านข้าง (ตามโทนของส่วน) และแผงเลื่อนบนมือถือ (พื้นอ่อนเสมอ)
+  const filterPanel = (panelTone: Tone) => (
     <div className="flex flex-col gap-5">
       <FilterGroup
+        tone={panelTone}
         legend="หมวดหมู่สินค้า"
         selected={filters.categories}
         onToggle={(value) => toggle("categories", value)}
@@ -163,6 +176,7 @@ export function ShopBrowser({
         }))}
       />
       <FilterGroup
+        tone={panelTone}
         legend="รูปแบบผลิตภัณฑ์"
         selected={filters.forms}
         onToggle={(value) => toggle("forms", value)}
@@ -173,6 +187,7 @@ export function ShopBrowser({
         }))}
       />
       <FilterGroup
+        tone={panelTone}
         legend="สถานะสินค้า"
         selected={filters.statuses}
         onToggle={(value) => toggle("statuses", value)}
@@ -183,7 +198,11 @@ export function ShopBrowser({
         }))}
       />
       {hasAnyFilter ? (
-        <button type="button" onClick={resetFilters} className={buttonClass("secondary", "w-full py-2.5 text-sm")}>
+        <button
+          type="button"
+          onClick={resetFilters}
+          className={buttonClass(panelTone === "light" ? "onDark" : "secondary", "w-full py-2.5 text-sm")}
+        >
           ล้างตัวกรองทั้งหมด
         </button>
       ) : null}
@@ -195,8 +214,8 @@ export function ShopBrowser({
       {/* แถบตัวกรองด้านข้าง — เดสก์ท็อป */}
       <aside className="hidden lg:block">
         <div className="sticky top-24">
-          <h2 className="mb-5 font-serif text-lg font-semibold text-ink-800">{labels.product.filters}</h2>
-          {filterPanel}
+          <h2 className={`mb-5 font-serif text-lg font-semibold ${ink.title}`}>{labels.product.filters}</h2>
+          {filterPanel(tone)}
         </div>
       </aside>
 
@@ -209,14 +228,16 @@ export function ShopBrowser({
         */}
         <div className="flex flex-col gap-3 md:flex-row md:items-center">
           <div className="relative min-w-0 flex-1">
-            <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-river-400" />
+            <SearchIcon
+              className={`pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 ${ink.muted}`}
+            />
             <input
               type="search"
               value={filters.query}
               onChange={(event) => setFilters((current) => ({ ...current, query: event.target.value }))}
               placeholder="ค้นหาชื่อสินค้า รหัส หรือชื่อสมุนไพร"
               aria-label="ค้นหาสินค้า"
-              className="w-full rounded-lg border border-rice-300 bg-rice-50 py-3 pl-11 pr-4 text-sm text-ink-800 placeholder:text-river-400 focus:border-ink-800 focus:outline-none"
+              className={`w-full rounded-lg border py-3 pl-11 pr-4 text-sm focus:outline-none ${ink.field}`}
             />
           </div>
 
@@ -224,7 +245,7 @@ export function ShopBrowser({
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
-              className={buttonClass("secondary", "flex-1 py-3 text-sm lg:hidden")}
+              className={buttonClass(tone === "light" ? "onDark" : "secondary", "flex-1 py-3 text-sm lg:hidden")}
             >
               <FilterIcon className="h-[18px] w-[18px]" />
               ตัวกรอง
@@ -238,7 +259,7 @@ export function ShopBrowser({
             <div
               role="group"
               aria-label="รูปแบบการแสดงสินค้า"
-              className="flex shrink-0 items-center gap-1 rounded-lg border border-rice-300 bg-rice-50 p-1"
+              className={`flex shrink-0 items-center gap-1 rounded-lg border p-1 ${ink.card}`}
             >
               {(
                 [
@@ -257,7 +278,11 @@ export function ShopBrowser({
                     title={option.label}
                     onClick={() => setFilters((current) => ({ ...current, view: option.value }))}
                     className={`rounded-md p-2 transition duration-200 ease-craft ${
-                      selected ? "bg-ink-800 text-rice-100" : "text-ink-500 hover:bg-rice-200"
+                      selected
+                        ? tone === "light"
+                          ? "bg-rice-100 text-ink-800"
+                          : "bg-ink-800 text-rice-100"
+                        : `${tone === "light" ? "text-ink-300" : "text-ink-500"} ${ink.hover}`
                     }`}
                   >
                     <Icon className="h-[18px] w-[18px]" />
@@ -266,14 +291,14 @@ export function ShopBrowser({
               })}
             </div>
 
-            <label className="flex w-full items-center gap-2 rounded-lg border border-rice-300 bg-rice-50 px-3 text-sm sm:w-auto">
-              <span className="whitespace-nowrap text-river-500">{labels.product.sortBy}</span>
+            <label className={`flex w-full items-center gap-2 rounded-lg border px-3 text-sm sm:w-auto ${ink.card}`}>
+              <span className={`whitespace-nowrap ${ink.body}`}>{labels.product.sortBy}</span>
               <select
                 value={filters.sort}
                 onChange={(event) =>
                   setFilters((current) => ({ ...current, sort: event.target.value as SortKey }))
                 }
-                className="min-w-0 flex-1 bg-transparent py-3 pr-1 font-medium text-ink-800 focus:outline-none"
+                className={`min-w-0 flex-1 bg-transparent py-3 pr-1 font-medium focus:outline-none ${ink.title}`}
               >
                 {SORT_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -285,8 +310,8 @@ export function ShopBrowser({
           </div>
         </div>
 
-        <p className="text-sm text-river-500" aria-live="polite">
-          พบ <span className="font-semibold text-ink-800">{visible.length}</span>{" "}
+        <p className={`text-sm ${ink.body}`} aria-live="polite">
+          พบ <span className={`font-semibold ${ink.title}`}>{visible.length}</span>{" "}
           {labels.product.resultsUnit}
           {hasAnyFilter ? " จากเงื่อนไขที่เลือก" : ""}
         </p>
@@ -298,23 +323,31 @@ export function ShopBrowser({
               key={visible.map((product) => product.slug).join("-")}
               products={visible}
               editing={editing}
+              tone={slideTone}
+              controlsTone={tone}
             />
           ) : (
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 lg:gap-5">
               {visible.map((product) => (
-                <ProductCard labels={labels.general}
+                <ProductCard
+                  labels={labels.general}
                   key={product.slug}
                   product={product}
                   editHref={editing ? adminDoc("products", product.id) : undefined}
+                  tone={cardTone}
                 />
               ))}
             </div>
           )
         ) : (
-          <div className="rounded-card border border-dashed border-rice-400 bg-rice-50 px-6 py-16 text-center">
-            <p className="font-serif text-lg text-ink-800">{emptyState.title}</p>
-            <p className="mt-2 text-sm text-river-500">{emptyState.body}</p>
-            <button type="button" onClick={resetFilters} className={buttonClass("secondary", "mt-5")}>
+          <div className={`rounded-card border border-dashed px-6 py-16 text-center ${INK[cardTone].empty}`}>
+            <p className={`font-serif text-lg ${INK[cardTone].title}`}>{emptyState.title}</p>
+            <p className={`mt-2 text-sm ${INK[cardTone].body}`}>{emptyState.body}</p>
+            <button
+              type="button"
+              onClick={resetFilters}
+              className={buttonClass(cardTone === "light" ? "onDark" : "secondary", "mt-5")}
+            >
               ล้างตัวกรองทั้งหมด
             </button>
           </div>
@@ -358,7 +391,7 @@ export function ShopBrowser({
               <CloseIcon className="h-6 w-6" />
             </button>
           </div>
-          <div className="px-5 py-5">{filterPanel}</div>
+          <div className="px-5 py-5">{filterPanel("dark")}</div>
           <div className="sticky bottom-0 border-t border-rice-300 bg-rice-100 px-5 py-4">
             <button type="button" onClick={() => setDrawerOpen(false)} className={buttonClass("primary", "w-full")}>
               ดูสินค้า {visible.length} {labels.product.resultsUnit}

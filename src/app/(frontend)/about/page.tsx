@@ -1,25 +1,29 @@
 import Image from "next/image";
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/json-ld";
-import { Ed, EdImage } from "@/components/editable";
+import { Ed, EdImage, EdStyle } from "@/components/editable";
 import { EditToolbar } from "@/components/edit-mode";
 import { PageHero } from "@/components/page-hero";
+import { PageStyle, pageStyleTarget } from "@/components/page-style";
 import { ArrowLink, ButtonLink, Container, OrnamentDivider } from "@/components/ui";
 import { SectionHeading } from "@/components/section-heading";
 import { loc } from "@/lib/cms/map";
 import {
   COLUMN_CLASS,
   hero,
+  heroConfig,
   link,
   media,
+  readPageStyle,
   readSections,
+  sectionAt,
+  sectionLabel,
   sectionSkin,
   rowsOf,
   section,
   stats,
   textList,
   titleBody,
-  typographyOf,
 } from "@/lib/cms/page-content";
 import { getArtisans, getPageGlobal, getSite } from "@/lib/cms/queries";
 import { isDraftMode } from "@/lib/cms/draft";
@@ -28,6 +32,7 @@ import { atDoc, atGlobal } from "@/lib/cms/inline";
 import { atLabel } from "@/lib/labels";
 import { getLabels } from "@/lib/cms/labels";
 import { t } from "@/lib/i18n";
+import { INK } from "@/lib/tone";
 import { breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
 
 /** ส่วนที่ใช้พื้นเข้มเป็นค่าเริ่มต้น จึงต้องใช้ตัวอักษรสีอ่อนเมื่อยังไม่ได้เลือกสีเอง */
@@ -82,27 +87,35 @@ export default async function AboutPage() {
   const closingSecondary = link(closingGroup, "secondaryButton");
   const references = t(textList(page, "references"));
   const visibleSections = readSections(page, DEFAULT_SECTIONS);
+  const pageStyle = readPageStyle(page);
 
   return (
     <>
+      <PageStyle style={pageStyle} />
       <PageHero
         eyebrow={t(content.eyebrow)}
         title={t(content.title)}
         description={t(content.description)}
         crumbs={CRUMBS}
         at={at("hero")}
-        typography={typographyOf(page, "hero")}
+        config={heroConfig(page)}
       />
 
       {visibleSections.map((item, index) => {
         const skin = sectionSkin(item, DARK_BY_DEFAULT.has(item.type));
+        const tone = skin.tone;
+        const sectionInk = INK[tone];
         const columns = COLUMN_CLASS[item.columns];
         const key = `${item.type}-${index}`;
+        const styleButton = (
+          <EdStyle at={sectionAt(at, item)} label={sectionLabel(item.type)} config={item} />
+        );
 
         switch (item.type) {
           case "history":
             return (
               <section key={key} className={`py-16 sm:py-20 ${skin.className}`} style={skin.style}>
+                {styleButton}
                 <Container size="wide">
                   <div className="grid items-start gap-10 lg:grid-cols-[1fr_1.1fr] lg:gap-16">
                     {heritageImage ? (
@@ -137,15 +150,16 @@ export default async function AboutPage() {
                         at={at("historySection")}
                         eyebrow={t(section(page, "historySection").eyebrow)}
                         title={t(section(page, "historySection").title)}
-                        tone={skin.onDark ? "light" : "dark"}
+                        tone={tone}
                       />
-                      <div className="prose-craft">
+                      <div className={`prose-craft ${tone === "light" ? "prose-on-dark" : ""}`}>
                         {historyBlocks.map((block, blockIndex) => (
                           <Ed
                             key={blockIndex}
                             as={block.type === "heading" ? "h2" : "p"}
                             at={at(`historyContent.${blockIndex}.text`)}
                             multiline={block.type !== "heading"}
+                            tone={tone}
                           >
                             {t(block.text)}
                           </Ed>
@@ -153,14 +167,18 @@ export default async function AboutPage() {
                       </div>
 
                       {facts.length > 0 ? (
-                        <dl className="grid grid-cols-2 gap-4 border-t border-rice-300 pt-6">
+                        <dl className={`grid grid-cols-2 gap-4 border-t pt-6 ${sectionInk.line}`}>
                           {facts.map((fact, factIndex) => (
                             <div key={factIndex}>
-                              <dt className="font-serif text-xl font-bold text-leaf-600">
-                                <Ed at={at(`facts.${factIndex}.value`)}>{t(fact.value)}</Ed>
+                              <dt className={`font-serif text-xl font-bold ${sectionInk.accent}`}>
+                                <Ed at={at(`facts.${factIndex}.value`)} tone={tone}>
+                                  {t(fact.value)}
+                                </Ed>
                               </dt>
-                              <dd className="mt-1 text-xs leading-relaxed text-river-500">
-                                <Ed at={at(`facts.${factIndex}.label`)}>{t(fact.label)}</Ed>
+                              <dd className={`mt-1 text-xs leading-relaxed ${sectionInk.body}`}>
+                                <Ed at={at(`facts.${factIndex}.label`)} tone={tone}>
+                                  {t(fact.label)}
+                                </Ed>
                               </dd>
                             </div>
                           ))}
@@ -168,8 +186,10 @@ export default async function AboutPage() {
                       ) : null}
 
                       <div>
-                        <ArrowLink href={historyLink.href}>
-                          <Ed at={at("historyLink.label")}>{t(historyLink.label)}</Ed>
+                        <ArrowLink href={historyLink.href} tone={tone}>
+                          <Ed at={at("historyLink.label")} tone={tone}>
+                            {t(historyLink.label)}
+                          </Ed>
                         </ArrowLink>
                       </div>
                     </div>
@@ -178,37 +198,36 @@ export default async function AboutPage() {
               </section>
             );
 
-          case "assets":
+          case "assets": {
+            const cardTone = skin.cardTone(tone);
+            const ink = INK[cardTone];
             return (
-              <section key={key} className={`py-16 sm:py-20 ${skin.className || "bg-ink-800"}`} style={skin.style}>
+              <section key={key} className={`py-16 sm:py-20 ${skin.className}`} style={skin.style}>
+                {styleButton}
                 <Container size="wide">
                   <SectionHeading
                     at={at("assetsSection")}
                     eyebrow={t(section(page, "assetsSection").eyebrow)}
                     title={t(section(page, "assetsSection").title)}
                     description={t(section(page, "assetsSection").description)}
-                    tone={skin.onDark ? "light" : "dark"}
+                    tone={tone}
                   />
                   <ol className={`mt-10 grid gap-4 ${columns ?? "sm:grid-cols-2 lg:grid-cols-3"}`}>
                     {assets.slice(0, item.limit ?? assets.length).map((asset, assetIndex) => (
                       <li
                         key={assetIndex}
-                        className="flex flex-col gap-3 rounded-card border border-white/10 bg-white/[0.03] p-5 transition duration-300 ease-craft hover:border-leaf-500/50 hover:bg-white/[0.06]"
+                        className={`box flex flex-col gap-3 rounded-card border p-5 transition duration-300 ease-craft hover:border-leaf-500/50 ${ink.card}`}
                       >
-                        <span className="font-serif text-2xl font-bold text-leaf-300">
+                        <span className={`font-serif text-2xl font-bold ${ink.accent}`}>
                           {String(assetIndex + 1).padStart(2, "0")}
                         </span>
-                        <h3 className="font-serif text-base font-semibold text-rice-100">
-                          <Ed at={at(`assets.${assetIndex}.title`)} tone={skin.onDark ? "light" : "dark"}>
+                        <h3 className={`font-serif text-base font-semibold ${ink.title}`}>
+                          <Ed at={at(`assets.${assetIndex}.title`)} tone={cardTone}>
                             {t(asset.title)}
                           </Ed>
                         </h3>
-                        <p className="text-sm leading-relaxed text-ink-300">
-                          <Ed
-                            at={at(`assets.${assetIndex}.body`)}
-                            multiline
-                            tone={skin.onDark ? "light" : "dark"}
-                          >
+                        <p className={`text-sm leading-relaxed ${ink.body}`}>
+                          <Ed at={at(`assets.${assetIndex}.body`)} multiline tone={cardTone}>
                             {t(asset.body)}
                           </Ed>
                         </p>
@@ -218,17 +237,21 @@ export default async function AboutPage() {
                 </Container>
               </section>
             );
+          }
 
-          case "artisans":
+          case "artisans": {
+            const cardTone = skin.cardTone("dark");
+            const ink = INK[cardTone];
             return (
               <section key={key} className={`py-16 sm:py-20 ${skin.className}`} style={skin.style}>
+                {styleButton}
                 <Container size="wide">
                   <SectionHeading
                     at={at("artisansSection")}
                     eyebrow={t(section(page, "artisansSection").eyebrow)}
                     title={t(section(page, "artisansSection").title)}
                     description={t(section(page, "artisansSection").description)}
-                    tone={skin.onDark ? "light" : "dark"}
+                    tone={tone}
                   />
                   <div className={`mt-10 grid gap-5 ${columns ?? "sm:grid-cols-2 lg:max-w-3xl"}`}>
                     {artisans.slice(0, item.limit ?? artisans.length).map((artisan) => {
@@ -236,7 +259,7 @@ export default async function AboutPage() {
                       return (
                       <article
                         key={artisan.slug}
-                        className="flex flex-col overflow-hidden rounded-card border border-rice-300 bg-rice-50 transition duration-300 ease-craft hover:-translate-y-1 hover:shadow-lift"
+                        className={`box flex flex-col overflow-hidden rounded-card border transition duration-300 ease-craft hover:-translate-y-1 hover:shadow-lift ${ink.card}`}
                       >
                         <div className="relative aspect-square overflow-hidden bg-rice-300">
                           <Image
@@ -255,25 +278,34 @@ export default async function AboutPage() {
                           />
                         </div>
                         <div className="flex flex-1 flex-col gap-2.5 p-5">
-                          <h3 className="font-serif text-base font-semibold text-ink-800">
-                            <Ed at={atArtisan("name")}>{t(artisan.name)}</Ed>
+                          <h3 className={`font-serif text-base font-semibold ${ink.title}`}>
+                            <Ed at={atArtisan("name")} tone={cardTone}>
+                              {t(artisan.name)}
+                            </Ed>
                           </h3>
-                          <p className="text-xs font-medium text-leaf-600">
-                            <Ed at={atArtisan("title")}>{t(artisan.title)}</Ed>
+                          <p className={`text-xs font-medium ${ink.accent}`}>
+                            <Ed at={atArtisan("title")} tone={cardTone}>
+                              {t(artisan.title)}
+                            </Ed>
                           </p>
-                          <p className="text-sm leading-relaxed text-river-500">
-                            <Ed at={atArtisan("bio")} multiline>
+                          <p className={`text-sm leading-relaxed ${ink.body}`}>
+                            <Ed at={atArtisan("bio")} multiline tone={cardTone}>
                               {t(artisan.bio)}
                             </Ed>
                           </p>
-                          <div className="mt-auto flex flex-col gap-1 border-t border-rice-300 pt-3">
-                            <p className="text-xs text-river-400">
-                              <Ed at={atLabel("about", "role")}>{labels.about.role}</Ed>:{" "}
-                              {t(artisan.specialty)}
+                          <div className={`mt-auto flex flex-col gap-1 border-t pt-3 ${ink.line}`}>
+                            <p className={`text-xs ${ink.muted}`}>
+                              <Ed at={atLabel("about", "role")} tone={cardTone}>
+                                {labels.about.role}
+                              </Ed>
+                              : {t(artisan.specialty)}
                             </p>
                             {artisan.source ? (
-                              <p className="text-2xs text-river-400">
-                                <Ed at={atLabel("about", "source")}>{labels.about.source}</Ed>:{" "}
+                              <p className={`text-2xs ${ink.muted}`}>
+                                <Ed at={atLabel("about", "source")} tone={cardTone}>
+                                  {labels.about.source}
+                                </Ed>
+                                :{" "}
                                 {t(artisan.source)}
                               </p>
                             ) : null}
@@ -286,13 +318,19 @@ export default async function AboutPage() {
                 </Container>
               </section>
             );
+          }
 
-          case "closing":
+          case "closing": {
+            const boxTone = skin.cardTone("dark");
+            const ink = INK[boxTone];
             return (
               <section key={key} className={`pb-4 pt-8 ${skin.className}`} style={skin.style}>
+                {styleButton}
                 <Container size="wide">
-                  <OrnamentDivider />
-                  <div className="mt-12 grid items-center gap-8 overflow-hidden rounded-2xl border border-rice-300 bg-rice-50 lg:grid-cols-2">
+                  <OrnamentDivider tone={tone} />
+                  <div
+                    className={`box mt-12 grid items-center gap-8 overflow-hidden rounded-2xl border lg:grid-cols-2 ${ink.card}`}
+                  >
                     {closingImage ? (
                       <div className="relative aspect-video lg:aspect-auto lg:h-full">
                         <Image
@@ -314,20 +352,29 @@ export default async function AboutPage() {
                       />
                     )}
                     <div className="flex flex-col gap-5 p-8 sm:p-10">
-                      <h2 className="font-serif text-2xl leading-snug font-semibold text-ink-800">
-                        <Ed at={at("closing.title")}>{t(closing.title)}</Ed>
+                      <h2 className={`font-serif text-2xl leading-snug font-semibold ${ink.title}`}>
+                        <Ed at={at("closing.title")} tone={boxTone}>
+                          {t(closing.title)}
+                        </Ed>
                       </h2>
-                      <p className="text-md leading-relaxed text-river-500">
-                        <Ed at={at("closing.body")} multiline placeholder="เนื้อหา">
+                      <p className={`text-md leading-relaxed ${ink.body}`}>
+                        <Ed at={at("closing.body")} multiline placeholder="เนื้อหา" tone={boxTone}>
                           {t(closing.body)}
                         </Ed>
                       </p>
                       <div className="flex flex-col gap-3 sm:flex-row">
                         <ButtonLink href={closingPrimary.href}>
-                          <Ed at={at("closing.primaryButton.label")}>{t(closingPrimary.label)}</Ed>
+                          <Ed at={at("closing.primaryButton.label")} tone={boxTone}>
+                            {t(closingPrimary.label)}
+                          </Ed>
                         </ButtonLink>
-                        <ButtonLink href={closingSecondary.href} variant="secondary">
-                          <Ed at={at("closing.secondaryButton.label")}>{t(closingSecondary.label)}</Ed>
+                        <ButtonLink
+                          href={closingSecondary.href}
+                          variant={boxTone === "light" ? "onDark" : "secondary"}
+                        >
+                          <Ed at={at("closing.secondaryButton.label")} tone={boxTone}>
+                            {t(closingSecondary.label)}
+                          </Ed>
                         </ButtonLink>
                       </div>
                     </div>
@@ -335,23 +382,30 @@ export default async function AboutPage() {
                 </Container>
               </section>
             );
+          }
 
-          case "references":
+          case "references": {
             /* ระบุให้ชัดว่าข้อมูลประวัติและตัวเลขมาจากไหน */
+            const boxTone = skin.cardTone("dark");
+            const ink = INK[boxTone];
             return references.length > 0 ? (
               <section key={key} className={`pt-16 ${skin.className}`} style={skin.style}>
+                {styleButton}
                 <Container size="wide">
-                  <div className="rounded-card border border-rice-300 bg-rice-50 p-6">
-                    <h2 className="mb-3 text-xs font-semibold tracking-label text-river-500">
-                      <Ed at={atLabel("about", "references")}>{labels.about.references}</Ed>
+                  <div className={`box rounded-card border p-6 ${ink.card}`}>
+                    <h2 className={`mb-3 text-xs font-semibold tracking-label ${ink.body}`}>
+                      <Ed at={atLabel("about", "references")} tone={boxTone}>
+                        {labels.about.references}
+                      </Ed>
                     </h2>
-                    <ul className="flex flex-col gap-2 text-sm leading-relaxed text-river-500">
+                    <ul className={`flex flex-col gap-2 text-sm leading-relaxed ${ink.body}`}>
                       {references.map((reference, referenceIndex) => (
                         <Ed
                           key={referenceIndex}
                           as="li"
                           at={at(`references.${referenceIndex}.value`)}
                           multiline
+                          tone={boxTone}
                         >
                           {reference}
                         </Ed>
@@ -361,13 +415,16 @@ export default async function AboutPage() {
                 </Container>
               </section>
             ) : null;
+          }
 
           default:
             return null;
         }
       })}
 
-      {editing ? <EditToolbar {...editLinksFor("about")} /> : null}
+      {editing ? (
+        <EditToolbar {...editLinksFor("about")} styles={[pageStyleTarget(at("pageStyle"), pageStyle)]} />
+      ) : null}
 
       <JsonLd data={breadcrumbJsonLd(CRUMBS)} />
     </>

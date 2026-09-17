@@ -1,33 +1,29 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArticleCard } from "@/components/article-card";
-import {
-  LeafIcon,
-  LineIcon,
-  MapPinIcon,
-  MortarIcon,
-  PhoneIcon,
-  TempleIcon,
-  UsersIcon,
-} from "@/components/icons";
-import { Ed, EdImage } from "@/components/editable";
+import { LeafIcon, MapPinIcon, MortarIcon, TempleIcon, UsersIcon } from "@/components/icons";
+import { CtaBand } from "@/components/cta-band";
+import { Ed, EdImage, EdStyle } from "@/components/editable";
 import { EditToolbar } from "@/components/edit-mode";
+import { PageStyle, pageStyleTarget } from "@/components/page-style";
 import { ProductCard } from "@/components/product-card";
-import { ArrowLink, ButtonLink, buttonClass, Container, EyebrowLabel } from "@/components/ui";
+import { ArrowLink, ButtonLink, Container, EyebrowLabel } from "@/components/ui";
 import { SectionHeading } from "@/components/section-heading";
 import {
   COLUMN_CLASS,
   hero,
+  heroConfig,
   link,
   media,
+  readPageStyle,
   readSections,
+  sectionAt,
+  sectionLabel,
   sectionSkin,
   rowsOf,
   section,
   stats,
   titleBody,
-  typographyOf,
-  typographySkin,
 } from "@/lib/cms/page-content";
 import {
   getArticle,
@@ -45,7 +41,7 @@ import { atGlobal } from "@/lib/cms/inline";
 import { atLabel } from "@/lib/labels";
 import { getLabels } from "@/lib/cms/labels";
 import { t } from "@/lib/i18n";
-import { telUrl } from "@/lib/line";
+import { INK } from "@/lib/tone";
 
 /** ลำดับมาตรฐาน ใช้เมื่อยังไม่ได้ตั้งค่าในหลังบ้าน */
 const DEFAULT_SECTIONS = [
@@ -90,7 +86,11 @@ export default async function HomePage() {
   }));
   const primary = link(heroGroup, "primaryButton");
   const secondary = link(heroGroup, "secondaryButton");
-  const heroSkin = typographySkin(typographyOf(page, "hero"));
+  const heroStyle = heroConfig(page);
+  const heroSkin = sectionSkin(heroStyle);
+  const heroTone = heroSkin.tone;
+  const heroInk = INK[heroTone];
+  const pageStyle = readPageStyle(page);
 
   const highlights = rowsOf(page, "highlights", (row) => ({
     icon: (row.icon as keyof typeof ICONS) ?? "leaf",
@@ -107,14 +107,22 @@ export default async function HomePage() {
       : "";
   const spotlight = spotlightSlug ? await getArticle(spotlightSlug) : null;
   const cta = titleBody(page, "cta");
+  const ctaGroup = (page.cta ?? {}) as Record<string, unknown>;
 
   return (
     <>
       {/* ---------------- HERO ---------------- */}
-      <section
-        className={`relative overflow-hidden bg-ink-800 ${heroSkin.className}`}
-        style={heroSkin.style}
-      >
+      <PageStyle style={pageStyle} />
+
+      <section className={`overflow-hidden ${heroSkin.className}`} style={heroSkin.style}>
+        <EdStyle
+          at={at("hero")}
+          label="แบนเนอร์บนสุด"
+          config={heroStyle}
+          cards={false}
+          fallbackBackground="dark"
+          placement="inside"
+        />
         <div
           aria-hidden
           className="pointer-events-none absolute -right-40 top-1/4 h-[36rem] w-[36rem] rounded-full bg-leaf-500/20 blur-[120px]"
@@ -123,8 +131,8 @@ export default async function HomePage() {
           <div className="grid items-center gap-10 py-14 lg:min-h-[85vh] lg:grid-cols-[1.05fr_1fr] lg:gap-14 lg:py-20">
             <div className="flex flex-col gap-7">
               {t(heroContent.eyebrow) || editing ? (
-                <EyebrowLabel tone="light">
-                  <Ed at={at("hero.eyebrow")} tone="light" placeholder="ข้อความนำ">
+                <EyebrowLabel tone={heroTone === "light" ? "light" : "ember"}>
+                  <Ed at={at("hero.eyebrow")} tone={heroTone} placeholder="ข้อความนำ">
                     {t(heroContent.eyebrow)}
                   </Ed>
                 </EyebrowLabel>
@@ -134,50 +142,60 @@ export default async function HomePage() {
                 ภาษาไทยไม่มีช่องว่างระหว่างคำ เบราว์เซอร์จึงเดาจุดตัดบรรทัดเอง
                 และตัดคำวิสามานยนามผิดตำแหน่งได้ จึงให้ผู้ดูแลกำหนดบรรทัดเองจากหลังบ้าน
               */}
-              <h1 className="font-serif text-display-sm leading-[1.4] font-bold text-rice-100 sm:text-display-md lg:text-display-lg lg:leading-[1.35]">
+              <h1
+                className={`font-serif text-display-sm leading-[1.4] font-bold sm:text-display-md lg:text-display-lg lg:leading-[1.35] ${heroInk.title}`}
+              >
                 {titleLines.map((line, index) => (
                   <Ed
                     key={index}
                     as="span"
                     at={at(`hero.titleLines.${index}.text`)}
-                    tone="light"
-                    className={`block ${index > 0 ? "mt-2" : ""} ${line.accent ? "text-leaf-300" : ""}`}
+                    tone={heroTone}
+                    className={`block ${index > 0 ? "mt-2" : ""} ${line.accent ? heroInk.accent : ""}`}
                   >
                     {t(line.text)}
                   </Ed>
                 ))}
               </h1>
 
-              <p className="max-w-xl text-base leading-relaxed text-ink-200 sm:text-lg">
-                <Ed at={at("hero.subtitle")} multiline tone="light" placeholder="คำโปรย">
+              <p
+                className={`max-w-xl text-base leading-relaxed sm:text-lg ${
+                  heroTone === "light" ? "text-ink-200" : "text-river-500"
+                }`}
+              >
+                <Ed at={at("hero.subtitle")} multiline tone={heroTone} placeholder="คำโปรย">
                   {t(loc(heroGroup.subtitle as never)) || t(site.aboutSummary)}
                 </Ed>
               </p>
 
               <div className="flex flex-col gap-3 sm:flex-row">
                 <ButtonLink href={primary.href} variant="primary" className="sm:w-auto">
-                  <Ed at={at("hero.primaryButton.label")} tone="light">
+                  <Ed at={at("hero.primaryButton.label")} tone={heroTone}>
                     {t(primary.label)}
                   </Ed>
                 </ButtonLink>
-                <ButtonLink href={secondary.href} variant="onDark" className="sm:w-auto">
-                  <Ed at={at("hero.secondaryButton.label")} tone="light">
+                <ButtonLink
+                  href={secondary.href}
+                  variant={heroTone === "light" ? "onDark" : "secondary"}
+                  className="sm:w-auto"
+                >
+                  <Ed at={at("hero.secondaryButton.label")} tone={heroTone}>
                     {t(secondary.label)}
                   </Ed>
                 </ButtonLink>
               </div>
 
               {heroStats.length > 0 ? (
-                <dl className="mt-2 grid max-w-lg grid-cols-3 gap-4 border-t border-white/10 pt-6">
+                <dl className={`mt-2 grid max-w-lg grid-cols-3 gap-4 border-t pt-6 ${heroInk.line}`}>
                   {heroStats.map((stat, index) => (
                     <div key={index}>
-                      <dt className="font-serif text-2xl font-semibold text-leaf-300">
-                        <Ed at={at(`hero.stats.${index}.value`)} tone="light">
+                      <dt className={`font-serif text-2xl font-semibold ${heroInk.accent}`}>
+                        <Ed at={at(`hero.stats.${index}.value`)} tone={heroTone}>
                           {t(stat.value)}
                         </Ed>
                       </dt>
-                      <dd className="mt-1 text-xs leading-relaxed text-ink-300">
-                        <Ed at={at(`hero.stats.${index}.label`)} tone="light">
+                      <dd className={`mt-1 text-xs leading-relaxed ${heroInk.body}`}>
+                        <Ed at={at(`hero.stats.${index}.label`)} tone={heroTone}>
                           {t(stat.label)}
                         </Ed>
                       </dd>
@@ -228,30 +246,39 @@ export default async function HomePage() {
 
       {visibleSections.map((item, index) => {
         const skin = sectionSkin(item);
+        const tone = skin.tone;
         const columns = COLUMN_CLASS[item.columns];
         const key = `${item.type}-${index}`;
+        const styleButton = (
+          <EdStyle at={sectionAt(at, item)} label={sectionLabel(item.type)} config={item} />
+        );
 
         switch (item.type) {
           case "highlights":
             return highlights.length > 0 ? (
               <section key={key} className={`py-16 sm:py-20 ${skin.className}`} style={skin.style}>
+                {styleButton}
                 <Container size="wide">
                   <div className={`grid gap-5 ${columns ?? "md:grid-cols-3"}`}>
                     {highlights.map((highlight, cardIndex) => {
                       const Icon = ICONS[highlight.icon] ?? LeafIcon;
+                      const cardTone = skin.cardTone("dark");
+                      const ink = INK[cardTone];
                       return (
                         <div
                           key={cardIndex}
-                          className="flex flex-col gap-4 rounded-card border border-rice-300 bg-rice-50 p-6 transition duration-300 ease-craft hover:border-leaf-200 hover:shadow-lift"
+                          className={`box flex flex-col gap-4 rounded-card border p-6 transition duration-300 ease-craft hover:shadow-lift ${ink.card}`}
                         >
                           <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-leaf-50 text-leaf-600">
                             <Icon className="h-6 w-6" />
                           </span>
-                          <h3 className="font-serif text-lg font-semibold text-ink-800">
-                            <Ed at={at(`highlights.${cardIndex}.title`)}>{t(highlight.title)}</Ed>
+                          <h3 className={`font-serif text-lg font-semibold ${ink.title}`}>
+                            <Ed at={at(`highlights.${cardIndex}.title`)} tone={cardTone}>
+                              {t(highlight.title)}
+                            </Ed>
                           </h3>
-                          <p className="text-sm leading-relaxed text-river-500">
-                            <Ed at={at(`highlights.${cardIndex}.body`)} multiline>
+                          <p className={`text-sm leading-relaxed ${ink.body}`}>
+                            <Ed at={at(`highlights.${cardIndex}.body`)} multiline tone={cardTone}>
                               {t(highlight.body)}
                             </Ed>
                           </p>
@@ -266,16 +293,17 @@ export default async function HomePage() {
           case "featured-products":
             return (
               <section key={key} className={`py-12 sm:py-16 ${skin.className}`} style={skin.style}>
+                {styleButton}
                 <Container size="wide">
                   <SectionHeading
                     at={at("featuredSection")}
                     eyebrow={t(section(page, "featuredSection").eyebrow)}
                     title={t(section(page, "featuredSection").title)}
                     description={t(section(page, "featuredSection").description)}
-                    tone={skin.onDark ? "light" : "dark"}
+                    tone={tone}
                     action={
-                      <ArrowLink href="/shop" tone={skin.onDark ? "light" : "dark"}>
-                        <Ed at={atLabel("general", "viewAllProducts")} tone={skin.onDark ? "light" : "dark"}>
+                      <ArrowLink href="/shop" tone={tone}>
+                        <Ed at={atLabel("general", "viewAllProducts")} tone={tone}>
                           {labels.general.viewAllProducts}
                         </Ed>
                       </ArrowLink>
@@ -289,6 +317,7 @@ export default async function HomePage() {
                         showQuickOrder
                         editHref={editing ? adminDoc("products", product.id) : undefined}
                         labels={labels.general}
+                        tone={skin.cardTone("dark")}
                       />
                     ))}
                   </div>
@@ -296,11 +325,19 @@ export default async function HomePage() {
               </section>
             );
 
-          case "spotlight":
+          case "spotlight": {
+            // กล่องเรื่องเล่าเด่นเป็นพื้นเข้มโดยตั้งต้น — สีการ์ดสีอ่อนจะเปลี่ยนเป็นแบบพื้นอ่อน
+            const boxTone = skin.cardTone("light");
+            const ink = INK[boxTone];
             return spotlight ? (
               <section key={key} className={`py-16 sm:py-20 ${skin.className}`} style={skin.style}>
+                {styleButton}
                 <Container size="wide">
-                  <div className="overflow-hidden rounded-2xl bg-ink-800">
+                  <div
+                    className={`box overflow-hidden rounded-2xl ${
+                      boxTone === "light" ? "border border-white/10 bg-ink-800" : "border border-rice-300 bg-rice-50"
+                    }`}
+                  >
                     <div className="grid lg:grid-cols-2">
                       <div className="relative min-h-64 lg:min-h-full">
                         <Image
@@ -318,33 +355,39 @@ export default async function HomePage() {
                         />
                       </div>
                       <div className="flex flex-col justify-center gap-5 p-8 sm:p-12">
-                        <EyebrowLabel tone="light">
-                          <Ed at={at("spotlight.eyebrow")} tone="light" placeholder="ข้อความนำ">
+                        <EyebrowLabel tone={boxTone === "light" ? "light" : "ember"}>
+                          <Ed at={at("spotlight.eyebrow")} tone={boxTone} placeholder="ข้อความนำ">
                             {t(loc(spotlightGroup.eyebrow as never))}
                           </Ed>
                         </EyebrowLabel>
-                        <h2 className="font-serif text-2xl leading-snug font-semibold text-rice-100 sm:text-3xl">
+                        <h2 className={`font-serif text-2xl leading-snug font-semibold sm:text-3xl ${ink.title}`}>
                           {t(spotlight.title)}
                         </h2>
-                        <p className="text-md leading-relaxed text-ink-200">
+                        <p
+                          className={`text-md leading-relaxed ${
+                            boxTone === "light" ? "text-ink-200" : "text-river-500"
+                          }`}
+                        >
                           {t(spotlight.excerpt)}
                         </p>
                         {t(loc(spotlightGroup.quote as never)) || editing ? (
-                          <blockquote className="border-l-2 border-leaf-500 pl-4 font-serif text-base leading-relaxed text-rice-100">
-                            <Ed at={at("spotlight.quote")} multiline tone="light" placeholder="ข้อความอ้างอิง">
+                          <blockquote
+                            className={`border-l-2 border-leaf-500 pl-4 font-serif text-base leading-relaxed ${ink.title}`}
+                          >
+                            <Ed at={at("spotlight.quote")} multiline tone={boxTone} placeholder="ข้อความอ้างอิง">
                               {t(loc(spotlightGroup.quote as never))}
                             </Ed>
-                            <footer className="mt-2 font-sans text-xs text-ink-300">
+                            <footer className={`mt-2 font-sans text-xs ${ink.body}`}>
                               —{" "}
-                              <Ed at={at("spotlight.attribution")} tone="light" placeholder="ที่มาของข้อความ">
+                              <Ed at={at("spotlight.attribution")} tone={boxTone} placeholder="ที่มาของข้อความ">
                                 {t(loc(spotlightGroup.attribution as never))}
                               </Ed>
                             </footer>
                           </blockquote>
                         ) : null}
                         <div>
-                          <ArrowLink href={`/stories/${spotlight.slug}`} tone="light">
-                            <Ed at={atLabel("general", "readFullArticle")} tone="light">
+                          <ArrowLink href={`/stories/${spotlight.slug}`} tone={boxTone}>
+                            <Ed at={atLabel("general", "readFullArticle")} tone={boxTone}>
                               {labels.general.readFullArticle}
                             </Ed>
                           </ArrowLink>
@@ -355,20 +398,24 @@ export default async function HomePage() {
                 </Container>
               </section>
             ) : null;
+          }
 
-          case "workshops":
+          case "workshops": {
+            const cardTone = skin.cardTone("dark");
+            const ink = INK[cardTone];
             return (
               <section key={key} className={`py-12 sm:py-16 ${skin.className}`} style={skin.style}>
+                {styleButton}
                 <Container size="wide">
                   <SectionHeading
                     at={at("experienceSection")}
                     eyebrow={t(section(page, "experienceSection").eyebrow)}
                     title={t(section(page, "experienceSection").title)}
                     description={t(section(page, "experienceSection").description)}
-                    tone={skin.onDark ? "light" : "dark"}
+                    tone={tone}
                     action={
-                      <ArrowLink href="/tourism" tone={skin.onDark ? "light" : "dark"}>
-                        <Ed at={atLabel("general", "viewAllWorkshops")} tone={skin.onDark ? "light" : "dark"}>
+                      <ArrowLink href="/tourism" tone={tone}>
+                        <Ed at={atLabel("general", "viewAllWorkshops")} tone={tone}>
                           {labels.general.viewAllWorkshops}
                         </Ed>
                       </ArrowLink>
@@ -378,7 +425,7 @@ export default async function HomePage() {
                     {workshops.slice(0, item.limit ?? workshops.length).map((workshop) => (
                       <article
                         key={workshop.slug}
-                        className="group relative flex flex-col overflow-hidden rounded-card border border-rice-300 bg-rice-50 transition duration-300 ease-craft hover:-translate-y-1 hover:shadow-lift"
+                        className={`box group relative flex flex-col overflow-hidden rounded-card border transition duration-300 ease-craft hover:-translate-y-1 hover:shadow-lift ${ink.card}`}
                       >
                         <div className="relative aspect-3/2 overflow-hidden bg-ink-800">
                           <Image
@@ -396,17 +443,17 @@ export default async function HomePage() {
                           />
                         </div>
                         <div className="flex flex-1 flex-col gap-3 p-5">
-                          <h3 className="font-serif text-lg leading-snug font-semibold text-ink-800">
+                          <h3 className={`font-serif text-lg leading-snug font-semibold ${ink.title}`}>
                             <Link href="/tourism" className="after:absolute after:inset-0 after:content-['']">
                               {t(workshop.title)}
                             </Link>
                           </h3>
-                          <p className="text-sm leading-relaxed text-river-500">{t(workshop.summary)}</p>
-                          <p className="mt-auto pt-2 text-sm font-semibold text-leaf-600">
+                          <p className={`text-sm leading-relaxed ${ink.body}`}>{t(workshop.summary)}</p>
+                          <p className={`mt-auto pt-2 text-sm font-semibold ${ink.accent}`}>
                             {workshop.pricePerPerson === null
                               ? labels.general.askServicePrice
                               : `${formatPrice(workshop.pricePerPerson)} ${labels.tourism.perPerson}`}
-                            <span className="ml-2 font-normal text-river-400">· {t(workshop.duration)}</span>
+                            <span className={`ml-2 font-normal ${ink.muted}`}>· {t(workshop.duration)}</span>
                           </p>
                         </div>
                       </article>
@@ -415,19 +462,21 @@ export default async function HomePage() {
                 </Container>
               </section>
             );
+          }
 
           case "latest-articles":
             return (
               <section key={key} className={`py-16 sm:py-20 ${skin.className}`} style={skin.style}>
+                {styleButton}
                 <Container size="wide">
                   <SectionHeading
                     at={at("storiesSection")}
                     eyebrow={t(section(page, "storiesSection").eyebrow)}
                     title={t(section(page, "storiesSection").title)}
-                    tone={skin.onDark ? "light" : "dark"}
+                    tone={tone}
                     action={
-                      <ArrowLink href="/stories" tone={skin.onDark ? "light" : "dark"}>
-                        <Ed at={atLabel("general", "viewAllArticles")} tone={skin.onDark ? "light" : "dark"}>
+                      <ArrowLink href="/stories" tone={tone}>
+                        <Ed at={atLabel("general", "viewAllArticles")} tone={tone}>
                           {labels.general.viewAllArticles}
                         </Ed>
                       </ArrowLink>
@@ -440,6 +489,7 @@ export default async function HomePage() {
                         article={article}
                         editHref={editing ? adminDoc("articles", article.id) : undefined}
                         labels={labels.article}
+                        tone={skin.cardTone("dark")}
                       />
                     ))}
                   </div>
@@ -449,52 +499,17 @@ export default async function HomePage() {
 
           case "cta":
             return (
-              <section key={key} className={`pb-4 pt-8 ${skin.className}`} style={skin.style}>
-                <Container size="wide">
-                  <div className="relative overflow-hidden rounded-2xl bg-ink-800 px-6 py-12 text-center sm:px-12 sm:py-16">
-                    <div
-                      aria-hidden
-                      className="pointer-events-none absolute left-1/2 top-0 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-leaf-500/25 blur-[100px]"
-                    />
-                    <div className="relative mx-auto flex max-w-2xl flex-col items-center gap-5">
-                      <EyebrowLabel tone="light">
-                        <Ed at={at("cta.eyebrow")} tone="light" placeholder="ข้อความนำ">
-                          {t(loc((page.cta as Record<string, unknown>)?.eyebrow as never))}
-                        </Ed>
-                      </EyebrowLabel>
-                      <h2 className="font-serif text-2xl leading-snug font-semibold text-rice-100 sm:text-3xl">
-                        <Ed at={at("cta.title")} tone="light">
-                          {t(cta.title)}
-                        </Ed>
-                      </h2>
-                      <p className="text-md leading-relaxed text-ink-200">
-                        <Ed at={at("cta.body")} multiline tone="light" placeholder="เนื้อหา">
-                          {t(cta.body)}
-                        </Ed>
-                      </p>
-                      <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-                        <a
-                          href={site.lineUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={buttonClass("primary")}
-                        >
-                          <LineIcon />
-                          แอดไลน์ {site.lineId}
-                        </a>
-                        <a href={telUrl(site)} className={buttonClass("onDark")}>
-                          <PhoneIcon />
-                          โทร {site.phoneDisplay}
-                        </a>
-                        <ButtonLink href="/contact" variant="onDark">
-                          <MapPinIcon />
-                          ดูแผนที่และการเดินทาง
-                        </ButtonLink>
-                      </div>
-                    </div>
-                  </div>
-                </Container>
-              </section>
+              <CtaBand
+                key={key}
+                site={site}
+                eyebrow={loc(ctaGroup.eyebrow as never)}
+                title={cta.title}
+                body={cta.body}
+                at={at("cta")}
+                styleAt={sectionAt(at, item)}
+                config={item}
+                editing={editing}
+              />
             );
 
           default:
@@ -502,7 +517,9 @@ export default async function HomePage() {
         }
       })}
 
-      {editing ? <EditToolbar {...editLinksFor("home")} /> : null}
+      {editing ? (
+        <EditToolbar {...editLinksFor("home")} styles={[pageStyleTarget(at("pageStyle"), pageStyle)]} />
+      ) : null}
     </>
   );
 }

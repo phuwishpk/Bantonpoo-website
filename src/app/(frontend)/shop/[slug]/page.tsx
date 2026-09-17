@@ -8,12 +8,14 @@ import { ProductOrderButton } from "@/components/line-order-button";
 import { ProductCard } from "@/components/product-card";
 import { Ed, EdImage } from "@/components/editable";
 import { EditToolbar } from "@/components/edit-mode";
+import { PageStyle } from "@/components/page-style";
 import { ProductGallery } from "@/components/product-gallery";
 import { StickyBuyBar } from "@/components/sticky-buy-bar";
 import { Badge, buttonClass, Container, OrnamentDivider } from "@/components/ui";
 import { SectionHeading } from "@/components/section-heading";
 import type { Product } from "@/content/types";
-import { getProduct, getProducts, getRelatedProducts, getSite } from "@/lib/cms/queries";
+import { readPageStyle } from "@/lib/cms/page-content";
+import { getPageGlobal, getProduct, getProducts, getRelatedProducts, getSite } from "@/lib/cms/queries";
 import { isDraftMode } from "@/lib/cms/draft";
 import { adminDoc, editLinksForDoc } from "@/lib/cms/edit-links";
 import { atDoc } from "@/lib/cms/inline";
@@ -86,6 +88,7 @@ export default async function ProductPage({ params }: PageProps) {
   ]);
   // ลิงก์เก่าที่เคยแชร์ไว้ควรพาไปหน้าใหม่ ไม่ใช่ตกหน้า 404 เงียบ ๆ
   if (!product) return redirectOrNotFound(`/shop/${slug}`);
+  const shopPage = await getPageGlobal("shop-page");
 
   const category = product.category;
   const artisan = product.artisan;
@@ -102,6 +105,8 @@ export default async function ProductPage({ params }: PageProps) {
 
   return (
     <>
+      {/* ใช้สีเน้นของหน้าสินค้า — หน้ารายละเอียดออกแบบไว้สำหรับพื้นอ่อน จึงรับเฉพาะสีพื้นโทนอ่อน */}
+      <PageStyle style={readPageStyle(shopPage)} lightBackgroundOnly />
       <div className="border-b border-rice-300 bg-rice-50">
         <Container size="wide">
           <div className="py-4">

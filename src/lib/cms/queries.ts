@@ -12,6 +12,7 @@ import type {
 } from "@/content/types";
 import { ALL_LOCALES, getCms } from "./client";
 import { isDraftMode } from "./draft";
+import { readStyle } from "./page-content";
 import { loc, mapArticle, mapArtisan, mapCategory, mapMedia, mapPlace, mapProduct, mapWorkshop } from "./map";
 
 /**
@@ -231,5 +232,7 @@ export const getTheme = cache(async (): Promise<ThemeSettings> => {
     radius: pick("radius") as string,
     density: pick("density") as string,
     customCss: typeof doc.customCss === "string" ? doc.customCss : undefined,
+    header: readStyle((doc.header ?? {}) as Record<string, unknown>, "dark"),
+    footer: readStyle((doc.footer ?? {}) as Record<string, unknown>, "dark"),
   };
 });

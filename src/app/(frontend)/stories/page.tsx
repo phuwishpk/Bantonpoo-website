@@ -1,11 +1,22 @@
 import type { Metadata } from "next";
 import { CtaBand } from "@/components/cta-band";
 import { JsonLd } from "@/components/json-ld";
+import { EdStyle } from "@/components/editable";
 import { PageHero } from "@/components/page-hero";
+import { PageStyle, pageStyleTarget } from "@/components/page-style";
 import { StoriesBrowser } from "@/components/stories-browser";
 import { EditToolbar } from "@/components/edit-mode";
 import { Container } from "@/components/ui";
-import { hero, readSections, sectionSkin, titleBody, typographyOf } from "@/lib/cms/page-content";
+import {
+  hero,
+  heroConfig,
+  readPageStyle,
+  readSections,
+  sectionAt,
+  sectionLabel,
+  sectionSkin,
+  titleBody,
+} from "@/lib/cms/page-content";
 import { getArticles, getCategories, getPageGlobal, getSite } from "@/lib/cms/queries";
 import { loc } from "@/lib/cms/map";
 import { isDraftMode } from "@/lib/cms/draft";
@@ -59,6 +70,7 @@ export default async function StoriesPage({
 
   const content = hero(page);
   const empty = titleBody(page, "emptyState");
+  const pageStyle = readPageStyle(page);
 
   // รับค่าจาก URL เฉพาะหมวดที่มีอยู่จริง กันค่าที่พิมพ์มั่วมาใน query string
   const validCategory = categories.some((category) => category.slug === params.category)
@@ -67,48 +79,59 @@ export default async function StoriesPage({
 
   return (
     <>
+      <PageStyle style={pageStyle} />
       <PageHero
         eyebrow={t(content.eyebrow)}
         title={t(content.title)}
         description={t(content.description)}
         crumbs={CRUMBS}
         at={at("hero")}
-        typography={typographyOf(page, "hero")}
+        config={heroConfig(page)}
       />
 
-      {visibleSections.map((item, index) =>
-        item.type === "list" ? (
-          <section
-            key={`${item.type}-${index}`}
-            className={`py-12 sm:py-16 ${sectionSkin(item).className}`}
-            style={sectionSkin(item).style}
-          >
-            <Container size="wide">
-              <StoriesBrowser
-                articles={articles}
-                categories={categories}
-                initialCategory={validCategory}
-                initialQuery={params.q ?? ""}
-                emptyState={{ title: t(empty.title), body: t(empty.body) }}
-                editing={editing}
-              />
-            </Container>
-          </section>
-        ) : item.type === "cta" ? (
-          <CtaBand
-            key={`${item.type}-${index}`}
-            site={site}
-            eyebrow={loc(cta.eyebrow as never)}
-            title={loc(cta.title as never)}
-            body={loc(cta.body as never)}
-            at={at("cta")}
-            config={item}
-            editing={editing}
-          />
-        ) : null
-      )}
+      {visibleSections.map((item, index) => {
+        const key = `${item.type}-${index}`;
+        if (item.type === "list") {
+          const skin = sectionSkin(item);
+          return (
+            <section key={key} className={`py-12 sm:py-16 ${skin.className}`} style={skin.style}>
+              <EdStyle at={sectionAt(at, item)} label={sectionLabel(item.type)} config={item} />
+              <Container size="wide">
+                <StoriesBrowser
+                  articles={articles}
+                  categories={categories}
+                  initialCategory={validCategory}
+                  initialQuery={params.q ?? ""}
+                  emptyState={{ title: t(empty.title), body: t(empty.body) }}
+                  editing={editing}
+                  tone={skin.tone}
+                  cardTone={skin.cardTone("dark")}
+                />
+              </Container>
+            </section>
+          );
+        }
+        if (item.type === "cta") {
+          return (
+            <CtaBand
+              key={key}
+              site={site}
+              eyebrow={loc(cta.eyebrow as never)}
+              title={loc(cta.title as never)}
+              body={loc(cta.body as never)}
+              at={at("cta")}
+              styleAt={sectionAt(at, item)}
+              config={item}
+              editing={editing}
+            />
+          );
+        }
+        return null;
+      })}
 
-      {editing ? <EditToolbar {...editLinksFor("stories")} /> : null}
+      {editing ? (
+        <EditToolbar {...editLinksFor("stories")} styles={[pageStyleTarget(at("pageStyle"), pageStyle)]} />
+      ) : null}
 
       <JsonLd data={breadcrumbJsonLd(CRUMBS)} />
     </>

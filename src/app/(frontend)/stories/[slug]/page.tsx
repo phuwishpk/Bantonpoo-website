@@ -5,11 +5,13 @@ import { Breadcrumbs } from "@/components/breadcrumbs";
 import { JsonLd } from "@/components/json-ld";
 import { Ed, EdImage } from "@/components/editable";
 import { EditToolbar } from "@/components/edit-mode";
+import { PageStyle } from "@/components/page-style";
 import { RichText } from "@/components/rich-text";
 import { ShareButtons } from "@/components/share-buttons";
 import { ButtonLink, Container, OrnamentDivider } from "@/components/ui";
 import { SectionHeading } from "@/components/section-heading";
-import { getArticle, getArticles, getRelatedArticles, getSite } from "@/lib/cms/queries";
+import { readPageStyle } from "@/lib/cms/page-content";
+import { getArticle, getArticles, getPageGlobal, getRelatedArticles, getSite } from "@/lib/cms/queries";
 import { isDraftMode } from "@/lib/cms/draft";
 import { adminDoc, editLinksForDoc } from "@/lib/cms/edit-links";
 import { atDoc } from "@/lib/cms/inline";
@@ -46,11 +48,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ArticlePage({ params }: PageProps) {
   const { slug } = await params;
-  const [article, site, labels, editing] = await Promise.all([
+  const [article, site, labels, editing, storiesPage] = await Promise.all([
     getArticle(slug),
     getSite(),
     getLabels(),
     isDraftMode(),
+    getPageGlobal("stories-page"),
   ]);
   // ลิงก์เก่าที่เคยแชร์ไว้ควรพาไปหน้าใหม่ ไม่ใช่ตกหน้า 404 เงียบ ๆ
   if (!article) return redirectOrNotFound(`/stories/${slug}`);
@@ -72,6 +75,8 @@ export default async function ArticlePage({ params }: PageProps) {
 
   return (
     <article>
+      {/* ใช้สีเน้นของหน้าเรื่องเล่า — เนื้อหาบทความออกแบบไว้สำหรับพื้นอ่อน จึงรับเฉพาะสีพื้นโทนอ่อน */}
+      <PageStyle style={readPageStyle(storiesPage)} lightBackgroundOnly />
       {/* ---------------- ส่วนหัวบทความ ---------------- */}
       <header className="bg-ink-800 pb-10 pt-10 sm:pb-14">
         <Container size="narrow">

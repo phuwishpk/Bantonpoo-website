@@ -1,4 +1,5 @@
 import type { Field } from "payload";
+import { STYLE_FIELD_NAMES } from "@/fields";
 
 /**
  * ตรวจว่าเส้นทางที่ส่งมาชี้ไปยัง "ช่องข้อความ" หรือ "ช่องรูป" จริงตามสคีมาของ Payload
@@ -13,6 +14,7 @@ import type { Field } from "payload";
 type AnyField = Field & {
   name?: string;
   required?: boolean;
+  options?: (string | { value: string })[];
   relationTo?: unknown;
   hasMany?: boolean;
   fields?: Field[];
@@ -29,6 +31,11 @@ const isText = (field: AnyField) => TEXT_TYPES.has(field.type);
 const isMediaUpload = (field: AnyField) =>
   field.type === "upload" && field.relationTo === "media" && !field.hasMany;
 
+/** ช่องสี — เฉพาะชื่อในชุดฟิลด์สี (colorFields) และต้องเป็นตัวเลือกหรือช่องรหัสสีเท่านั้น */
+const STYLE_KEYS = new Set<string>(STYLE_FIELD_NAMES);
+const isStyleField = (field: AnyField) =>
+  STYLE_KEYS.has(field.name ?? "") && (field.type === "select" || field.type === "text");
+
 const isIndex = (segment: string) => /^\d{1,3}$/.test(segment);
 
 /**
@@ -43,6 +50,16 @@ export function findTextField(fields: Field[], path: string[], data?: unknown): 
 /** ช่องรูปภาพตามเส้นทาง หรือ null — ใช้ required ของผลลัพธ์ตัดสินว่านำรูปออกได้ไหม */
 export function findMediaField(fields: Field[], path: string[], data?: unknown): AnyField | null {
   return findField(fields, path, isMediaUpload, data);
+}
+
+/** ช่องสีตามเส้นทาง หรือ null — ใช้กับคำขอเปลี่ยนสีจากหน้าเว็บ */
+export function findStyleField(fields: Field[], path: string[], data?: unknown): AnyField | null {
+  return findField(fields, path, isStyleField, data);
+}
+
+/** ค่าที่เลือกได้ของช่องตัวเลือก */
+export function optionValues(field: AnyField): string[] {
+  return (field.options ?? []).map((option) => (typeof option === "string" ? option : option.value));
 }
 
 const child = (data: unknown, key: string): unknown =>

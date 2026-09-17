@@ -117,6 +117,7 @@ export function heroFields(): Field {
       { name: "eyebrow", type: "text", localized: true, label: "ข้อความนำ (ตัวเล็ก)" },
       { name: "title", type: "text", required: true, localized: true, label: "หัวเรื่อง" },
       { name: "description", type: "textarea", localized: true, label: "คำโปรย" },
+      colorCollapsible("สีของแถบหัวหน้าเพจ", { fallbackBackground: "dark" }),
       typographyCollapsible("ตัวอักษรและการจัดวางของแถบหัวหน้าเพจ"),
     ],
   };
@@ -254,9 +255,38 @@ const hexOrEmpty = (value: unknown) => {
   return "ต้องเป็นรหัสสีแบบ #rrggbb เช่น #2e7d52";
 };
 
+/**
+ * ช่องเลือกสี — เก็บเป็นรหัส #rrggbb แต่ในหลังบ้านแสดงเป็นจานสีให้คลิกเลือก
+ * (ดู src/components/admin/ColorField.tsx) ผู้ดูแลจึงไม่ต้องรู้จักรหัสสี
+ *
+ * @param palette ชุดสีแนะนำที่แสดง — พื้นหลังแสดงทั้งสีอ่อนและเข้ม สีเน้นแสดงสีสด
+ */
+export function colorField(
+  name: string,
+  label: string,
+  options: {
+    description?: string;
+    palette?: "surface" | "accent";
+    condition?: (data: unknown, sibling: Record<string, unknown>) => boolean;
+  } = {}
+): TextField {
+  return {
+    name,
+    type: "text",
+    label,
+    validate: hexOrEmpty,
+    admin: {
+      description: options.description,
+      condition: options.condition as never,
+      components: { Field: "/components/admin/ColorField#ColorField" },
+      custom: { palette: options.palette ?? "surface" },
+    },
+  };
+}
+
 /** ตัวเลือกพื้นหลังที่ใช้ร่วมกันระหว่าง section ของหน้าประจำ และบล็อกของหน้าที่สร้างเอง */
 const BACKGROUND_OPTIONS = [
-  { label: "สีพื้นของหน้า", value: "page" },
+  { label: "ตามแบบเดิมของส่วนนี้", value: "page" },
   { label: "พื้นเข้ม", value: "dark" },
   { label: "พื้นอ่อนตัดกัน", value: "tint" },
   { label: "กำหนดสีเอง", value: "custom" },
@@ -267,6 +297,114 @@ const TEXT_TONE_OPTIONS = [
   { label: "ตัวอักษรสีอ่อน", value: "light" },
   { label: "ตัวอักษรสีเข้ม", value: "dark" },
 ];
+
+/** ชื่อฟิลด์สีทั้งหมด — API แก้สีจากหน้าเว็บรับเฉพาะชื่อในรายการนี้ */
+export const STYLE_FIELD_NAMES = ["background", "backgroundColor", "textTone", "accentColor", "cardColor"] as const;
+
+/**
+ * ชุดฟิลด์สีของกล่องหนึ่งกล่อง — ใช้ชื่อเดียวกันทุกที่ (ส่วนของหน้า บล็อก แบนเนอร์ แถบเมนู)
+ * ตัวแปลงเป็น CSS จึงมีตัวเดียว (sectionSkin ใน src/lib/cms/page-content.ts)
+ *
+ * @param fallbackBackground พื้นหลังตั้งต้น — แบนเนอร์และแถบเมนูเป็นพื้นเข้ม
+ * @param cards มีช่องสีการ์ดด้วยหรือไม่ (กล่องที่ไม่มีการ์ดข้างในไม่ต้องแสดง)
+ * @param when  เงื่อนไขเพิ่มเติมในการแสดงทุกช่อง
+ */
+export function colorFields(
+  options: {
+    fallbackBackground?: "page" | "dark";
+    cards?: boolean;
+    when?: (sibling: Record<string, unknown>) => boolean;
+  } = {}
+): Field[] {
+  const when = options.when ?? (() => true);
+  const isCustom = (_: unknown, sibling: Record<string, unknown>) =>
+    when(sibling ?? {}) && sibling?.background === "custom";
+  const shown = (_: unknown, sibling: Record<string, unknown>) => when(sibling ?? {});
+
+  const backgroundOptions =
+    options.fallbackBackground === "dark"
+      ? [
+          { label: "พื้นเข้ม (ค่าเริ่มต้น)", value: "dark" },
+          { label: "สีพื้นของหน้า", value: "page" },
+          { label: "พื้นอ่อนตัดกัน", value: "tint" },
+          { label: "กำหนดสีเอง", value: "custom" },
+        ]
+      : BACKGROUND_OPTIONS;
+
+  return [
+    {
+      name: "background",
+      type: "select",
+      defaultValue: options.fallbackBackground ?? "page",
+      label: "พื้นหลัง",
+      options: backgroundOptions,
+      admin: { condition: shown },
+    },
+    colorField("backgroundColor", "สีพื้นหลัง", { condition: isCustom }),
+    {
+      name: "textTone",
+      type: "select",
+      defaultValue: "auto",
+      label: "สีตัวอักษรบนพื้นนี้",
+      options: TEXT_TONE_OPTIONS,
+      admin: { condition: isCustom },
+    },
+    colorField("accentColor", "สีเน้น (ปุ่ม ป้าย หัวข้อเล็ก)", {
+      palette: "accent",
+      condition: shown,
+      description: "เว้นว่างไว้เพื่อใช้สีหลักของธีม",
+    }),
+    ...(options.cards
+      ? [
+          colorField("cardColor", "สีการ์ดและกล่องข้างใน", {
+            condition: shown,
+            description: "เว้นว่างไว้เพื่อใช้สีเดิม · สีตัวอักษรบนการ์ดปรับให้อ่านง่ายเองอัตโนมัติ",
+          }),
+        ]
+      : []),
+  ];
+}
+
+/** ชุดฟิลด์สีในกล่องพับ */
+export function colorCollapsible(
+  label: string,
+  options: Parameters<typeof colorFields>[0] = {}
+): Field {
+  return {
+    type: "collapsible",
+    label,
+    admin: { initCollapsed: true, description: "เว้นไว้ตามค่าเริ่มต้นได้ทั้งหมด ถ้ายังไม่ต้องการปรับ" },
+    fields: colorFields(options),
+  };
+}
+
+/**
+ * สีของทั้งหน้า — ส่วนที่ไม่ได้ตั้งสีเองจะใช้ค่านี้
+ * ตั้งในแท็บแรกของทุกหน้า เพื่อให้เปลี่ยนโทนทั้งหน้าได้ในที่เดียว
+ */
+export function pageStyleField(): Field {
+  return {
+    name: "pageStyle",
+    type: "group",
+    label: "สีของทั้งหน้า",
+    admin: {
+      description:
+        "ใช้กับทุกส่วนของหน้านี้ที่ยังไม่ได้ตั้งสีเอง · หน้ารายละเอียดสินค้า/บทความใช้สีเน้นตามหน้ารวมด้วย",
+    },
+    fields: [
+      colorField("accentColor", "สีเน้นของหน้า", {
+        palette: "accent",
+        description: "เว้นว่างไว้เพื่อใช้สีหลักของธีม",
+      }),
+      colorField("backgroundColor", "สีพื้นของหน้า", {
+        description: "เว้นว่างไว้เพื่อใช้สีพื้นของธีม · ถ้าเลือกสีเข้ม ตัวอักษรจะเปลี่ยนเป็นสีอ่อนให้เอง",
+      }),
+      colorField("cardColor", "สีการ์ดของทั้งหน้า", {
+        description: "เว้นว่างไว้เพื่อใช้สีเดิม",
+      }),
+    ],
+  };
+}
 
 const COLUMN_OPTIONS = [
   { label: "ตามค่าเริ่มต้น", value: "auto" },
@@ -282,44 +420,12 @@ const COLUMN_OPTIONS = [
  * (sectionSkin) อ่านได้ทั้งสองแบบ ไม่ต้องเขียนตรรกะสีซ้ำสองชุด
  */
 export function blockStyleFields(options: { columns?: boolean } = {}): Field {
-  const isCustom = (_: unknown, sibling: { background?: string }) => sibling?.background === "custom";
-
   return {
     type: "collapsible",
     label: "สี ตัวอักษร และการจัดวางของส่วนนี้",
     admin: { initCollapsed: true, description: "เว้นไว้ตามค่าเริ่มต้นได้ทั้งหมด ถ้ายังไม่ต้องการปรับ" },
     fields: [
-      {
-        name: "background",
-        type: "select",
-        defaultValue: "page",
-        label: "พื้นหลัง",
-        options: BACKGROUND_OPTIONS,
-      },
-      {
-        name: "backgroundColor",
-        type: "text",
-        label: "สีพื้นหลัง (รหัสสี)",
-        admin: { condition: isCustom, description: "ใส่เป็นรหัสสีแบบ #rrggbb" },
-        validate: hexOrEmpty,
-      },
-      {
-        name: "textTone",
-        type: "select",
-        defaultValue: "auto",
-        label: "สีตัวอักษรบนพื้นนี้",
-        options: TEXT_TONE_OPTIONS,
-        admin: { condition: isCustom },
-      },
-      {
-        name: "accentColor",
-        type: "text",
-        label: "สีเน้นเฉพาะส่วนนี้ (รหัสสี)",
-        admin: {
-          description: "เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่มและป้ายเฉพาะในส่วนนี้",
-        },
-        validate: hexOrEmpty,
-      },
+      ...colorFields({ cards: true }),
       ...(options.columns
         ? [
             {
@@ -342,7 +448,7 @@ export function blockStyleFields(options: { columns?: boolean } = {}): Field {
  * ชนิดของ section ผูกกับคอมโพเนนต์ในโค้ด จึงเป็นตัวเลือกไม่ใช่ช่องพิมพ์
  * ถ้าจะเพิ่มชนิดใหม่ต้องเพิ่มทั้งที่นี่และใน switch ของหน้านั้น
  *
- * @param gridTypes ชนิดที่วางเป็นกริด จึงเลือกจำนวนคอลัมน์และพื้นหลังได้
+ * @param gridTypes ชนิดที่วางเป็นกริด จึงเลือกจำนวนคอลัมน์ได้ (สีเปลี่ยนได้ทุกชนิด)
  * @param limitTypes ชนิดที่จำกัดจำนวนรายการที่แสดงได้
  */
 export function sectionsField(options: {
@@ -369,47 +475,8 @@ export function sectionsField(options: {
     fields: [
       { name: "type", type: "select", required: true, label: "ส่วนไหน", options: options.types },
       { name: "enabled", type: "checkbox", defaultValue: true, label: "แสดงส่วนนี้" },
-      {
-        name: "background",
-        type: "select",
-        defaultValue: "page",
-        label: "พื้นหลัง",
-        options: BACKGROUND_OPTIONS,
-        admin: { condition: inGroup(grid) },
-      },
-      {
-        name: "backgroundColor",
-        type: "text",
-        label: "สีพื้นหลัง (รหัสสี)",
-        admin: {
-          condition: (_: unknown, sibling: { type?: string; background?: string }) =>
-            grid.includes(sibling?.type ?? "") && sibling?.background === "custom",
-          description: "ใส่เป็นรหัสสีแบบ #rrggbb",
-        },
-        validate: hexOrEmpty,
-      },
-      {
-        name: "textTone",
-        type: "select",
-        defaultValue: "auto",
-        label: "สีตัวอักษรบนพื้นนี้",
-        options: TEXT_TONE_OPTIONS,
-        admin: {
-          condition: (_: unknown, sibling: { type?: string; background?: string }) =>
-            grid.includes(sibling?.type ?? "") && sibling?.background === "custom",
-        },
-      },
-      {
-        name: "accentColor",
-        type: "text",
-        label: "สีเน้นเฉพาะส่วนนี้ (รหัสสี)",
-        admin: {
-          condition: inGroup(grid),
-          description:
-            "เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่ม ป้าย และหัวข้อเล็กเฉพาะในส่วนนี้",
-        },
-        validate: hexOrEmpty,
-      },
+      // สีเปลี่ยนได้ทุกชนิดส่วน ทุกส่วนเลือกสีตัวอักษรตามพื้นได้เองแล้ว
+      colorCollapsible("สีของส่วนนี้", { cards: true }),
       {
         name: "columns",
         type: "select",

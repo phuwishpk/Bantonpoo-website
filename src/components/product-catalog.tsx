@@ -19,6 +19,7 @@ import { InlineImageEdit } from "./inline-image";
 import { QuickOrderButton } from "./line-order-button";
 import { Badge, buttonClass } from "./ui";
 import { useLabels } from "./site-context";
+import { INK, type Tone } from "@/lib/tone";
 
 /** เวลาต่อสไลด์เมื่อเล่นอัตโนมัติ ต้องตรงกับ duration ของ animation แถบความคืบหน้า */
 const AUTOPLAY_MS = 7000;
@@ -44,10 +45,17 @@ const STATUS_TONE = {
 export function ProductCatalog({
   products,
   editing = false,
+  tone = "light",
+  controlsTone = "dark",
 }: {
   products: Product[];
   editing?: boolean;
+  /** โทนของกล่องสไลด์ — พื้นเข้มโดยตั้งต้น ("light" = ตัวอักษรสีอ่อน) */
+  tone?: Tone;
+  /** โทนของปุ่มควบคุมใต้สไลด์ ตามพื้นของส่วนที่วางอยู่ */
+  controlsTone?: Tone;
 }) {
+  const controls = INK[controlsTone].control;
   const [rawIndex, setIndex] = useState(0);
   const [dragX, setDragX] = useState(0);
   const [dragging, setDragging] = useState(false);
@@ -128,7 +136,11 @@ export function ProductCatalog({
       className="flex flex-col gap-4 rounded-2xl focus-visible:outline-none"
     >
       {/* ---------------- ตัวสไลด์ ---------------- */}
-      <div className="relative overflow-hidden rounded-2xl bg-ink-800">
+      <div
+        className={`box relative overflow-hidden rounded-2xl ${
+          tone === "light" ? "border border-white/10 bg-ink-800" : "border border-rice-300 bg-rice-50"
+        }`}
+      >
         <div
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
@@ -150,6 +162,7 @@ export function ProductCatalog({
               position={slideIndex + 1}
               total={total}
               editing={editing}
+              tone={tone}
             />
           ))}
         </div>
@@ -199,7 +212,7 @@ export function ProductCatalog({
               type="button"
               onClick={prev}
               aria-label="สินค้าก่อนหน้า"
-              className="rounded-lg border border-rice-300 bg-rice-50 p-2.5 text-ink-700 transition-colors hover:border-ink-400"
+              className={`rounded-lg border p-2.5 transition-colors ${controls}`}
             >
               <ChevronLeftIcon className="h-5 w-5" />
             </button>
@@ -207,7 +220,7 @@ export function ProductCatalog({
               type="button"
               onClick={next}
               aria-label="สินค้าถัดไป"
-              className="rounded-lg border border-rice-300 bg-rice-50 p-2.5 text-ink-700 transition-colors hover:border-ink-400"
+              className={`rounded-lg border p-2.5 transition-colors ${controls}`}
             >
               <ChevronRightIcon className="h-5 w-5" />
             </button>
@@ -230,7 +243,7 @@ export function ProductCatalog({
                 onClick={() => goTo(slideIndex)}
                 className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-ink-800 transition duration-300 ease-craft ${
                   slideIndex === index
-                    ? "ring-2 ring-leaf-500 ring-offset-2 ring-offset-rice-100"
+                    ? "ring-2 ring-leaf-500 ring-offset-2 ring-offset-transparent"
                     : "opacity-55 hover:opacity-100"
                 }`}
               >
@@ -251,7 +264,7 @@ export function ProductCatalog({
             type="button"
             onClick={() => setAutoplay((value) => !value)}
             aria-label={autoplay ? "หยุดเล่นสไลด์อัตโนมัติ" : "เล่นสไลด์อัตโนมัติ"}
-            className="flex shrink-0 items-center gap-2 rounded-lg border border-rice-300 bg-rice-50 px-3 py-2.5 text-xs font-medium text-ink-700 transition-colors hover:border-ink-400"
+            className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2.5 text-xs font-medium transition-colors ${controls}`}
           >
             {autoplay ? <PauseIcon className="h-4 w-4" /> : <PlayIcon className="h-4 w-4" />}
             <span className="tabular-nums">
@@ -271,14 +284,18 @@ function CatalogSlide({
   position,
   total,
   editing,
+  tone,
 }: {
   product: Product;
   active: boolean;
   position: number;
   total: number;
   editing: boolean;
+  tone: Tone;
 }) {
   const labels = useLabels();
+  const ink = INK[tone];
+  const onDark = tone === "light";
   const category = product.category;
   const cover = product.gallery[0];
   const herbs = t(product.mainHerbs);
@@ -335,63 +352,66 @@ function CatalogSlide({
       <div className="flex flex-col justify-center gap-5 p-7 sm:p-10">
         <Reveal active={active} delay={80}>
           {category ? (
-            <p className="text-xs font-semibold tracking-label text-leaf-300">{t(category.title)}</p>
+            <p className={`text-xs font-semibold tracking-label ${ink.accent}`}>{t(category.title)}</p>
           ) : null}
         </Reveal>
 
         <Reveal active={active} delay={140} as="h3">
-          <span className="font-serif text-2xl leading-snug font-semibold text-rice-100 sm:text-3xl">
-            <Link href={`/shop/${product.slug}`} className="hover:text-leaf-200">
+          <span className={`font-serif text-2xl leading-snug font-semibold sm:text-3xl ${ink.title}`}>
+            <Link href={`/shop/${product.slug}`} className={onDark ? "hover:text-leaf-200" : "hover:text-leaf-600"}>
               {t(product.name)}
             </Link>
           </span>
         </Reveal>
 
         <Reveal active={active} delay={200}>
-          <p className="text-md leading-relaxed text-ink-200">{t(product.excerpt)}</p>
+          <p className={`text-md leading-relaxed ${onDark ? "text-ink-200" : "text-river-500"}`}>{t(product.excerpt)}</p>
         </Reveal>
 
         {/* ข้อมูลเบื้องต้นแบบย่อ */}
-        <Reveal active={active} delay={260} as="dl" className="grid grid-cols-2 gap-4 border-y border-white/10 py-5">
+        <Reveal active={active} delay={260} as="dl" className={`grid grid-cols-2 gap-4 border-y py-5 ${ink.line}`}>
           <div>
-            <dt className="text-2xs text-ink-400">รูปแบบ</dt>
-            <dd className="mt-1 text-sm font-medium text-rice-100">
+            <dt className={`text-2xs ${ink.muted}`}>รูปแบบ</dt>
+            <dd className={`mt-1 text-sm font-medium ${ink.title}`}>
               {t(productFormLabels[product.form])}
             </dd>
           </div>
           <div>
-            <dt className="text-2xs text-ink-400">ปริมาณสุทธิ</dt>
-            <dd className="mt-1 text-sm font-medium text-rice-100">{t(product.netContent)}</dd>
+            <dt className={`text-2xs ${ink.muted}`}>ปริมาณสุทธิ</dt>
+            <dd className={`mt-1 text-sm font-medium ${ink.title}`}>{t(product.netContent)}</dd>
           </div>
           {herbs.length > 0 ? (
             <div className="col-span-2">
-              <dt className="text-2xs text-ink-400">สมุนไพรหลัก</dt>
-              <dd className="mt-1 text-sm font-medium text-rice-100">{herbs.join(" · ")}</dd>
+              <dt className={`text-2xs ${ink.muted}`}>สมุนไพรหลัก</dt>
+              <dd className={`mt-1 text-sm font-medium ${ink.title}`}>{herbs.join(" · ")}</dd>
             </div>
           ) : null}
         </Reveal>
 
         <Reveal active={active} delay={320} className="flex flex-wrap gap-2">
           {t(product.badges).map((badge) => (
-            <Badge key={badge} tone="dark">
+            <Badge key={badge} tone={onDark ? "dark" : "ember"}>
               {badge}
             </Badge>
           ))}
         </Reveal>
 
         <Reveal active={active} delay={380} className="flex flex-wrap items-center gap-4 pt-1">
-          <p className="font-serif text-3xl font-bold text-rice-100">
+          <p className={`font-serif text-3xl font-bold ${ink.title}`}>
             {product.price === null ? (
-              <span className="text-xl text-ink-200">{labels.general.askPrice}</span>
+              <span className={`text-xl ${onDark ? "text-ink-200" : "text-river-500"}`}>{labels.general.askPrice}</span>
             ) : (
               formatPrice(product.price)
             )}
           </p>
           <div className="flex flex-wrap gap-2">
-            <Link href={`/shop/${product.slug}`} className={buttonClass("onDark", "px-4 py-2.5 text-sm")}>
+            <Link
+              href={`/shop/${product.slug}`}
+              className={buttonClass(onDark ? "onDark" : "secondary", "px-4 py-2.5 text-sm")}
+            >
               ดูรายละเอียด
             </Link>
-            <QuickOrderButton product={product} />
+            <QuickOrderButton product={product} tone={tone} />
           </div>
         </Reveal>
       </div>

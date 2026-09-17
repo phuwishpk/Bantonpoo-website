@@ -16,7 +16,8 @@ import {
   type Cms,
   type CmsUser as User,
 } from "@/lib/cms/inline-request";
-import { findMediaField, findTextField } from "@/lib/cms/inline-schema";
+import { findMediaField, findStyleField, findTextField, optionValues } from "@/lib/cms/inline-schema";
+import { isHexColor } from "@/lib/color";
 
 /**
  * บันทึกข้อความที่แก้จากหน้าเว็บ
@@ -32,9 +33,10 @@ import { findMediaField, findTextField } from "@/lib/cms/inline-schema";
  * ทุกการบันทึกลงเป็น "ฉบับร่าง" เมื่อเอกสารนั้นรองรับ ผู้เข้าชมทั่วไปจึงยังไม่เห็น
  * จนกว่าจะกดเผยแพร่
  *
- * คำขอมีสามแบบ แยกด้วย action
+ * คำขอมีสี่แบบ แยกด้วย action
  *   (ไม่มี)   { at, value, multiline }  แก้ข้อความ
  *   "image"   { at, media }             เปลี่ยนรูป (media = id ในคลังรูป หรือ null เพื่อนำรูปออก)
+ *   "style"   { at, values }            เปลี่ยนสีของกล่อง (at ชี้กลุ่มฟิลด์ เช่น g:home-page:sections.2)
  *   "publish" { scopes }                เผยแพร่ฉบับร่างของเอกสารที่แก้ไว้
  */
 
@@ -81,6 +83,7 @@ export async function POST(request: Request) {
 
   if (body.action === "publish") return publish(cms, user, body);
   if (body.action === "image") return saveImage(cms, user, body);
+  if (body.action === "style") return saveStyle(cms, user, body);
   return save(cms, user, body);
 }
 
@@ -154,36 +157,104 @@ async function saveImage(cms: Cms, user: User, body: Record<string, unknown>) {
   return writeValue(cms, user, address, doc, value);
 }
 
+/* ------------------------------------------------------------------
+   เปลี่ยนสี
+   ------------------------------------------------------------------ */
+
 /**
- * เขียนค่าหนึ่งช่องลงเอกสาร
+ * เปลี่ยนสีของกล่องหนึ่งกล่อง (ส่วนของหน้า บล็อก แบนเนอร์ สีทั้งหน้า หรือแถบเมนู)
  *
- * ส่งกลับเฉพาะกิ่งบนสุดของเส้นทาง ไม่ส่งเอกสารทั้งก้อน เพื่อไม่ให้ทับฟิลด์อื่น
- * ที่คนอื่นอาจกำลังแก้อยู่พร้อมกัน เอกสารอ่านด้วย depth 0 รูปในกิ่งเดียวกันจึงเป็น id
- * อยู่แล้ว เขียนกลับไปได้ตรง ๆ
+ * at ชี้ไปที่กลุ่มฟิลด์ที่มีชุดฟิลด์สีอยู่ ส่วน values ระบุเฉพาะช่องที่เปลี่ยน
+ * ทุกช่องต้องเป็นช่องสีตามสคีมาจริง ช่องตัวเลือกต้องเป็นค่าที่มีในรายการ
+ * และช่องรหัสสีต้องเป็น #rrggbb (หรือ null เพื่อกลับไปใช้ค่าเริ่มต้น)
  */
-async function writeValue(
+async function saveStyle(cms: Cms, user: User, body: Record<string, unknown>) {
+  const address = parseAddress(body.at, { styleOnly: true });
+  if (!address) return deny("ไม่รู้จักส่วนที่ต้องการเปลี่ยนสี", 400);
+
+  const values = body.values;
+  if (!values || typeof values !== "object" || Array.isArray(values)) {
+    return deny("รูปแบบคำขอไม่ถูกต้อง", 400);
+  }
+  const pairs = Object.entries(values as Record<string, unknown>);
+  if (pairs.length === 0 || pairs.length > 6) return deny("รูปแบบคำขอไม่ถูกต้อง", 400);
+
+  const doc = await readDoc(cms, address, user);
+  if (!doc) return deny("ไม่พบเอกสารที่ต้องการแก้", 404);
+
+  const fields = fieldsOf(cms, address);
+  const entries: { path: string[]; value: unknown }[] = [];
+  for (const [key, raw] of pairs) {
+    const path = [...address.path, key];
+    const field = findStyleField(fields, path, doc);
+    if (!field) return deny("ส่วนนี้เปลี่ยนสีจากหน้าเว็บไม่ได้ ต้องแก้จากหลังบ้าน", 400);
+
+    if (field.type === "select") {
+      if (typeof raw !== "string" || !optionValues(field).includes(raw)) {
+        return deny("ตัวเลือกสีไม่ถูกต้อง", 400);
+      }
+      entries.push({ path, value: raw });
+    } else if (raw === null || raw === "") {
+      entries.push({ path, value: null });
+    } else if (isHexColor(raw)) {
+      entries.push({ path, value: raw.toLowerCase() });
+    } else {
+      return deny("รหัสสีต้องเป็นแบบ #rrggbb", 400);
+    }
+  }
+
+  return writeValues(cms, user, address, doc, entries);
+}
+
+/** เขียนค่าหนึ่งช่องลงเอกสาร */
+function writeValue(
   cms: Cms,
   user: User,
   address: Address,
   doc: Record<string, unknown>,
   value: unknown
 ) {
-  const current = getAtPath(doc, address.path);
-  // ช่องรูปที่ถูก populate มาจะเป็นอ็อบเจกต์ เทียบด้วย id
-  const currentValue =
-    current && typeof current === "object" && "id" in current ? (current as { id: unknown }).id : current;
-  if (currentValue === value || (value === null && currentValue === undefined)) {
-    return Response.json({ ok: true, unchanged: true });
-  }
+  return writeValues(cms, user, address, doc, [{ path: address.path, value }]);
+}
 
-  const [top, ...rest] = address.path;
-  let branch: unknown = value;
-  if (rest.length > 0) {
+/**
+ * เขียนค่าหลายช่องที่อยู่ใต้กิ่งบนสุดเดียวกันลงเอกสารในครั้งเดียว
+ *
+ * ส่งกลับเฉพาะกิ่งบนสุดของเส้นทาง ไม่ส่งเอกสารทั้งก้อน เพื่อไม่ให้ทับฟิลด์อื่น
+ * ที่คนอื่นอาจกำลังแก้อยู่พร้อมกัน เอกสารอ่านด้วย depth 0 รูปในกิ่งเดียวกันจึงเป็น id
+ * อยู่แล้ว เขียนกลับไปได้ตรง ๆ
+ */
+async function writeValues(
+  cms: Cms,
+  user: User,
+  address: Address,
+  doc: Record<string, unknown>,
+  entries: { path: string[]; value: unknown }[]
+) {
+  const changed = entries.filter(({ path, value }) => {
+    const current = getAtPath(doc, path);
+    // ช่องรูปที่ถูก populate มาจะเป็นอ็อบเจกต์ เทียบด้วย id
+    const currentValue =
+      current && typeof current === "object" && "id" in current ? (current as { id: unknown }).id : current;
+    return !(currentValue === value || (value === null && (currentValue === undefined || currentValue === null)));
+  });
+  if (changed.length === 0) return Response.json({ ok: true, unchanged: true });
+
+  const top = changed[0].path[0];
+  if (changed.some(({ path }) => path[0] !== top)) return deny("รูปแบบคำขอไม่ถูกต้อง", 400);
+
+  let branch: unknown;
+  if (changed.length === 1 && changed[0].path.length === 1) {
+    branch = changed[0].value;
+  } else {
     // กลุ่มฟิลด์ที่ยังไม่เคยกรอกเลย Payload จะไม่ส่งกลับมา แต่ถ้าชั้นถัดไปเป็นเลขลำดับ
     // แปลว่าเป็นอาร์เรย์ซึ่งสร้างแถวเองไม่ได้ ต้องปล่อยให้ setAtPath ปฏิเสธ
-    const seed = doc[top] ?? (/^\d+$/.test(rest[0]) ? null : {});
+    const next = changed[0].path[1] ?? "";
+    const seed = doc[top] ?? (/^\d+$/.test(next) ? null : {});
     branch = structuredClone(seed);
-    if (!setAtPath(branch, rest, value)) return deny("ไม่พบช่องที่ต้องการแก้ในเอกสาร", 400);
+    for (const { path, value } of changed) {
+      if (!setAtPath(branch, path.slice(1), value)) return deny("ไม่พบช่องที่ต้องการแก้ในเอกสาร", 400);
+    }
   }
 
   try {
@@ -219,7 +290,8 @@ async function publish(cms: Cms, user: User, body: Record<string, unknown>) {
   const failed: { label: string; message: string }[] = [];
 
   for (const scope of scopes) {
-    const target = parseTarget(scope);
+    // เผยแพร่ธีมได้ด้วย เพราะสีของแถบเมนูและส่วนท้ายที่แก้จากหน้าเว็บอยู่ในธีม
+    const target = parseTarget(scope, { styleOnly: true });
     if (!target || !target.drafts) continue;
 
     try {

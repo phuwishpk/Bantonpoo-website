@@ -31,8 +31,12 @@ export function ProductOrderButton({ product, className = "" }: { product: Produ
   );
 }
 
-/** ปุ่มขนาดเล็กบนการ์ดสินค้าในหน้าแรก */
-export function QuickOrderButton({ product }: { product: Product }) {
+/**
+ * ปุ่มขนาดเล็กบนการ์ดสินค้าในหน้าแรก
+ *
+ * @param tone โทนของพื้นที่ปุ่มวางอยู่ — บนพื้นเข้มปุ่มสีเข้มจะจมหาย จึงใช้สีเน้นแทน
+ */
+export function QuickOrderButton({ product, tone = "dark" }: { product: Product; tone?: "dark" | "light" }) {
   const { copied, handleClick } = useProductOrder(product);
 
   return (
@@ -40,7 +44,9 @@ export function QuickOrderButton({ product }: { product: Product }) {
       type="button"
       onClick={handleClick}
       aria-label={`สั่งซื้อ ${t(product.name)} ผ่าน LINE`}
-      className="relative z-10 inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-ink-800 px-3 py-2 text-xs font-semibold text-white transition duration-200 ease-craft hover:bg-leaf-500"
+      className={`relative z-10 inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-semibold text-white transition duration-200 ease-craft ${
+        tone === "light" ? "bg-leaf-500 hover:bg-leaf-600" : "bg-ink-800 hover:bg-leaf-500"
+      }`}
     >
       {copied ? <CheckIcon className="h-4 w-4" /> : <LineIcon className="h-4 w-4" />}
       {copied ? "คัดลอกแล้ว" : "สั่งซื้อด่วน"}

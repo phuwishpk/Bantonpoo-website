@@ -12,6 +12,8 @@ import { isDraftMode } from "@/lib/cms/draft";
 import { getLabels } from "@/lib/cms/labels";
 import { getPageGlobal, getSite, getTheme } from "@/lib/cms/queries";
 import { locList } from "@/lib/cms/map";
+import { chromeSkin, chromeThemeColor, readStyle, styleValues } from "@/lib/cms/page-content";
+import type { StyleTarget } from "@/components/style-editor";
 import { t } from "@/lib/i18n";
 import { localBusinessJsonLd, siteUrl } from "@/lib/seo";
 import { isNoIndex } from "@/lib/site-url";
@@ -106,12 +108,16 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export const viewport: Viewport = {
-  themeColor: "#1e232a",
-  width: "device-width",
-  initialScale: 1,
-  viewportFit: "cover",
-};
+export async function generateViewport(): Promise<Viewport> {
+  const theme = await getTheme();
+  return {
+    // สีแถบสถานะของเบราว์เซอร์มือถือ ให้ต่อเนื่องกับแถบเมนูที่ผู้ดูแลเลือกสี
+    themeColor: chromeThemeColor(theme.header),
+    width: "device-width",
+    initialScale: 1,
+    viewportFit: "cover",
+  };
+}
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const [site, nav, theme, labels, draft] = await Promise.all([
@@ -122,11 +128,31 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     isDraftMode(),
   ]);
 
+  const headerStyle = theme.header ?? readStyle({}, "dark");
+  const footerStyle = theme.footer ?? readStyle({}, "dark");
+  // ส่งเฉพาะโหมดแก้ไข — ผู้เข้าชมทั่วไปไม่ได้ที่อยู่ของฟิลด์ในธีม
+  const chromeStyles: StyleTarget[] | undefined = draft
+    ? [
+        {
+          at: "g:theme:header",
+          label: "แถบเมนูด้านบน",
+          current: styleValues(headerStyle),
+          fallbackBackground: "dark",
+        },
+        {
+          at: "g:theme:footer",
+          label: "ส่วนท้ายเว็บ",
+          current: styleValues(footerStyle),
+          fallbackBackground: "dark",
+        },
+      ]
+    : undefined;
+
   return (
     <html lang="th" className={FONT_VARIABLES}>
       <body className="flex min-h-dvh flex-col font-sans">
         <ThemeStyle theme={theme} />
-        <SiteProvider site={site} labels={labels}>
+        <SiteProvider site={site} labels={labels} chromeStyles={chromeStyles}>
           <a
             href="#main"
             className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-leaf-500 focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white"
@@ -134,11 +160,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             ข้ามไปยังเนื้อหาหลัก
           </a>
           {draft ? <PreviewBar path="/" /> : null}
-          <SiteHeader nav={nav} editing={draft} />
+          <SiteHeader
+            nav={nav}
+            editing={draft}
+            bar={chromeSkin(headerStyle, true)}
+            panel={chromeSkin(headerStyle)}
+          />
           <main id="main" className="flex-1">
             {children}
           </main>
-          <SiteFooter site={site} nav={nav} labels={labels} editing={draft} />
+          <SiteFooter site={site} nav={nav} labels={labels} editing={draft} style={footerStyle} />
         </SiteProvider>
         <JsonLd data={localBusinessJsonLd(site)} />
       </body>

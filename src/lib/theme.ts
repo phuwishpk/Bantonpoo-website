@@ -6,6 +6,8 @@
  * โดยไม่ต้องแก้คลาสในคอมโพเนนต์แม้แต่ที่เดียว
  */
 
+import type { StyleConfig } from "@/lib/cms/page-content";
+
 export type ThemeSettings = {
   palette: string;
   accentColor?: string;
@@ -15,6 +17,10 @@ export type ThemeSettings = {
   radius: string;
   density: string;
   customCss?: string;
+  /** สีของแถบเมนูด้านบน */
+  header?: StyleConfig;
+  /** สีของส่วนท้ายเว็บ */
+  footer?: StyleConfig;
 };
 
 export const DEFAULT_THEME: ThemeSettings = {

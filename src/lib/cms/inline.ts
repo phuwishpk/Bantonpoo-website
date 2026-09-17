@@ -42,6 +42,22 @@ export const EDITABLE_COLLECTIONS: Record<string, { label: string; drafts: boole
   categories: { label: "หมวดหมู่", drafts: false },
 };
 
+/**
+ * เอกสารที่เปลี่ยนได้เฉพาะ "สี" จากหน้าเว็บ
+ *
+ * ธีมไม่อยู่ในรายการแก้ข้อความ/รูปเพราะมีช่อง CSS เพิ่มเติม แต่สีของแถบเมนูและส่วนท้าย
+ * อยู่ในธีม — คำขอเปลี่ยนสีรับเฉพาะชื่อฟิลด์สีที่ตรงสคีมาเท่านั้น (ดู findStyleField)
+ * จึงแตะช่องอื่นของธีมไม่ได้
+ */
+export const STYLE_ONLY_GLOBALS: Record<string, { label: string; drafts: boolean }> = {
+  theme: { label: "ธีมและหน้าตาเว็บ", drafts: true },
+};
+
+type ParseOptions = {
+  /** ยอมรับเอกสารที่เปลี่ยนได้เฉพาะสี — ใช้กับคำขอเปลี่ยนสีและการเผยแพร่เท่านั้น */
+  styleOnly?: boolean;
+};
+
 /** เอกสารหนึ่งฉบับ โดยยังไม่ระบุว่าจะแก้ช่องไหน */
 export type Target =
   | { kind: "global"; slug: string; label: string; drafts: boolean }
@@ -56,12 +72,13 @@ const SEGMENT = /^(?:[A-Za-z][A-Za-z0-9_]*|\d{1,3})$/;
 export const MAX_VALUE_LENGTH = 6000;
 
 /** ขอบเขตของเอกสาร เช่น "g:home-page" หรือ "c:products:12" */
-export function parseTarget(scope: unknown): Target | null {
+export function parseTarget(scope: unknown, options: ParseOptions = {}): Target | null {
   if (typeof scope !== "string" || scope.length > 200) return null;
   const parts = scope.split(":");
 
   if (parts[0] === "g" && parts.length === 2) {
-    const config = EDITABLE_GLOBALS[parts[1]];
+    const config =
+      EDITABLE_GLOBALS[parts[1]] ?? (options.styleOnly ? STYLE_ONLY_GLOBALS[parts[1]] : undefined);
     return config ? { kind: "global", slug: parts[1], ...config } : null;
   }
 
@@ -76,12 +93,12 @@ export function parseTarget(scope: unknown): Target | null {
 }
 
 /** ที่อยู่เต็มของช่องหนึ่งช่อง = ขอบเขต + เส้นทางของฟิลด์ */
-export function parseAddress(at: unknown): Address | null {
+export function parseAddress(at: unknown, options: ParseOptions = {}): Address | null {
   if (typeof at !== "string" || at.length > 300) return null;
   const cut = at.lastIndexOf(":");
   if (cut < 0) return null;
 
-  const target = parseTarget(at.slice(0, cut));
+  const target = parseTarget(at.slice(0, cut), options);
   const path = splitPath(at.slice(cut + 1));
   return target && path ? { ...target, path } : null;
 }

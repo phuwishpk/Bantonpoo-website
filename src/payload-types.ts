@@ -536,6 +536,13 @@ export interface Page {
     eyebrow?: string | null;
     title: string;
     description?: string | null;
+    background?: ('dark' | 'page' | 'tint' | 'custom') | null;
+    backgroundColor?: string | null;
+    textTone?: ('auto' | 'light' | 'dark') | null;
+    /**
+     * เว้นว่างไว้เพื่อใช้สีหลักของธีม
+     */
+    accentColor?: string | null;
     /**
      * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
      */
@@ -550,6 +557,23 @@ export interface Page {
      * ปรับระยะห่างบน-ล่างและช่องไฟระหว่างการ์ดในส่วนนี้
      */
     spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
+  };
+  /**
+   * ใช้กับทุกส่วนของหน้านี้ที่ยังไม่ได้ตั้งสีเอง · หน้ารายละเอียดสินค้า/บทความใช้สีเน้นตามหน้ารวมด้วย
+   */
+  pageStyle?: {
+    /**
+     * เว้นว่างไว้เพื่อใช้สีหลักของธีม
+     */
+    accentColor?: string | null;
+    /**
+     * เว้นว่างไว้เพื่อใช้สีพื้นของธีม · ถ้าเลือกสีเข้ม ตัวอักษรจะเปลี่ยนเป็นสีอ่อนให้เอง
+     */
+    backgroundColor?: string | null;
+    /**
+     * เว้นว่างไว้เพื่อใช้สีเดิม
+     */
+    cardColor?: string | null;
   };
   /**
    * ลากเพื่อสลับลำดับ · แต่ละส่วนปรับสี ฟอนต์ และการจัดวางของตัวเองได้ในกล่องพับด้านล่างของส่วนนั้น
@@ -584,15 +608,16 @@ export interface Page {
             }
         )[];
         background?: ('page' | 'dark' | 'tint' | 'custom') | null;
-        /**
-         * ใส่เป็นรหัสสีแบบ #rrggbb
-         */
         backgroundColor?: string | null;
         textTone?: ('auto' | 'light' | 'dark') | null;
         /**
-         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่มและป้ายเฉพาะในส่วนนี้
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม
          */
         accentColor?: string | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีเดิม · สีตัวอักษรบนการ์ดปรับให้อ่านง่ายเองอัตโนมัติ
+         */
+        cardColor?: string | null;
         /**
          * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
          */
@@ -624,15 +649,16 @@ export interface Page {
           href?: string | null;
         };
         background?: ('page' | 'dark' | 'tint' | 'custom') | null;
-        /**
-         * ใส่เป็นรหัสสีแบบ #rrggbb
-         */
         backgroundColor?: string | null;
         textTone?: ('auto' | 'light' | 'dark') | null;
         /**
-         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่มและป้ายเฉพาะในส่วนนี้
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม
          */
         accentColor?: string | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีเดิม · สีตัวอักษรบนการ์ดปรับให้อ่านง่ายเองอัตโนมัติ
+         */
+        cardColor?: string | null;
         /**
          * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
          */
@@ -664,15 +690,16 @@ export interface Page {
           id?: string | null;
         }[];
         background?: ('page' | 'dark' | 'tint' | 'custom') | null;
-        /**
-         * ใส่เป็นรหัสสีแบบ #rrggbb
-         */
         backgroundColor?: string | null;
         textTone?: ('auto' | 'light' | 'dark') | null;
         /**
-         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่มและป้ายเฉพาะในส่วนนี้
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม
          */
         accentColor?: string | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีเดิม · สีตัวอักษรบนการ์ดปรับให้อ่านง่ายเองอัตโนมัติ
+         */
+        cardColor?: string | null;
         columns?: ('auto' | '2' | '3' | '4') | null;
         /**
          * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
@@ -704,15 +731,16 @@ export interface Page {
           id?: string | null;
         }[];
         background?: ('page' | 'dark' | 'tint' | 'custom') | null;
-        /**
-         * ใส่เป็นรหัสสีแบบ #rrggbb
-         */
         backgroundColor?: string | null;
         textTone?: ('auto' | 'light' | 'dark') | null;
         /**
-         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่มและป้ายเฉพาะในส่วนนี้
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม
          */
         accentColor?: string | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีเดิม · สีตัวอักษรบนการ์ดปรับให้อ่านง่ายเองอัตโนมัติ
+         */
+        cardColor?: string | null;
         columns?: ('auto' | '2' | '3' | '4') | null;
         /**
          * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
@@ -743,15 +771,16 @@ export interface Page {
           id?: string | null;
         }[];
         background?: ('page' | 'dark' | 'tint' | 'custom') | null;
-        /**
-         * ใส่เป็นรหัสสีแบบ #rrggbb
-         */
         backgroundColor?: string | null;
         textTone?: ('auto' | 'light' | 'dark') | null;
         /**
-         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่มและป้ายเฉพาะในส่วนนี้
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม
          */
         accentColor?: string | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีเดิม · สีตัวอักษรบนการ์ดปรับให้อ่านง่ายเองอัตโนมัติ
+         */
+        cardColor?: string | null;
         columns?: ('auto' | '2' | '3' | '4') | null;
         /**
          * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
@@ -787,15 +816,16 @@ export interface Page {
           href?: string | null;
         };
         background?: ('page' | 'dark' | 'tint' | 'custom') | null;
-        /**
-         * ใส่เป็นรหัสสีแบบ #rrggbb
-         */
         backgroundColor?: string | null;
         textTone?: ('auto' | 'light' | 'dark') | null;
         /**
-         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่มและป้ายเฉพาะในส่วนนี้
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม
          */
         accentColor?: string | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีเดิม · สีตัวอักษรบนการ์ดปรับให้อ่านง่ายเองอัตโนมัติ
+         */
+        cardColor?: string | null;
         columns?: ('auto' | '2' | '3' | '4') | null;
         /**
          * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
@@ -820,15 +850,16 @@ export interface Page {
         title: string;
         body?: string | null;
         background?: ('page' | 'dark' | 'tint' | 'custom') | null;
-        /**
-         * ใส่เป็นรหัสสีแบบ #rrggbb
-         */
         backgroundColor?: string | null;
         textTone?: ('auto' | 'light' | 'dark') | null;
         /**
-         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่มและป้ายเฉพาะในส่วนนี้
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม
          */
         accentColor?: string | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีเดิม · สีตัวอักษรบนการ์ดปรับให้อ่านง่ายเองอัตโนมัติ
+         */
+        cardColor?: string | null;
         /**
          * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
          */
@@ -1329,11 +1360,22 @@ export interface PagesSelect<T extends boolean = true> {
         eyebrow?: T;
         title?: T;
         description?: T;
+        background?: T;
+        backgroundColor?: T;
+        textTone?: T;
+        accentColor?: T;
         fontFamily?: T;
         textScale?: T;
         textAlign?: T;
         contentWidth?: T;
         spacing?: T;
+      };
+  pageStyle?:
+    | T
+    | {
+        accentColor?: T;
+        backgroundColor?: T;
+        cardColor?: T;
       };
   layout?:
     | T
@@ -1377,6 +1419,7 @@ export interface PagesSelect<T extends boolean = true> {
               backgroundColor?: T;
               textTone?: T;
               accentColor?: T;
+              cardColor?: T;
               fontFamily?: T;
               textScale?: T;
               textAlign?: T;
@@ -1402,6 +1445,7 @@ export interface PagesSelect<T extends boolean = true> {
               backgroundColor?: T;
               textTone?: T;
               accentColor?: T;
+              cardColor?: T;
               fontFamily?: T;
               textScale?: T;
               textAlign?: T;
@@ -1432,6 +1476,7 @@ export interface PagesSelect<T extends boolean = true> {
               backgroundColor?: T;
               textTone?: T;
               accentColor?: T;
+              cardColor?: T;
               columns?: T;
               fontFamily?: T;
               textScale?: T;
@@ -1462,6 +1507,7 @@ export interface PagesSelect<T extends boolean = true> {
               backgroundColor?: T;
               textTone?: T;
               accentColor?: T;
+              cardColor?: T;
               columns?: T;
               fontFamily?: T;
               textScale?: T;
@@ -1491,6 +1537,7 @@ export interface PagesSelect<T extends boolean = true> {
               backgroundColor?: T;
               textTone?: T;
               accentColor?: T;
+              cardColor?: T;
               columns?: T;
               fontFamily?: T;
               textScale?: T;
@@ -1522,6 +1569,7 @@ export interface PagesSelect<T extends boolean = true> {
               backgroundColor?: T;
               textTone?: T;
               accentColor?: T;
+              cardColor?: T;
               columns?: T;
               fontFamily?: T;
               textScale?: T;
@@ -1541,6 +1589,7 @@ export interface PagesSelect<T extends boolean = true> {
               backgroundColor?: T;
               textTone?: T;
               accentColor?: T;
+              cardColor?: T;
               fontFamily?: T;
               textScale?: T;
               textAlign?: T;
@@ -1767,6 +1816,27 @@ export interface Theme {
   accentColor?: string | null;
   surface: 'rice' | 'white' | 'grey';
   /**
+   * รวมถึงเมนูที่เลื่อนออกมาบนมือถือ
+   */
+  header?: {
+    background?: ('dark' | 'page' | 'tint' | 'custom') | null;
+    backgroundColor?: string | null;
+    textTone?: ('auto' | 'light' | 'dark') | null;
+    /**
+     * เว้นว่างไว้เพื่อใช้สีหลักของธีม
+     */
+    accentColor?: string | null;
+  };
+  footer?: {
+    background?: ('dark' | 'page' | 'tint' | 'custom') | null;
+    backgroundColor?: string | null;
+    textTone?: ('auto' | 'light' | 'dark') | null;
+    /**
+     * เว้นว่างไว้เพื่อใช้สีหลักของธีม
+     */
+    accentColor?: string | null;
+  };
+  /**
    * ฟอนต์ถูกโหลดมาพร้อมเว็บ จึงเลือกได้เฉพาะในรายการนี้
    */
   fontPair: 'plex-noto' | 'sarabun-trirong' | 'prompt';
@@ -1934,6 +2004,13 @@ export interface HomePage {
           id?: string | null;
         }[]
       | null;
+    background?: ('dark' | 'page' | 'tint' | 'custom') | null;
+    backgroundColor?: string | null;
+    textTone?: ('auto' | 'light' | 'dark') | null;
+    /**
+     * เว้นว่างไว้เพื่อใช้สีหลักของธีม
+     */
+    accentColor?: string | null;
     /**
      * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
      */
@@ -1958,6 +2035,23 @@ export interface HomePage {
       }[]
     | null;
   /**
+   * ใช้กับทุกส่วนของหน้านี้ที่ยังไม่ได้ตั้งสีเอง · หน้ารายละเอียดสินค้า/บทความใช้สีเน้นตามหน้ารวมด้วย
+   */
+  pageStyle?: {
+    /**
+     * เว้นว่างไว้เพื่อใช้สีหลักของธีม
+     */
+    accentColor?: string | null;
+    /**
+     * เว้นว่างไว้เพื่อใช้สีพื้นของธีม · ถ้าเลือกสีเข้ม ตัวอักษรจะเปลี่ยนเป็นสีอ่อนให้เอง
+     */
+    backgroundColor?: string | null;
+    /**
+     * เว้นว่างไว้เพื่อใช้สีเดิม
+     */
+    cardColor?: string | null;
+  };
+  /**
    * ลากเพื่อสลับลำดับ ติ๊กออกเพื่อซ่อน · แบนเนอร์บนสุดอยู่ตำแหน่งแรกเสมอ แก้ลำดับไม่ได้
    */
   sections?:
@@ -1965,15 +2059,16 @@ export interface HomePage {
         type: 'highlights' | 'featured-products' | 'spotlight' | 'workshops' | 'latest-articles' | 'cta';
         enabled?: boolean | null;
         background?: ('page' | 'dark' | 'tint' | 'custom') | null;
-        /**
-         * ใส่เป็นรหัสสีแบบ #rrggbb
-         */
         backgroundColor?: string | null;
         textTone?: ('auto' | 'light' | 'dark') | null;
         /**
-         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่ม ป้าย และหัวข้อเล็กเฉพาะในส่วนนี้
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม
          */
         accentColor?: string | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีเดิม · สีตัวอักษรบนการ์ดปรับให้อ่านง่ายเองอัตโนมัติ
+         */
+        cardColor?: string | null;
         columns?: ('auto' | '2' | '3' | '4') | null;
         /**
          * เว้นว่างไว้เพื่อแสดงทั้งหมด
@@ -2039,6 +2134,13 @@ export interface AboutPage {
     eyebrow?: string | null;
     title: string;
     description?: string | null;
+    background?: ('dark' | 'page' | 'tint' | 'custom') | null;
+    backgroundColor?: string | null;
+    textTone?: ('auto' | 'light' | 'dark') | null;
+    /**
+     * เว้นว่างไว้เพื่อใช้สีหลักของธีม
+     */
+    accentColor?: string | null;
     /**
      * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
      */
@@ -2055,6 +2157,23 @@ export interface AboutPage {
     spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
   };
   /**
+   * ใช้กับทุกส่วนของหน้านี้ที่ยังไม่ได้ตั้งสีเอง · หน้ารายละเอียดสินค้า/บทความใช้สีเน้นตามหน้ารวมด้วย
+   */
+  pageStyle?: {
+    /**
+     * เว้นว่างไว้เพื่อใช้สีหลักของธีม
+     */
+    accentColor?: string | null;
+    /**
+     * เว้นว่างไว้เพื่อใช้สีพื้นของธีม · ถ้าเลือกสีเข้ม ตัวอักษรจะเปลี่ยนเป็นสีอ่อนให้เอง
+     */
+    backgroundColor?: string | null;
+    /**
+     * เว้นว่างไว้เพื่อใช้สีเดิม
+     */
+    cardColor?: string | null;
+  };
+  /**
    * ลากเพื่อสลับลำดับ ติ๊กออกเพื่อซ่อน · ส่วนที่ไม่ได้อยู่ในรายการนี้จะไม่แสดงบนหน้าเว็บ
    */
   sections?:
@@ -2062,15 +2181,16 @@ export interface AboutPage {
         type: 'history' | 'assets' | 'artisans' | 'closing' | 'references';
         enabled?: boolean | null;
         background?: ('page' | 'dark' | 'tint' | 'custom') | null;
-        /**
-         * ใส่เป็นรหัสสีแบบ #rrggbb
-         */
         backgroundColor?: string | null;
         textTone?: ('auto' | 'light' | 'dark') | null;
         /**
-         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่ม ป้าย และหัวข้อเล็กเฉพาะในส่วนนี้
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม
          */
         accentColor?: string | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีเดิม · สีตัวอักษรบนการ์ดปรับให้อ่านง่ายเองอัตโนมัติ
+         */
+        cardColor?: string | null;
         columns?: ('auto' | '2' | '3' | '4') | null;
         /**
          * เว้นว่างไว้เพื่อแสดงทั้งหมด
@@ -2188,6 +2308,13 @@ export interface ShopPage {
     eyebrow?: string | null;
     title: string;
     description?: string | null;
+    background?: ('dark' | 'page' | 'tint' | 'custom') | null;
+    backgroundColor?: string | null;
+    textTone?: ('auto' | 'light' | 'dark') | null;
+    /**
+     * เว้นว่างไว้เพื่อใช้สีหลักของธีม
+     */
+    accentColor?: string | null;
     /**
      * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
      */
@@ -2204,6 +2331,23 @@ export interface ShopPage {
     spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
   };
   /**
+   * ใช้กับทุกส่วนของหน้านี้ที่ยังไม่ได้ตั้งสีเอง · หน้ารายละเอียดสินค้า/บทความใช้สีเน้นตามหน้ารวมด้วย
+   */
+  pageStyle?: {
+    /**
+     * เว้นว่างไว้เพื่อใช้สีหลักของธีม
+     */
+    accentColor?: string | null;
+    /**
+     * เว้นว่างไว้เพื่อใช้สีพื้นของธีม · ถ้าเลือกสีเข้ม ตัวอักษรจะเปลี่ยนเป็นสีอ่อนให้เอง
+     */
+    backgroundColor?: string | null;
+    /**
+     * เว้นว่างไว้เพื่อใช้สีเดิม
+     */
+    cardColor?: string | null;
+  };
+  /**
    * หน้าสินค้ามีส่วนหลักคือรายการสินค้า เพิ่มกล่องชวนติดต่อท้ายหน้าได้
    */
   sections?:
@@ -2211,15 +2355,16 @@ export interface ShopPage {
         type: 'catalogue' | 'cta';
         enabled?: boolean | null;
         background?: ('page' | 'dark' | 'tint' | 'custom') | null;
-        /**
-         * ใส่เป็นรหัสสีแบบ #rrggbb
-         */
         backgroundColor?: string | null;
         textTone?: ('auto' | 'light' | 'dark') | null;
         /**
-         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่ม ป้าย และหัวข้อเล็กเฉพาะในส่วนนี้
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม
          */
         accentColor?: string | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีเดิม · สีตัวอักษรบนการ์ดปรับให้อ่านง่ายเองอัตโนมัติ
+         */
+        cardColor?: string | null;
         columns?: ('auto' | '2' | '3' | '4') | null;
         /**
          * เว้นว่างไว้เพื่อแสดงทั้งหมด
@@ -2268,6 +2413,13 @@ export interface StoriesPage {
     eyebrow?: string | null;
     title: string;
     description?: string | null;
+    background?: ('dark' | 'page' | 'tint' | 'custom') | null;
+    backgroundColor?: string | null;
+    textTone?: ('auto' | 'light' | 'dark') | null;
+    /**
+     * เว้นว่างไว้เพื่อใช้สีหลักของธีม
+     */
+    accentColor?: string | null;
     /**
      * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
      */
@@ -2284,6 +2436,23 @@ export interface StoriesPage {
     spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
   };
   /**
+   * ใช้กับทุกส่วนของหน้านี้ที่ยังไม่ได้ตั้งสีเอง · หน้ารายละเอียดสินค้า/บทความใช้สีเน้นตามหน้ารวมด้วย
+   */
+  pageStyle?: {
+    /**
+     * เว้นว่างไว้เพื่อใช้สีหลักของธีม
+     */
+    accentColor?: string | null;
+    /**
+     * เว้นว่างไว้เพื่อใช้สีพื้นของธีม · ถ้าเลือกสีเข้ม ตัวอักษรจะเปลี่ยนเป็นสีอ่อนให้เอง
+     */
+    backgroundColor?: string | null;
+    /**
+     * เว้นว่างไว้เพื่อใช้สีเดิม
+     */
+    cardColor?: string | null;
+  };
+  /**
    * ลากเพื่อสลับลำดับ ติ๊กออกเพื่อซ่อน · ส่วนที่ไม่ได้อยู่ในรายการนี้จะไม่แสดงบนหน้าเว็บ
    */
   sections?:
@@ -2291,15 +2460,16 @@ export interface StoriesPage {
         type: 'list' | 'cta';
         enabled?: boolean | null;
         background?: ('page' | 'dark' | 'tint' | 'custom') | null;
-        /**
-         * ใส่เป็นรหัสสีแบบ #rrggbb
-         */
         backgroundColor?: string | null;
         textTone?: ('auto' | 'light' | 'dark') | null;
         /**
-         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่ม ป้าย และหัวข้อเล็กเฉพาะในส่วนนี้
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม
          */
         accentColor?: string | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีเดิม · สีตัวอักษรบนการ์ดปรับให้อ่านง่ายเองอัตโนมัติ
+         */
+        cardColor?: string | null;
         columns?: ('auto' | '2' | '3' | '4') | null;
         /**
          * เว้นว่างไว้เพื่อแสดงทั้งหมด
@@ -2348,6 +2518,13 @@ export interface TourismPage {
     eyebrow?: string | null;
     title: string;
     description?: string | null;
+    background?: ('dark' | 'page' | 'tint' | 'custom') | null;
+    backgroundColor?: string | null;
+    textTone?: ('auto' | 'light' | 'dark') | null;
+    /**
+     * เว้นว่างไว้เพื่อใช้สีหลักของธีม
+     */
+    accentColor?: string | null;
     /**
      * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
      */
@@ -2364,6 +2541,23 @@ export interface TourismPage {
     spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
   };
   /**
+   * ใช้กับทุกส่วนของหน้านี้ที่ยังไม่ได้ตั้งสีเอง · หน้ารายละเอียดสินค้า/บทความใช้สีเน้นตามหน้ารวมด้วย
+   */
+  pageStyle?: {
+    /**
+     * เว้นว่างไว้เพื่อใช้สีหลักของธีม
+     */
+    accentColor?: string | null;
+    /**
+     * เว้นว่างไว้เพื่อใช้สีพื้นของธีม · ถ้าเลือกสีเข้ม ตัวอักษรจะเปลี่ยนเป็นสีอ่อนให้เอง
+     */
+    backgroundColor?: string | null;
+    /**
+     * เว้นว่างไว้เพื่อใช้สีเดิม
+     */
+    cardColor?: string | null;
+  };
+  /**
    * ลากเพื่อสลับลำดับ ติ๊กออกเพื่อซ่อน · ส่วนที่ไม่ได้อยู่ในรายการนี้จะไม่แสดงบนหน้าเว็บ
    */
   sections?:
@@ -2371,15 +2565,16 @@ export interface TourismPage {
         type: 'workshops' | 'places' | 'travel' | 'cta';
         enabled?: boolean | null;
         background?: ('page' | 'dark' | 'tint' | 'custom') | null;
-        /**
-         * ใส่เป็นรหัสสีแบบ #rrggbb
-         */
         backgroundColor?: string | null;
         textTone?: ('auto' | 'light' | 'dark') | null;
         /**
-         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่ม ป้าย และหัวข้อเล็กเฉพาะในส่วนนี้
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม
          */
         accentColor?: string | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีเดิม · สีตัวอักษรบนการ์ดปรับให้อ่านง่ายเองอัตโนมัติ
+         */
+        cardColor?: string | null;
         columns?: ('auto' | '2' | '3' | '4') | null;
         /**
          * เว้นว่างไว้เพื่อแสดงทั้งหมด
@@ -2450,6 +2645,13 @@ export interface ContactPage {
     eyebrow?: string | null;
     title: string;
     description?: string | null;
+    background?: ('dark' | 'page' | 'tint' | 'custom') | null;
+    backgroundColor?: string | null;
+    textTone?: ('auto' | 'light' | 'dark') | null;
+    /**
+     * เว้นว่างไว้เพื่อใช้สีหลักของธีม
+     */
+    accentColor?: string | null;
     /**
      * เลือกได้เฉพาะฟอนต์ที่โหลดมาพร้อมเว็บแล้ว จึงไม่ทำให้เว็บช้าลง
      */
@@ -2466,6 +2668,23 @@ export interface ContactPage {
     spacing?: ('default' | 'compact' | 'normal' | 'roomy') | null;
   };
   /**
+   * ใช้กับทุกส่วนของหน้านี้ที่ยังไม่ได้ตั้งสีเอง · หน้ารายละเอียดสินค้า/บทความใช้สีเน้นตามหน้ารวมด้วย
+   */
+  pageStyle?: {
+    /**
+     * เว้นว่างไว้เพื่อใช้สีหลักของธีม
+     */
+    accentColor?: string | null;
+    /**
+     * เว้นว่างไว้เพื่อใช้สีพื้นของธีม · ถ้าเลือกสีเข้ม ตัวอักษรจะเปลี่ยนเป็นสีอ่อนให้เอง
+     */
+    backgroundColor?: string | null;
+    /**
+     * เว้นว่างไว้เพื่อใช้สีเดิม
+     */
+    cardColor?: string | null;
+  };
+  /**
    * ลากเพื่อสลับลำดับ ติ๊กออกเพื่อซ่อน · ส่วนที่ไม่ได้อยู่ในรายการนี้จะไม่แสดงบนหน้าเว็บ
    */
   sections?:
@@ -2473,15 +2692,16 @@ export interface ContactPage {
         type: 'channels' | 'form';
         enabled?: boolean | null;
         background?: ('page' | 'dark' | 'tint' | 'custom') | null;
-        /**
-         * ใส่เป็นรหัสสีแบบ #rrggbb
-         */
         backgroundColor?: string | null;
         textTone?: ('auto' | 'light' | 'dark') | null;
         /**
-         * เว้นว่างไว้เพื่อใช้สีหลักของธีม · ใส่แล้วจะเปลี่ยนสีปุ่ม ป้าย และหัวข้อเล็กเฉพาะในส่วนนี้
+         * เว้นว่างไว้เพื่อใช้สีหลักของธีม
          */
         accentColor?: string | null;
+        /**
+         * เว้นว่างไว้เพื่อใช้สีเดิม · สีตัวอักษรบนการ์ดปรับให้อ่านง่ายเองอัตโนมัติ
+         */
+        cardColor?: string | null;
         columns?: ('auto' | '2' | '3' | '4') | null;
         /**
          * เว้นว่างไว้เพื่อแสดงทั้งหมด
@@ -2650,6 +2870,22 @@ export interface ThemeSelect<T extends boolean = true> {
   palette?: T;
   accentColor?: T;
   surface?: T;
+  header?:
+    | T
+    | {
+        background?: T;
+        backgroundColor?: T;
+        textTone?: T;
+        accentColor?: T;
+      };
+  footer?:
+    | T
+    | {
+        background?: T;
+        backgroundColor?: T;
+        textTone?: T;
+        accentColor?: T;
+      };
   fontPair?: T;
   baseFontSize?: T;
   radius?: T;
@@ -2806,6 +3042,10 @@ export interface HomePageSelect<T extends boolean = true> {
               label?: T;
               id?: T;
             };
+        background?: T;
+        backgroundColor?: T;
+        textTone?: T;
+        accentColor?: T;
         fontFamily?: T;
         textScale?: T;
         textAlign?: T;
@@ -2820,6 +3060,13 @@ export interface HomePageSelect<T extends boolean = true> {
         body?: T;
         id?: T;
       };
+  pageStyle?:
+    | T
+    | {
+        accentColor?: T;
+        backgroundColor?: T;
+        cardColor?: T;
+      };
   sections?:
     | T
     | {
@@ -2829,6 +3076,7 @@ export interface HomePageSelect<T extends boolean = true> {
         backgroundColor?: T;
         textTone?: T;
         accentColor?: T;
+        cardColor?: T;
         columns?: T;
         limit?: T;
         fontFamily?: T;
@@ -2890,11 +3138,22 @@ export interface AboutPageSelect<T extends boolean = true> {
         eyebrow?: T;
         title?: T;
         description?: T;
+        background?: T;
+        backgroundColor?: T;
+        textTone?: T;
+        accentColor?: T;
         fontFamily?: T;
         textScale?: T;
         textAlign?: T;
         contentWidth?: T;
         spacing?: T;
+      };
+  pageStyle?:
+    | T
+    | {
+        accentColor?: T;
+        backgroundColor?: T;
+        cardColor?: T;
       };
   sections?:
     | T
@@ -2905,6 +3164,7 @@ export interface AboutPageSelect<T extends boolean = true> {
         backgroundColor?: T;
         textTone?: T;
         accentColor?: T;
+        cardColor?: T;
         columns?: T;
         limit?: T;
         fontFamily?: T;
@@ -3015,11 +3275,22 @@ export interface ShopPageSelect<T extends boolean = true> {
         eyebrow?: T;
         title?: T;
         description?: T;
+        background?: T;
+        backgroundColor?: T;
+        textTone?: T;
+        accentColor?: T;
         fontFamily?: T;
         textScale?: T;
         textAlign?: T;
         contentWidth?: T;
         spacing?: T;
+      };
+  pageStyle?:
+    | T
+    | {
+        accentColor?: T;
+        backgroundColor?: T;
+        cardColor?: T;
       };
   sections?:
     | T
@@ -3030,6 +3301,7 @@ export interface ShopPageSelect<T extends boolean = true> {
         backgroundColor?: T;
         textTone?: T;
         accentColor?: T;
+        cardColor?: T;
         columns?: T;
         limit?: T;
         fontFamily?: T;
@@ -3068,11 +3340,22 @@ export interface StoriesPageSelect<T extends boolean = true> {
         eyebrow?: T;
         title?: T;
         description?: T;
+        background?: T;
+        backgroundColor?: T;
+        textTone?: T;
+        accentColor?: T;
         fontFamily?: T;
         textScale?: T;
         textAlign?: T;
         contentWidth?: T;
         spacing?: T;
+      };
+  pageStyle?:
+    | T
+    | {
+        accentColor?: T;
+        backgroundColor?: T;
+        cardColor?: T;
       };
   sections?:
     | T
@@ -3083,6 +3366,7 @@ export interface StoriesPageSelect<T extends boolean = true> {
         backgroundColor?: T;
         textTone?: T;
         accentColor?: T;
+        cardColor?: T;
         columns?: T;
         limit?: T;
         fontFamily?: T;
@@ -3121,11 +3405,22 @@ export interface TourismPageSelect<T extends boolean = true> {
         eyebrow?: T;
         title?: T;
         description?: T;
+        background?: T;
+        backgroundColor?: T;
+        textTone?: T;
+        accentColor?: T;
         fontFamily?: T;
         textScale?: T;
         textAlign?: T;
         contentWidth?: T;
         spacing?: T;
+      };
+  pageStyle?:
+    | T
+    | {
+        accentColor?: T;
+        backgroundColor?: T;
+        cardColor?: T;
       };
   sections?:
     | T
@@ -3136,6 +3431,7 @@ export interface TourismPageSelect<T extends boolean = true> {
         backgroundColor?: T;
         textTone?: T;
         accentColor?: T;
+        cardColor?: T;
         columns?: T;
         limit?: T;
         fontFamily?: T;
@@ -3202,11 +3498,22 @@ export interface ContactPageSelect<T extends boolean = true> {
         eyebrow?: T;
         title?: T;
         description?: T;
+        background?: T;
+        backgroundColor?: T;
+        textTone?: T;
+        accentColor?: T;
         fontFamily?: T;
         textScale?: T;
         textAlign?: T;
         contentWidth?: T;
         spacing?: T;
+      };
+  pageStyle?:
+    | T
+    | {
+        accentColor?: T;
+        backgroundColor?: T;
+        cardColor?: T;
       };
   sections?:
     | T
@@ -3217,6 +3524,7 @@ export interface ContactPageSelect<T extends boolean = true> {
         backgroundColor?: T;
         textTone?: T;
         accentColor?: T;
+        cardColor?: T;
         columns?: T;
         limit?: T;
         fontFamily?: T;

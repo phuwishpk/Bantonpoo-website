@@ -1,7 +1,9 @@
 import type { GlobalConfig } from "payload";
 import { anyone, isEditor } from "@/access";
 import {
+  colorCollapsible,
   linkFields,
+  pageStyleField,
   sectionHeadingField,
   sectionsField,
   statsField,
@@ -54,6 +56,7 @@ export const HomePage: GlobalConfig = {
                 { name: "image", type: "upload", relationTo: "media", label: "ภาพด้านขวา" },
                 { name: "imageCaption", type: "text", localized: true, label: "คำบรรยายใต้ภาพ" },
                 statsField("stats", "ตัวเลขใต้ปุ่ม", 3),
+                colorCollapsible("สีของแบนเนอร์", { fallbackBackground: "dark" }),
                 typographyCollapsible("ตัวอักษรและการจัดวางของแบนเนอร์"),
               ],
             },
@@ -101,6 +104,7 @@ export const HomePage: GlobalConfig = {
           label: "ลำดับและการแสดงส่วนต่าง ๆ",
           description: "ลากเพื่อสลับลำดับ ติ๊กออกเพื่อซ่อน และเลือกรูปแบบการวางของแต่ละส่วน",
           fields: [
+            pageStyleField(),
             sectionsField({
               types: [
                 { label: "การ์ดจุดเด่นชุมชน", value: "highlights" },

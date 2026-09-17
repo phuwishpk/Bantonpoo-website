@@ -191,6 +191,20 @@
     color: var(--color-ink-900);
     font-weight: 600;
   }
+
+  /* เนื้อหายาวบนพื้นเข้ม — ใส่คู่กับ .prose-craft เมื่อผู้ดูแลเปลี่ยนพื้นของส่วนเป็นสีเข้ม */
+  .prose-on-dark {
+    color: var(--color-ink-200);
+  }
+  .prose-on-dark h2,
+  .prose-on-dark h3,
+  .prose-on-dark strong,
+  .prose-on-dark blockquote {
+    color: var(--color-rice-100);
+  }
+  .prose-on-dark a {
+    color: var(--color-leaf-300);
+  }
 }
 
 /* แถบความคืบหน้าของสไลด์แคตตาล็อก — รีสตาร์ททุกครั้งที่เปลี่ยนสไลด์ด้วย key */
@@ -232,6 +246,16 @@
    ------------------------------------------------------------------ */
 .measure {
   max-width: var(--section-measure, var(--measure-default, 80rem));
+}
+
+/*
+  สีการ์ดที่ตั้งไว้ให้ทั้งส่วน (หรือทั้งหน้า)
+  การ์ดทุกใบติดคลาส .box ไว้ ส่วนสีตัวอักษรบนการ์ดคอมโพเนนต์เลือกเองจาก skin.cardTone()
+  ค่าตัวแปรมาจาก cardVars ใน src/lib/color.ts
+*/
+.has-card-color .box {
+  background-color: var(--card-bg);
+  border-color: var(--card-line);
 }
 
 /* กล่องข้อความที่กำลังแก้อยู่บนหน้าเว็บ — เห็นขอบเฉพาะตอนเปิดโหมดแก้ไขเท่านั้น */

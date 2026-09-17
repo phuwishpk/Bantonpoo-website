@@ -5,20 +5,24 @@ import { CtaBand } from "@/components/cta-band";
 import { JsonLd } from "@/components/json-ld";
 import { WorkshopBookingButton } from "@/components/line-order-button";
 import { directionsUrl, MapEmbed } from "@/components/map-embed";
-import { Ed, EdImage } from "@/components/editable";
+import { Ed, EdImage, EdStyle } from "@/components/editable";
 import { EditToolbar } from "@/components/edit-mode";
 import { PageHero } from "@/components/page-hero";
+import { PageStyle, pageStyleTarget } from "@/components/page-style";
 import { buttonClass, Container, OrnamentDivider } from "@/components/ui";
 import { SectionHeading } from "@/components/section-heading";
 import {
   COLUMN_CLASS,
   hero,
+  heroConfig,
+  readPageStyle,
   readSections,
+  sectionAt,
+  sectionLabel,
   sectionSkin,
   rowsOf,
   section,
   titleBody,
-  typographyOf,
 } from "@/lib/cms/page-content";
 import { getPageGlobal, getPlaces, getSite, getWorkshops } from "@/lib/cms/queries";
 import { loc } from "@/lib/cms/map";
@@ -30,6 +34,7 @@ import { atLabel } from "@/lib/labels";
 import { getLabels } from "@/lib/cms/labels";
 import { t } from "@/lib/i18n";
 import { telUrl } from "@/lib/line";
+import { INK } from "@/lib/tone";
 import { breadcrumbJsonLd, buildMetadata, workshopJsonLd } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -82,26 +87,31 @@ export default async function TourismPage() {
   const visibleSections = readSections(page, DEFAULT_SECTIONS);
   const cta = (page.cta ?? {}) as Record<string, unknown>;
 
+  const heroStyle = heroConfig(page);
+  const heroTone = sectionSkin(heroStyle).tone;
+  const pageStyle = readPageStyle(page);
+
   return (
     <>
+      <PageStyle style={pageStyle} />
       <PageHero
         eyebrow={t(content.eyebrow)}
         title={t(content.title)}
         description={t(content.description)}
         crumbs={CRUMBS}
         at={at("hero")}
-        typography={typographyOf(page, "hero")}
+        config={heroStyle}
       >
         <div className="flex flex-wrap gap-3 pt-2">
           <a href={site.lineUrl} target="_blank" rel="noopener noreferrer" className={buttonClass("primary")}>
             <LineIcon />
-            <Ed at={atLabel("tourism", "bookViaLine")} tone="light">
+            <Ed at={atLabel("tourism", "bookViaLine")} tone={heroTone}>
               {labels.tourism.bookViaLine}
             </Ed>
           </a>
-          <a href={telUrl(site)} className={buttonClass("onDark")}>
+          <a href={telUrl(site)} className={buttonClass(heroTone === "light" ? "onDark" : "secondary")}>
             <PhoneIcon />
-            <Ed at={atLabel("tourism", "callToBook")} tone="light">
+            <Ed at={atLabel("tourism", "callToBook")} tone={heroTone}>
               {labels.tourism.callToBook}
             </Ed>{" "}
             {site.phoneDisplay}
@@ -111,268 +121,300 @@ export default async function TourismPage() {
 
       {visibleSections.map((item, index) => {
         const skin = sectionSkin(item, DARK_BY_DEFAULT.has(item.type));
+        const tone = skin.tone;
         const columns = COLUMN_CLASS[item.columns];
         const key = `${item.type}-${index}`;
+        const styleButton = (
+          <EdStyle at={sectionAt(at, item)} label={sectionLabel(item.type)} config={item} />
+        );
 
         switch (item.type) {
-          case "workshops":
+          case "workshops": {
+            const cardTone = skin.cardTone("dark");
+            const ink = INK[cardTone];
             return (
               <section key={key} className={`py-14 sm:py-20 ${skin.className}`} style={skin.style}>
-
-        <Container size="wide">
-          <SectionHeading
-            at={at("workshopsSection")}
-            eyebrow={t(section(page, "workshopsSection").eyebrow)}
-            title={t(section(page, "workshopsSection").title)}
-            description={t(section(page, "workshopsSection").description)}
-            tone={skin.onDark ? "light" : "dark"}
-          />
-
-          <div className="mt-10 flex flex-col gap-8">
-            {workshops.slice(0, item.limit ?? workshops.length).map((workshop, workshopIndex) => {
-              const atWorkshop = atDoc("workshops", workshop.id);
-              return (
-              <article
-                key={workshop.slug}
-                className="grid overflow-hidden rounded-2xl border border-rice-300 bg-rice-50 lg:grid-cols-[1fr_1.2fr]"
-              >
-                <div className={`relative aspect-3/2 lg:aspect-auto ${workshopIndex % 2 === 1 ? "lg:order-2" : ""}`}>
-                  <Image
-                    src={workshop.image.url}
-                    alt={t(workshop.image.alt)}
-                    width={workshop.image.width}
-                    height={workshop.image.height}
-                    priority={workshopIndex === 0}
-                    sizes="(max-width: 1024px) 100vw, 45vw"
-                    className="h-full w-full object-cover"
+                {styleButton}
+                <Container size="wide">
+                  <SectionHeading
+                    at={at("workshopsSection")}
+                    eyebrow={t(section(page, "workshopsSection").eyebrow)}
+                    title={t(section(page, "workshopsSection").title)}
+                    description={t(section(page, "workshopsSection").description)}
+                    tone={tone}
                   />
-                  <EdImage at={atWorkshop("image")} label="ภาพกิจกรรม" current={workshop.image.id} />
-                </div>
 
-                <div className="flex flex-col gap-5 p-6 sm:p-8">
-                  <div className="flex flex-col gap-3">
-                    <h3 className="font-serif text-xl leading-snug font-semibold text-ink-800 sm:text-2xl">
-                      <Ed at={atWorkshop("title")}>{t(workshop.title)}</Ed>
-                    </h3>
-                    <p className="text-md leading-relaxed text-river-500">
-                      <Ed at={atWorkshop("summary")} multiline>
-                        {t(workshop.summary)}
-                      </Ed>
-                    </p>
+                  <div className="mt-10 flex flex-col gap-8">
+                    {workshops.slice(0, item.limit ?? workshops.length).map((workshop, workshopIndex) => {
+                      const atWorkshop = atDoc("workshops", workshop.id);
+                      return (
+                        <article
+                          key={workshop.slug}
+                          className={`box grid overflow-hidden rounded-2xl border lg:grid-cols-[1fr_1.2fr] ${ink.card}`}
+                        >
+                          <div
+                            className={`relative aspect-3/2 lg:aspect-auto ${
+                              workshopIndex % 2 === 1 ? "lg:order-2" : ""
+                            }`}
+                          >
+                            <Image
+                              src={workshop.image.url}
+                              alt={t(workshop.image.alt)}
+                              width={workshop.image.width}
+                              height={workshop.image.height}
+                              priority={workshopIndex === 0}
+                              sizes="(max-width: 1024px) 100vw, 45vw"
+                              className="h-full w-full object-cover"
+                            />
+                            <EdImage at={atWorkshop("image")} label="ภาพกิจกรรม" current={workshop.image.id} />
+                          </div>
+
+                          <div className="flex flex-col gap-5 p-6 sm:p-8">
+                            <div className="flex flex-col gap-3">
+                              <h3 className={`font-serif text-xl leading-snug font-semibold sm:text-2xl ${ink.title}`}>
+                                <Ed at={atWorkshop("title")} tone={cardTone}>
+                                  {t(workshop.title)}
+                                </Ed>
+                              </h3>
+                              <p className={`text-md leading-relaxed ${ink.body}`}>
+                                <Ed at={atWorkshop("summary")} multiline tone={cardTone}>
+                                  {t(workshop.summary)}
+                                </Ed>
+                              </p>
+                            </div>
+
+                            <dl className={`grid grid-cols-2 gap-4 border-y py-4 sm:grid-cols-3 ${ink.line}`}>
+                              <div className="flex flex-col gap-1">
+                                <dt className={`flex items-center gap-1.5 text-xs ${ink.body}`}>
+                                  <ClockIcon className="h-4 w-4" />
+                                  <Ed at={atLabel("tourism", "duration")} tone={cardTone}>
+                                    {labels.tourism.duration}
+                                  </Ed>
+                                </dt>
+                                <dd className={`text-sm font-semibold ${ink.title}`}>
+                                  <Ed at={atWorkshop("duration")} tone={cardTone}>
+                                    {t(workshop.duration)}
+                                  </Ed>
+                                </dd>
+                              </div>
+                              <div className="flex flex-col gap-1">
+                                <dt className={`flex items-center gap-1.5 text-xs ${ink.body}`}>
+                                  <UsersIcon className="h-4 w-4" />
+                                  <Ed at={atLabel("tourism", "participants")} tone={cardTone}>
+                                    {labels.tourism.participants}
+                                  </Ed>
+                                </dt>
+                                <dd className={`text-sm font-semibold ${ink.title}`}>
+                                  {workshop.minParticipants}–{workshop.maxParticipants}{" "}
+                                  {labels.tourism.participantsUnit}
+                                </dd>
+                              </div>
+                              {/* บนมือถือค่าบริการอยู่แถวที่สองคนเดียว ให้กินเต็มแถว ไม่งั้น "สอบถามค่าบริการ" แตกบรรทัด */}
+                              <div className="col-span-2 flex flex-col gap-1 sm:col-span-1">
+                                <dt className={`text-xs ${ink.body}`}>
+                                  <Ed at={atLabel("tourism", "price")} tone={cardTone}>
+                                    {labels.tourism.price}
+                                  </Ed>
+                                </dt>
+                                <dd className={`font-serif text-lg font-bold ${ink.accent}`}>
+                                  {workshop.pricePerPerson === null
+                                    ? labels.general.askServicePrice
+                                    : `${formatPrice(workshop.pricePerPerson)} ${labels.tourism.perPerson}`}
+                                </dd>
+                              </div>
+                            </dl>
+
+                            <div className={`flex flex-col gap-2 text-sm leading-relaxed ${ink.label}`}>
+                              {t(workshop.description).map((paragraph, paragraphIndex) => (
+                                <Ed
+                                  key={paragraphIndex}
+                                  as="p"
+                                  at={atWorkshop(`description.${paragraphIndex}.value`)}
+                                  multiline
+                                  tone={cardTone}
+                                >
+                                  {paragraph}
+                                </Ed>
+                              ))}
+                            </div>
+
+                            {workshop.takeaway ? (
+                              <p className="rounded-lg bg-leaf-50 px-4 py-3 text-sm text-leaf-700">
+                                <span className="font-semibold">
+                                  <Ed at={atLabel("tourism", "takeaway")}>{labels.tourism.takeaway}</Ed>
+                                </span>{" "}
+                                <Ed at={atWorkshop("takeaway")}>{t(workshop.takeaway)}</Ed>
+                              </p>
+                            ) : null}
+
+                            <div className="flex flex-col gap-2">
+                              <h4 className={`text-xs font-semibold tracking-label ${ink.label}`}>
+                                <Ed at={atLabel("tourism", "bookingTerms")} tone={cardTone}>
+                                  {labels.tourism.bookingTerms}
+                                </Ed>
+                              </h4>
+                              <ul className="flex flex-col gap-1.5">
+                                {t(workshop.bookingNotes).map((note, noteIndex) => (
+                                  <li key={noteIndex} className={`flex gap-2.5 text-sm leading-relaxed ${ink.body}`}>
+                                    <span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rotate-45 bg-leaf-500" />
+                                    <Ed at={atWorkshop(`bookingNotes.${noteIndex}.value`)} multiline tone={cardTone}>
+                                      {note}
+                                    </Ed>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+
+                            <div className="mt-1">
+                              <WorkshopBookingButton workshop={workshop} />
+                            </div>
+                          </div>
+                        </article>
+                      );
+                    })}
                   </div>
+                </Container>
+              </section>
+            );
+          }
 
-                  <dl className="grid grid-cols-2 gap-4 border-y border-rice-300 py-4 sm:grid-cols-3">
-                    <div className="flex flex-col gap-1">
-                      <dt className="flex items-center gap-1.5 text-xs text-river-500">
-                        <ClockIcon className="h-4 w-4" />
-                        <Ed at={atLabel("tourism", "duration")}>{labels.tourism.duration}</Ed>
-                      </dt>
-                      <dd className="text-sm font-semibold text-ink-800">
-                        <Ed at={atWorkshop("duration")}>{t(workshop.duration)}</Ed>
-                      </dd>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <dt className="flex items-center gap-1.5 text-xs text-river-500">
-                        <UsersIcon className="h-4 w-4" />
-                        <Ed at={atLabel("tourism", "participants")}>
-                          {labels.tourism.participants}
-                        </Ed>
-                      </dt>
-                      <dd className="text-sm font-semibold text-ink-800">
-                        {workshop.minParticipants}–{workshop.maxParticipants}{" "}
-                        {labels.tourism.participantsUnit}
-                      </dd>
-                    </div>
-                    {/* บนมือถือค่าบริการอยู่แถวที่สองคนเดียว ให้กินเต็มแถว ไม่งั้น "สอบถามค่าบริการ" แตกบรรทัด */}
-                    <div className="col-span-2 flex flex-col gap-1 sm:col-span-1">
-                      <dt className="text-xs text-river-500">
-                        <Ed at={atLabel("tourism", "price")}>{labels.tourism.price}</Ed>
-                      </dt>
-                      <dd className="font-serif text-lg font-bold text-leaf-600">
-                        {workshop.pricePerPerson === null
-                          ? labels.general.askServicePrice
-                          : `${formatPrice(workshop.pricePerPerson)} ${labels.tourism.perPerson}`}
-                      </dd>
-                    </div>
-                  </dl>
+          case "places": {
+            const cardTone = skin.cardTone(tone);
+            const ink = INK[cardTone];
+            return (
+              <section key={key} className={`py-14 sm:py-20 ${skin.className}`} style={skin.style}>
+                {styleButton}
+                <Container size="wide">
+                  <SectionHeading
+                    at={at("placesSection")}
+                    eyebrow={t(section(page, "placesSection").eyebrow)}
+                    title={t(section(page, "placesSection").title)}
+                    description={t(section(page, "placesSection").description)}
+                    tone={tone}
+                  />
+                  <div className={`mt-10 grid gap-5 ${columns ?? "sm:grid-cols-2 lg:grid-cols-4"}`}>
+                    {places.slice(0, item.limit ?? places.length).map((place) => {
+                      const atPlace = atDoc("places", place.id);
+                      return (
+                        <article
+                          key={place.slug}
+                          className={`box flex flex-col overflow-hidden rounded-card border transition duration-300 ease-craft hover:border-leaf-500/50 ${ink.card}`}
+                        >
+                          <div className="relative aspect-3/2">
+                            <Image
+                              src={place.image.url}
+                              alt={t(place.image.alt)}
+                              width={place.image.width}
+                              height={place.image.height}
+                              sizes="(max-width: 640px) 100vw, 25vw"
+                              className="h-full w-full object-cover"
+                            />
+                            <span className="absolute left-3 top-3 rounded-full bg-ink-950/80 px-2.5 py-1 text-2xs font-semibold text-leaf-300">
+                              {PLACE_KIND_LABELS[place.kind]}
+                            </span>
+                            <EdImage at={atPlace("image")} label="ภาพสถานที่" current={place.image.id} />
+                          </div>
+                          <div className="flex flex-1 flex-col gap-2.5 p-5">
+                            <h3 className={`font-serif text-base font-semibold ${ink.title}`}>
+                              <Ed at={atPlace("name")} tone={cardTone}>
+                                {t(place.name)}
+                              </Ed>
+                            </h3>
+                            <p className={`text-sm leading-relaxed ${ink.body}`}>
+                              <Ed at={atPlace("description")} multiline tone={cardTone}>
+                                {t(place.description)}
+                              </Ed>
+                            </p>
+                            {place.openingHours ? (
+                              <p className={`mt-auto flex items-center gap-1.5 pt-2 text-xs ${ink.muted}`}>
+                                <ClockIcon className="h-3.5 w-3.5" />
+                                <Ed at={atPlace("openingHours")} tone={cardTone}>
+                                  {t(place.openingHours)}
+                                </Ed>
+                              </p>
+                            ) : null}
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                </Container>
+              </section>
+            );
+          }
 
-                  <div className="flex flex-col gap-2 text-sm leading-relaxed text-ink-700">
-                    {t(workshop.description).map((paragraph, paragraphIndex) => (
-                      <Ed
-                        key={paragraphIndex}
-                        as="p"
-                        at={atWorkshop(`description.${paragraphIndex}.value`)}
-                        multiline
+          case "travel": {
+            const cardTone = skin.cardTone("dark");
+            const ink = INK[cardTone];
+            return (
+              <section key={key} className={`py-14 sm:py-20 ${skin.className}`} style={skin.style}>
+                {styleButton}
+                <Container size="wide">
+                  <SectionHeading
+                    at={at("travelSection")}
+                    eyebrow={t(section(page, "travelSection").eyebrow)}
+                    title={t(section(page, "travelSection").title)}
+                    description={t(site.address)}
+                    tone={tone}
+                  />
+
+                  <div className="mt-10 grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:gap-12">
+                    <div className={`box overflow-hidden rounded-2xl border ${ink.card}`}>
+                      <div className="aspect-4/3">
+                        <MapEmbed site={site} />
+                      </div>
+                      <a
+                        href={directionsUrl(site)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center justify-center gap-2 py-3.5 text-sm font-semibold transition-colors ${ink.title} ${ink.hover}`}
                       >
-                        {paragraph}
-                      </Ed>
-                    ))}
-                  </div>
+                        <MapPinIcon className="h-[18px] w-[18px]" />
+                        <Ed at={atLabel("general", "openInMaps")} tone={cardTone}>
+                          {labels.general.openInMaps}
+                        </Ed>
+                      </a>
+                    </div>
 
-                  {workshop.takeaway ? (
-                    <p className="rounded-lg bg-leaf-50 px-4 py-3 text-sm text-leaf-700">
-                      <span className="font-semibold">
-                        <Ed at={atLabel("tourism", "takeaway")}>{labels.tourism.takeaway}</Ed>
-                      </span>{" "}
-                      <Ed at={atWorkshop("takeaway")}>{t(workshop.takeaway)}</Ed>
-                    </p>
-                  ) : null}
-
-                  <div className="flex flex-col gap-2">
-                    <h4 className="text-xs font-semibold tracking-label text-ink-700">
-                      <Ed at={atLabel("tourism", "bookingTerms")}>{labels.tourism.bookingTerms}</Ed>
-                    </h4>
-                    <ul className="flex flex-col gap-1.5">
-                      {t(workshop.bookingNotes).map((note, noteIndex) => (
-                        <li key={noteIndex} className="flex gap-2.5 text-sm leading-relaxed text-river-500">
-                          <span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rotate-45 bg-leaf-500" />
-                          <Ed at={atWorkshop(`bookingNotes.${noteIndex}.value`)} multiline>
-                            {note}
-                          </Ed>
-                        </li>
+                    <div className="flex flex-col gap-4">
+                      {travelOptions.map((option, optionIndex) => (
+                        <div key={optionIndex} className={`box rounded-card border p-5 ${ink.card}`}>
+                          <h3 className={`mb-2 font-serif text-base font-semibold ${ink.title}`}>
+                            <Ed at={at(`travelOptions.${optionIndex}.title`)} tone={cardTone}>
+                              {t(option.title)}
+                            </Ed>
+                          </h3>
+                          <p className={`text-sm leading-relaxed ${ink.body}`}>
+                            <Ed at={at(`travelOptions.${optionIndex}.body`)} multiline tone={cardTone}>
+                              {t(option.body)}
+                            </Ed>
+                          </p>
+                        </div>
                       ))}
-                    </ul>
+
+                      {/* กล่องแจ้งเตือนใช้สีเน้นเสมอ เพื่อให้เด่นกว่าการ์ดอื่นไม่ว่าพื้นจะเป็นสีอะไร */}
+                      <div className="rounded-card border border-leaf-200 bg-leaf-50 p-5">
+                        <h3 className="mb-2 font-serif text-base font-semibold text-leaf-800">
+                          <Ed at={at("notice.title")}>{t(notice.title)}</Ed>
+                        </h3>
+                        <p className="text-sm leading-relaxed text-leaf-700">
+                          {t(site.openingHours)}{" "}
+                          <Ed at={at("notice.body")} multiline>
+                            {t(notice.body)}
+                          </Ed>{" "}
+                          (โทร <span className="whitespace-nowrap">{site.phoneDisplay}</span> หรือไลน์ {site.lineId})
+                        </p>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="mt-1">
-                    <WorkshopBookingButton workshop={workshop} />
+                  <div className="mt-14">
+                    <OrnamentDivider tone={tone} />
                   </div>
-                </div>
-              </article>
-              );
-            })}
-          </div>
-        </Container>
+                </Container>
               </section>
             );
-
-          case "places":
-            return (
-              <section key={key} className={`py-14 sm:py-20 ${skin.className || "bg-ink-800"}`} style={skin.style}>
-
-        <Container size="wide">
-          <SectionHeading
-            at={at("placesSection")}
-            eyebrow={t(section(page, "placesSection").eyebrow)}
-            title={t(section(page, "placesSection").title)}
-            description={t(section(page, "placesSection").description)}
-            tone={skin.onDark ? "light" : "dark"}
-          />
-          <div className={`mt-10 grid gap-5 ${columns ?? "sm:grid-cols-2 lg:grid-cols-4"}`}>
-            {places.slice(0, item.limit ?? places.length).map((place) => {
-              const atPlace = atDoc("places", place.id);
-              const placeTone = skin.onDark ? "light" : "dark";
-              return (
-              <article
-                key={place.slug}
-                className="flex flex-col overflow-hidden rounded-card border border-white/10 bg-white/[0.03] transition duration-300 ease-craft hover:border-leaf-500/50"
-              >
-                <div className="relative aspect-3/2">
-                  <Image
-                    src={place.image.url}
-                    alt={t(place.image.alt)}
-                    width={place.image.width}
-                    height={place.image.height}
-                    sizes="(max-width: 640px) 100vw, 25vw"
-                    className="h-full w-full object-cover"
-                  />
-                  <span className="absolute left-3 top-3 rounded-full bg-ink-950/80 px-2.5 py-1 text-2xs font-semibold text-leaf-300">
-                    {PLACE_KIND_LABELS[place.kind]}
-                  </span>
-                  <EdImage at={atPlace("image")} label="ภาพสถานที่" current={place.image.id} />
-                </div>
-                <div className="flex flex-1 flex-col gap-2.5 p-5">
-                  <h3 className="font-serif text-base font-semibold text-rice-100">
-                    <Ed at={atPlace("name")} tone={placeTone}>
-                      {t(place.name)}
-                    </Ed>
-                  </h3>
-                  <p className="text-sm leading-relaxed text-ink-300">
-                    <Ed at={atPlace("description")} multiline tone={placeTone}>
-                      {t(place.description)}
-                    </Ed>
-                  </p>
-                  {place.openingHours ? (
-                    <p className="mt-auto flex items-center gap-1.5 pt-2 text-xs text-ink-400">
-                      <ClockIcon className="h-3.5 w-3.5" />
-                      <Ed at={atPlace("openingHours")} tone={placeTone}>
-                        {t(place.openingHours)}
-                      </Ed>
-                    </p>
-                  ) : null}
-                </div>
-              </article>
-              );
-            })}
-          </div>
-        </Container>
-              </section>
-            );
-
-          case "travel":
-            return (
-              <section key={key} className={`py-14 sm:py-20 ${skin.className}`} style={skin.style}>
-
-        <Container size="wide">
-          <SectionHeading
-            at={at("travelSection")}
-            eyebrow={t(section(page, "travelSection").eyebrow)}
-            title={t(section(page, "travelSection").title)}
-            description={t(site.address)}
-            tone={skin.onDark ? "light" : "dark"}
-          />
-
-          <div className="mt-10 grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:gap-12">
-            <div className="overflow-hidden rounded-2xl border border-rice-300">
-              <div className="aspect-4/3">
-                <MapEmbed site={site} />
-              </div>
-              <a
-                href={directionsUrl(site)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 bg-rice-50 py-3.5 text-sm font-semibold text-ink-800 transition-colors hover:bg-rice-200"
-              >
-                <MapPinIcon className="h-[18px] w-[18px]" />
-                <Ed at={atLabel("general", "openInMaps")}>{labels.general.openInMaps}</Ed>
-              </a>
-            </div>
-
-            <div className="flex flex-col gap-4">
-              {travelOptions.map((option, optionIndex) => (
-                <div key={optionIndex} className="rounded-card border border-rice-300 bg-rice-50 p-5">
-                  <h3 className="mb-2 font-serif text-base font-semibold text-ink-800">
-                    <Ed at={at(`travelOptions.${optionIndex}.title`)}>{t(option.title)}</Ed>
-                  </h3>
-                  <p className="text-sm leading-relaxed text-river-500">
-                    <Ed at={at(`travelOptions.${optionIndex}.body`)} multiline>
-                      {t(option.body)}
-                    </Ed>
-                  </p>
-                </div>
-              ))}
-
-              <div className="rounded-card border border-leaf-200 bg-leaf-50 p-5">
-                <h3 className="mb-2 font-serif text-base font-semibold text-leaf-800">
-                  <Ed at={at("notice.title")}>{t(notice.title)}</Ed>
-                </h3>
-                <p className="text-sm leading-relaxed text-leaf-700">
-                  {t(site.openingHours)}{" "}
-                  <Ed at={at("notice.body")} multiline>
-                    {t(notice.body)}
-                  </Ed>{" "}
-                  (โทร <span className="whitespace-nowrap">{site.phoneDisplay}</span> หรือไลน์ {site.lineId})
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-14">
-            <OrnamentDivider />
-          </div>
-        </Container>
-              </section>
-            );
+          }
 
           case "cta":
             return (
@@ -383,6 +425,7 @@ export default async function TourismPage() {
                 title={loc(cta.title as never)}
                 body={loc(cta.body as never)}
                 at={at("cta")}
+                styleAt={sectionAt(at, item)}
                 config={item}
                 editing={editing}
               />
@@ -393,7 +436,9 @@ export default async function TourismPage() {
         }
       })}
 
-      {editing ? <EditToolbar {...editLinksFor("tourism")} /> : null}
+      {editing ? (
+        <EditToolbar {...editLinksFor("tourism")} styles={[pageStyleTarget(at("pageStyle"), pageStyle)]} />
+      ) : null}
 
       <JsonLd data={[...workshops.map((w) => workshopJsonLd(w, site)), breadcrumbJsonLd(CRUMBS)]} />
     </>

@@ -4,20 +4,38 @@ import { useState } from "react";
 import { CheckIcon, LineIcon } from "./icons";
 import { useSite } from "./site-context";
 import { buttonClass } from "./ui";
+import { INK, type Tone } from "@/lib/tone";
 
 type FieldErrors = Partial<Record<"name" | "phone" | "topic" | "message", string>>;
 
-const FIELD_BASE =
-  "w-full rounded-lg border bg-rice-50 px-4 py-3 text-sm text-ink-800 placeholder:text-river-400 focus:outline-none";
+/**
+ * ช่องกรอกตามโทนของพื้น — ตัวเลือกใน <select> ใช้ตัวอักษรเข้มเสมอ
+ * เพราะรายการที่เบราว์เซอร์กางออกมาเป็นพื้นขาว
+ */
+const FIELD = {
+  dark: {
+    base: "w-full rounded-lg border bg-rice-50 px-4 py-3 text-sm text-ink-800 placeholder:text-river-400 focus:outline-none",
+    idle: "border-rice-300 focus:border-ink-800",
+  },
+  light: {
+    base: "w-full rounded-lg border bg-white/5 px-4 py-3 text-sm text-rice-100 placeholder:text-ink-400 focus:outline-none [&_option]:text-ink-800",
+    idle: "border-white/15 focus:border-white/50",
+  },
+} as const;
 
 export function ContactForm({
   topics,
   success,
+  tone = "dark",
 }: {
   topics: string[];
   success: { title: string; body: string };
+  /** โทนตัวอักษรตามพื้นของส่วนที่ฟอร์มวางอยู่ */
+  tone?: Tone;
 }) {
   const site = useSite();
+  const field = FIELD[tone];
+  const fieldClass = (hasError: boolean) => `${field.base} ${hasError ? "border-leaf-500" : field.idle}`;
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [errors, setErrors] = useState<FieldErrors>({});
 
@@ -78,7 +96,7 @@ export function ContactForm({
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
-      <Field label="ชื่อ-นามสกุล" name="name" error={errors.name}>
+      <Field label="ชื่อ-นามสกุล" name="name" error={errors.name} tone={tone}>
         <input
           id="name"
           name="name"
@@ -86,11 +104,11 @@ export function ContactForm({
           autoComplete="name"
           required
           placeholder="เช่น สมหญิง ใจดี"
-          className={`${FIELD_BASE} ${errors.name ? "border-leaf-500" : "border-rice-300 focus:border-ink-800"}`}
+          className={fieldClass(Boolean(errors.name))}
         />
       </Field>
 
-      <Field label="เบอร์ติดต่อ" name="phone" error={errors.phone}>
+      <Field label="เบอร์ติดต่อ" name="phone" error={errors.phone} tone={tone}>
         <input
           id="phone"
           name="phone"
@@ -99,17 +117,17 @@ export function ContactForm({
           autoComplete="tel"
           required
           placeholder="08X-XXX-XXXX"
-          className={`${FIELD_BASE} ${errors.phone ? "border-leaf-500" : "border-rice-300 focus:border-ink-800"}`}
+          className={fieldClass(Boolean(errors.phone))}
         />
       </Field>
 
-      <Field label="หัวข้อที่สนใจ" name="topic" error={errors.topic}>
+      <Field label="หัวข้อที่สนใจ" name="topic" error={errors.topic} tone={tone}>
         <select
           id="topic"
           name="topic"
           required
           defaultValue=""
-          className={`${FIELD_BASE} ${errors.topic ? "border-leaf-500" : "border-rice-300 focus:border-ink-800"}`}
+          className={fieldClass(Boolean(errors.topic))}
         >
           <option value="" disabled>
             เลือกหัวข้อ
@@ -122,16 +140,14 @@ export function ContactForm({
         </select>
       </Field>
 
-      <Field label="ข้อความ" name="message" error={errors.message}>
+      <Field label="ข้อความ" name="message" error={errors.message} tone={tone}>
         <textarea
           id="message"
           name="message"
           rows={5}
           required
           placeholder="เล่ารายละเอียดที่ต้องการสอบถาม เช่น ผลิตภัณฑ์ที่สนใจ จำนวน หรือวันที่ต้องการเข้าดูงาน"
-          className={`${FIELD_BASE} resize-y ${
-            errors.message ? "border-leaf-500" : "border-rice-300 focus:border-ink-800"
-          }`}
+          className={`${fieldClass(Boolean(errors.message))} resize-y`}
         />
       </Field>
 
@@ -145,7 +161,7 @@ export function ContactForm({
         <button type="submit" disabled={status === "sending"} className={buttonClass("primary", "sm:w-auto")}>
           {status === "sending" ? "กำลังส่ง…" : "ส่งข้อความ"}
         </button>
-        <p className="text-xs leading-relaxed text-river-500">
+        <p className={`text-xs leading-relaxed ${INK[tone].body}`}>
           หรือทักมาทาง LINE {site.lineId} เพื่อคุยกับกลุ่มวิสาหกิจชุมชนโดยตรง ตอบเร็วกว่าในเวลาทำการ
         </p>
       </div>
@@ -157,21 +173,23 @@ function Field({
   label,
   name,
   error,
+  tone,
   children,
 }: {
   label: string;
   name: string;
   error?: string;
+  tone: Tone;
   children: React.ReactNode;
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={name} className="text-sm font-medium text-ink-800">
+      <label htmlFor={name} className={`text-sm font-medium ${INK[tone].title}`}>
         {label}
       </label>
       {children}
       {error ? (
-        <p role="alert" className="text-xs text-leaf-600">
+        <p role="alert" className={`text-xs ${INK[tone].accent}`}>
           {error}
         </p>
       ) : null}

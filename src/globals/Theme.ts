@@ -1,5 +1,6 @@
 import type { GlobalConfig } from "payload";
 import { anyone, isEditor } from "@/access";
+import { colorFields } from "@/fields";
 import { revalidateGlobal } from "@/hooks/revalidate";
 
 /**
@@ -70,6 +71,19 @@ export const Theme: GlobalConfig = {
                 { label: "ขาวสะอาด", value: "white" },
                 { label: "เทาอ่อน", value: "grey" },
               ],
+            },
+            {
+              name: "header",
+              type: "group",
+              label: "แถบเมนูด้านบน",
+              admin: { description: "รวมถึงเมนูที่เลื่อนออกมาบนมือถือ" },
+              fields: colorFields({ fallbackBackground: "dark" }),
+            },
+            {
+              name: "footer",
+              type: "group",
+              label: "ส่วนท้ายเว็บ",
+              fields: colorFields({ fallbackBackground: "dark" }),
             },
           ],
         },

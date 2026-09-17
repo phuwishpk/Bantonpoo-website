@@ -3,12 +3,13 @@ import { EditToolbar } from "@/components/edit-mode";
 import { JsonLd } from "@/components/json-ld";
 import { PageBlocks } from "@/components/page-blocks";
 import { PageHero } from "@/components/page-hero";
+import { PageStyle, pageStyleTarget } from "@/components/page-style";
 import { isDraftMode } from "@/lib/cms/draft";
 import { editLinksForCustomPage } from "@/lib/cms/edit-links";
 import { atDoc } from "@/lib/cms/inline";
 import { getLabels } from "@/lib/cms/labels";
 import { loc, mapMedia } from "@/lib/cms/map";
-import { hero, typographyOf } from "@/lib/cms/page-content";
+import { hero, heroConfig, readPageStyle } from "@/lib/cms/page-content";
 import { getCustomPage, getCustomPages, getSite } from "@/lib/cms/queries";
 import { redirectOrNotFound } from "@/lib/cms/redirects";
 import { t } from "@/lib/i18n";
@@ -75,6 +76,8 @@ export default async function CustomPage({ params }: PageProps) {
   const content = hero(page);
   const title = t(loc(page.title as never));
   const blocks = Array.isArray(page.layout) ? (page.layout as Record<string, unknown>[]) : [];
+  const pageStyle = readPageStyle(page);
+  const at = atDoc("pages", page.id as string | number);
 
   const crumbs = [
     { name: "หน้าแรก", path: "/" },
@@ -83,13 +86,14 @@ export default async function CustomPage({ params }: PageProps) {
 
   return (
     <>
+      <PageStyle style={pageStyle} />
       <PageHero
         eyebrow={t(content.eyebrow)}
         title={t(content.title) || title}
         description={t(content.description)}
         crumbs={crumbs}
-        at={atDoc("pages", page.id as string | number)("hero")}
-        typography={typographyOf(page, "hero")}
+        at={at("hero")}
+        config={heroConfig(page)}
       />
 
       <PageBlocks
@@ -98,10 +102,14 @@ export default async function CustomPage({ params }: PageProps) {
         site={site}
         labels={labels}
         editing={editing}
+        page={pageStyle}
       />
 
       {editing ? (
-        <EditToolbar {...editLinksForCustomPage(page.id as string | number, title)} />
+        <EditToolbar
+          {...editLinksForCustomPage(page.id as string | number, title)}
+          styles={[pageStyleTarget(at("pageStyle"), pageStyle)]}
+        />
       ) : null}
 
       <JsonLd data={breadcrumbJsonLd(crumbs)} />

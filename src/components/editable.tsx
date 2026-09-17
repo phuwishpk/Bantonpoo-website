@@ -1,7 +1,9 @@
 import type { ElementType } from "react";
 import { isDraftMode } from "@/lib/cms/draft";
+import { type StyleConfig, styleValues } from "@/lib/cms/page-content";
 import { InlineEditable } from "./inline-editable";
 import { EmptyImageSlot, InlineImageEdit } from "./inline-image";
+import { StyleButton } from "./style-editor";
 
 /**
  * ข้อความที่แก้ได้จากหน้าเว็บ
@@ -88,4 +90,45 @@ export async function EdImage({
   if (!(await isDraftMode())) return null;
   if (empty) return <EmptyImageSlot {...target} className={className} />;
   return <InlineImageEdit {...target} compact={compact} className={className} />;
+}
+
+/**
+ * ปุ่ม "สี" ที่มุมซ้ายบนของกล่อง (เฉพาะโหมดแก้ไข)
+ *
+ * วางเป็นลูกตัวแรกของ <section> ซึ่งเป็น relative อยู่แล้ว (ดู sectionSkin)
+ * ผู้เข้าชมทั่วไปไม่ได้อะไรเลย — ไม่มีแม้แต่ที่อยู่ของฟิลด์
+ *
+ * @param at ที่อยู่ของกลุ่มฟิลด์สี เช่น g:home-page:sections.2
+ *           ไม่มีค่าเมื่อหน้านั้นยังไม่เคยบันทึกลำดับส่วน (ต้องบันทึกในหลังบ้านก่อนหนึ่งครั้ง)
+ */
+export async function EdStyle({
+  at,
+  label,
+  config,
+  cards = true,
+  fallbackBackground,
+  placement,
+  className,
+}: {
+  at?: string;
+  label: string;
+  config: StyleConfig;
+  cards?: boolean;
+  fallbackBackground?: "page" | "dark";
+  /** ดู StyleButton — แบนเนอร์ที่ตัดขอบต้องใช้ "inside" */
+  placement?: "edge" | "inside";
+  className?: string;
+}) {
+  if (!at || !(await isDraftMode())) return null;
+  return (
+    <StyleButton
+      at={at}
+      label={label}
+      current={styleValues(config)}
+      cards={cards}
+      fallbackBackground={fallbackBackground}
+      placement={placement}
+      className={className}
+    />
+  );
 }

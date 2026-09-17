@@ -3,6 +3,7 @@ import { anyone, isAdmin, isEditor } from "@/access";
 import {
   blockStyleFields,
   heroFields,
+  pageStyleField,
   sectionHeadingField,
   slugField,
   textListField,
@@ -267,6 +268,7 @@ export const Pages: CollectionConfig = {
           fields: [
             { name: "title", type: "text", required: true, localized: true, label: "ชื่อหน้า" },
             heroFields(),
+            pageStyleField(),
             {
               name: "layout",
               type: "blocks",

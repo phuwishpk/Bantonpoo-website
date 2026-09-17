@@ -87,6 +87,7 @@ npm run deploy:rollback                    # ย้อนกลับเวอ�
 | `npm run check:public` | ตรวจว่าหน้าสาธารณะไม่มีข้อมูลหลังบ้านหลุด |
 | `npm run check:inline` | ตรวจการแก้ข้อความบนหน้าเว็บ (20 ข้อ) |
 | `npm run check:images` | ตรวจการเปลี่ยนรูปและอัปโหลดบนหน้าเว็บ (44 ข้อ) |
+| `npm run check:styles` | ตรวจการเปลี่ยนสีบนหน้าเว็บ (35 ข้อ) |
 | `npm run check:redirects` | ตรวจทางเปลี่ยนเส้นทาง (10 ข้อ) |
 | `npm run check:pages` | ตรวจหน้าที่สร้างเองและบล็อกทั้งหมด (28 ข้อ) |
 

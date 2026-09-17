@@ -4,21 +4,25 @@ import { ClockIcon, FacebookIcon, LineIcon, MailIcon, MapPinIcon, PhoneIcon } fr
 import { JsonLd } from "@/components/json-ld";
 import { directionsUrl, MapEmbed } from "@/components/map-embed";
 import { PageHero } from "@/components/page-hero";
-import { Ed } from "@/components/editable";
+import { Ed, EdStyle } from "@/components/editable";
 import { EditToolbar } from "@/components/edit-mode";
+import { PageStyle, pageStyleTarget } from "@/components/page-style";
 import { Container } from "@/components/ui";
 import { SectionHeading } from "@/components/section-heading";
 import { loc } from "@/lib/cms/map";
 import {
   COLUMN_CLASS,
   hero,
+  heroConfig,
+  readPageStyle,
   readSections,
+  sectionAt,
+  sectionLabel,
   sectionSkin,
   rowsOf,
   section,
   textList,
   titleBody,
-  typographyOf,
 } from "@/lib/cms/page-content";
 import { getPageGlobal, getSite } from "@/lib/cms/queries";
 import { isDraftMode } from "@/lib/cms/draft";
@@ -28,6 +32,7 @@ import { atLabel } from "@/lib/labels";
 import { getLabels } from "@/lib/cms/labels";
 import { t } from "@/lib/i18n";
 import { telUrl } from "@/lib/line";
+import { INK } from "@/lib/tone";
 import { breadcrumbJsonLd, buildMetadata, localBusinessJsonLd } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -114,144 +119,175 @@ export default async function ContactPage() {
     };
   });
 
+  const pageStyle = readPageStyle(page);
+
   return (
     <>
+      <PageStyle style={pageStyle} />
       <PageHero
         eyebrow={t(content.eyebrow)}
         title={t(content.title)}
         description={t(content.description)}
         crumbs={CRUMBS}
         at={at("hero")}
-        typography={typographyOf(page, "hero")}
+        config={heroConfig(page)}
       />
 
       {visibleSections.map((item, index) => {
         const skin = sectionSkin(item);
+        const tone = skin.tone;
         const columns = COLUMN_CLASS[item.columns];
         const key = `${item.type}-${index}`;
+        const styleButton = (
+          <EdStyle at={sectionAt(at, item)} label={sectionLabel(item.type)} config={item} />
+        );
 
         switch (item.type) {
-          case "channels":
+          case "channels": {
+            const cardTone = skin.cardTone("dark");
+            const ink = INK[cardTone];
             return (
               <section key={key} className={`py-14 sm:py-16 ${skin.className}`} style={skin.style}>
-
-        <Container size="wide">
-          <div className={`grid gap-4 ${columns ?? "sm:grid-cols-2"}`}>
-            {channels.map((channel, channelIndex) => {
-              const Icon = channel.icon;
-              return (
-                <a
-                  key={channel.key}
-                  href={channel.href}
-                  {...(channel.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                  // min-w-0 ทั้งการ์ดและกล่องข้อความ — ค่าที่ตัดบรรทัดไม่ได้ (อีเมลยาว) จะได้ไม่ดันการ์ดล้นจอ 320px
-                  className={`group flex min-w-0 gap-4 rounded-card border p-5 transition duration-300 ease-craft hover:-translate-y-0.5 hover:shadow-lift ${
-                    channel.highlight
-                      ? "border-leaf-200 bg-leaf-50"
-                      : "border-rice-300 bg-rice-50 hover:border-ink-400"
-                  }`}
-                >
-                  <span
-                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${
-                      channel.highlight ? "bg-leaf-500 text-white" : "bg-ink-800 text-rice-100"
-                    }`}
-                  >
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <div className="flex min-w-0 flex-col gap-1">
-                    <p className="text-xs font-semibold tracking-label text-river-500">
-                      <Ed at={at(`channels.${channelIndex}.label`)}>{t(channel.label)}</Ed>
-                    </p>
-                    <p className="font-serif text-lg font-semibold text-ink-800">
-                      {channel.key === "email" ? breakableEmail(channel.value) : channel.value}
-                    </p>
-                    <p className="mt-1 text-sm leading-relaxed text-river-500">
-                      <Ed at={at(`channels.${channelIndex}.note`)} multiline>
-                        {t(channel.note)}
-                      </Ed>
-                    </p>
+                {styleButton}
+                <Container size="wide">
+                  <div className={`grid gap-4 ${columns ?? "sm:grid-cols-2"}`}>
+                    {channels.map((channel, channelIndex) => {
+                      const Icon = channel.icon;
+                      // การ์ดที่เน้นใช้พื้นสีเน้นอ่อนเสมอ จึงใช้ตัวอักษรเข้มแม้การ์ดอื่นจะเป็นสีเข้ม
+                      const channelTone = channel.highlight ? "dark" : cardTone;
+                      const channelInk = channel.highlight ? INK.dark : ink;
+                      return (
+                        <a
+                          key={channel.key}
+                          href={channel.href}
+                          {...(channel.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                          // min-w-0 ทั้งการ์ดและกล่องข้อความ — ค่าที่ตัดบรรทัดไม่ได้ (อีเมลยาว) จะได้ไม่ดันการ์ดล้นจอ 320px
+                          className={`group flex min-w-0 gap-4 rounded-card border p-5 transition duration-300 ease-craft hover:-translate-y-0.5 hover:shadow-lift ${
+                            channel.highlight ? "border-leaf-200 bg-leaf-50" : `box ${ink.card}`
+                          }`}
+                        >
+                          <span
+                            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${
+                              channel.highlight
+                                ? "bg-leaf-500 text-white"
+                                : cardTone === "light"
+                                  ? "bg-rice-100 text-ink-800"
+                                  : "bg-ink-800 text-rice-100"
+                            }`}
+                          >
+                            <Icon className="h-5 w-5" />
+                          </span>
+                          <div className="flex min-w-0 flex-col gap-1">
+                            <p className={`text-xs font-semibold tracking-label ${channelInk.body}`}>
+                              <Ed at={at(`channels.${channelIndex}.label`)} tone={channelTone}>
+                                {t(channel.label)}
+                              </Ed>
+                            </p>
+                            <p className={`font-serif text-lg font-semibold ${channelInk.title}`}>
+                              {channel.key === "email" ? breakableEmail(channel.value) : channel.value}
+                            </p>
+                            <p className={`mt-1 text-sm leading-relaxed ${channelInk.body}`}>
+                              <Ed at={at(`channels.${channelIndex}.note`)} multiline tone={channelTone}>
+                                {t(channel.note)}
+                              </Ed>
+                            </p>
+                          </div>
+                        </a>
+                      );
+                    })}
                   </div>
-                </a>
-              );
-            })}
-          </div>
-        </Container>
+                </Container>
               </section>
             );
+          }
 
-          case "form":
+          case "form": {
+            const cardTone = skin.cardTone("dark");
+            const ink = INK[cardTone];
             return (
               <section key={key} className={`pb-16 sm:pb-20 ${skin.className}`} style={skin.style}>
+                {styleButton}
+                <Container size="wide">
+                  <div className="grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-14">
+                    <div className="flex flex-col gap-7">
+                      <SectionHeading
+                        at={at("formSection")}
+                        eyebrow={t(section(page, "formSection").eyebrow)}
+                        title={t(section(page, "formSection").title)}
+                        description={t(section(page, "formSection").description)}
+                        tone={tone}
+                      />
+                      <ContactForm
+                        topics={topics}
+                        success={{ title: t(formSuccess.title), body: t(formSuccess.body) }}
+                        tone={tone}
+                      />
+                    </div>
 
-        <Container size="wide">
-          <div className="grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-14">
-            <div className="flex flex-col gap-7">
-              <SectionHeading
-                at={at("formSection")}
-                eyebrow={t(section(page, "formSection").eyebrow)}
-                title={t(section(page, "formSection").title)}
-                description={t(section(page, "formSection").description)}
-                tone={skin.onDark ? "light" : "dark"}
-              />
-              <ContactForm
-                topics={topics}
-                success={{ title: t(formSuccess.title), body: t(formSuccess.body) }}
-              />
-            </div>
+                    <div className="flex flex-col gap-5">
+                      <div className={`box overflow-hidden rounded-2xl border ${ink.card}`}>
+                        <div className="aspect-4/3">
+                          <MapEmbed site={site} />
+                        </div>
+                        <a
+                          href={directionsUrl(site)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`flex items-center justify-center gap-2 py-3.5 text-sm font-semibold transition-colors ${ink.title} ${ink.hover}`}
+                        >
+                          <MapPinIcon className="h-[18px] w-[18px]" />
+                          <Ed at={atLabel("general", "openInMaps")} tone={cardTone}>
+                            {labels.general.openInMaps}
+                          </Ed>
+                        </a>
+                      </div>
 
-            <div className="flex flex-col gap-5">
-              <div className="overflow-hidden rounded-2xl border border-rice-300">
-                <div className="aspect-4/3">
-                  <MapEmbed site={site} />
-                </div>
-                <a
-                  href={directionsUrl(site)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 bg-rice-50 py-3.5 text-sm font-semibold text-ink-800 transition-colors hover:bg-rice-200"
-                >
-                  <MapPinIcon className="h-[18px] w-[18px]" />
-                  <Ed at={atLabel("general", "openInMaps")}>{labels.general.openInMaps}</Ed>
-                </a>
-              </div>
+                      <div className={`box flex flex-col gap-4 rounded-card border p-5 ${ink.card}`}>
+                        <div className="flex gap-3">
+                          <MapPinIcon className={`mt-0.5 h-[18px] w-[18px] shrink-0 ${ink.accent}`} />
+                          <div>
+                            <p className={`text-xs font-semibold tracking-label ${ink.body}`}>
+                              <Ed at={atLabel("contact", "location")} tone={cardTone}>
+                                {labels.contact.location}
+                              </Ed>
+                            </p>
+                            <p className={`mt-1 text-sm leading-relaxed ${ink.title}`}>{t(site.address)}</p>
+                            <p className={`mt-1 text-xs ${ink.muted}`}>
+                              <Ed at={atLabel("contact", "coordinates")} tone={cardTone}>
+                                {labels.contact.coordinates}
+                              </Ed>{" "}
+                              {site.mapLatitude}, {site.mapLongitude}
+                            </p>
+                          </div>
+                        </div>
 
-              <div className="flex flex-col gap-4 rounded-card border border-rice-300 bg-rice-50 p-5">
-                <div className="flex gap-3">
-                  <MapPinIcon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-leaf-600" />
-                  <div>
-                    <p className="text-xs font-semibold tracking-label text-river-500">
-                      <Ed at={atLabel("contact", "location")}>{labels.contact.location}</Ed>
-                    </p>
-                    <p className="mt-1 text-sm leading-relaxed text-ink-800">{t(site.address)}</p>
-                    <p className="mt-1 text-xs text-river-400">
-                      <Ed at={atLabel("contact", "coordinates")}>{labels.contact.coordinates}</Ed>{" "}
-                      {site.mapLatitude}, {site.mapLongitude}
-                    </p>
+                        <div className={`flex gap-3 border-t pt-4 ${ink.line}`}>
+                          <ClockIcon className={`mt-0.5 h-[18px] w-[18px] shrink-0 ${ink.accent}`} />
+                          <div>
+                            <p className={`text-xs font-semibold tracking-label ${ink.body}`}>
+                              <Ed at={atLabel("contact", "openingHours")} tone={cardTone}>
+                                {labels.contact.openingHours}
+                              </Ed>
+                            </p>
+                            <p className={`mt-1 text-sm leading-relaxed ${ink.title}`}>{t(site.openingHours)}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-
-                <div className="flex gap-3 border-t border-rice-300 pt-4">
-                  <ClockIcon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-leaf-600" />
-                  <div>
-                    <p className="text-xs font-semibold tracking-label text-river-500">
-                      <Ed at={atLabel("contact", "openingHours")}>{labels.contact.openingHours}</Ed>
-                    </p>
-                    <p className="mt-1 text-sm leading-relaxed text-ink-800">{t(site.openingHours)}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Container>
+                </Container>
               </section>
             );
+          }
 
           default:
             return null;
         }
       })}
 
-      {editing ? <EditToolbar {...editLinksFor("contact")} /> : null}
+      {editing ? (
+        <EditToolbar {...editLinksFor("contact")} styles={[pageStyleTarget(at("pageStyle"), pageStyle)]} />
+      ) : null}
 
       <JsonLd data={[localBusinessJsonLd(site), breadcrumbJsonLd(CRUMBS)]} />
     </>

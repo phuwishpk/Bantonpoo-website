@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "check:inline": "tsx --env-file=.env.local scripts/check-inline.ts",
     "check:images": "tsx --env-file=.env.local scripts/check-inline-images.ts",
+    "check:styles": "tsx --env-file=.env.local scripts/check-styles.ts",
     "check:redirects": "tsx --env-file=.env.local scripts/check-redirects.ts",
     "check:pages": "tsx --env-file=.env.local scripts/check-pages.ts",
     "check:public": "node scripts/check-public.mjs",

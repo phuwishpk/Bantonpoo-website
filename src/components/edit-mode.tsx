@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { ImagePicker } from "./inline-image";
-import { useSite } from "./site-context";
+import { useChromeStyles, useSite } from "./site-context";
+import { StylePanel, type StyleTarget } from "./style-editor";
 
 /**
  * โหมดแก้ไขบนหน้าเว็บ
@@ -11,8 +12,8 @@ import { useSite } from "./site-context";
  * เปิดจากปุ่ม "เปิดเว็บไซต์ (โหมดแก้ไข)" ในหลังบ้าน ผู้ดูแลจะเห็นเว็บจริง
  * พร้อมช่องข้อความที่คลิกแก้ได้ตรงนั้น และปุ่มลัดไปหน้าแก้ไขของแต่ละส่วน
  *
- * เจตนา: ให้คนที่ไม่คุ้นกับโครงสร้างหลังบ้านแก้ข้อความและรูปจากสิ่งที่เห็นบนหน้าเว็บได้เลย
- * ส่วนที่แก้ในหน้าเว็บไม่ได้ (เพิ่ม/ลบรายการ จัดสี) ยังต้องไปที่หลังบ้าน
+ * เจตนา: ให้คนที่ไม่คุ้นกับโครงสร้างหลังบ้านแก้ข้อความ รูป และสีจากสิ่งที่เห็นบนหน้าเว็บได้เลย
+ * ส่วนที่แก้ในหน้าเว็บไม่ได้ (เพิ่ม/ลบรายการ) ยังต้องไปที่หลังบ้าน
  * ปุ่มลัดในแถบนี้จึงยังอยู่
  */
 
@@ -61,16 +62,28 @@ type SavedEvent = CustomEvent<{ scope?: string; label?: string; drafts?: boolean
 /**
  * แถบเครื่องมือลอยมุมล่างขวา
  *
- * รวมสามอย่างไว้ที่เดียว: รายการสิ่งที่แก้ไปแล้วแต่ยังไม่เผยแพร่ ปุ่มเผยแพร่
- * และทางลัดไปหลังบ้านสำหรับสิ่งที่แก้ในหน้าเว็บไม่ได้
+ * รวมไว้ที่เดียว: รายการสิ่งที่แก้ไปแล้วแต่ยังไม่เผยแพร่ ปุ่มเผยแพร่ สีของทั้งหน้า
+ * แถบเมนู และส่วนท้าย และทางลัดไปหลังบ้านสำหรับสิ่งที่แก้ในหน้าเว็บไม่ได้
+ *
+ * @param styles สีระดับหน้า (ดู pageStyleTarget) — สีของแต่ละส่วนมีปุ่มอยู่ที่ตัวส่วนเอง
  */
-export function EditToolbar({ pageLabel, links }: { pageLabel: string; links: EditLink[] }) {
+export function EditToolbar({
+  pageLabel,
+  links,
+  styles = [],
+}: {
+  pageLabel: string;
+  links: EditLink[];
+  styles?: StyleTarget[];
+}) {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState<{ scope: string; label: string }[]>([]);
   const [publishing, setPublishing] = useState(false);
   const [message, setMessage] = useState("");
   const [siteImage, setSiteImage] = useState<"logo" | "favicon" | null>(null);
+  const [styleTarget, setStyleTarget] = useState<StyleTarget | null>(null);
   const site = useSite();
+  const colorTargets = [...styles, ...useChromeStyles()];
   const router = useRouter();
   const pathname = usePathname();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -156,6 +169,7 @@ export function EditToolbar({ pageLabel, links }: { pageLabel: string; links: Ed
           onClose={() => setSiteImage(null)}
         />
       ) : null}
+      {styleTarget ? <StylePanel target={styleTarget} onClose={() => setStyleTarget(null)} /> : null}
       {siteImage === "favicon" ? (
         <ImagePicker
           at="g:site-settings:favicon"
@@ -177,7 +191,9 @@ export function EditToolbar({ pageLabel, links }: { pageLabel: string; links: Ed
             <br />
             คลิกที่รูปเพื่อเปลี่ยนรูป (ชี้เมาส์แล้วจะเห็นปุ่ม)
             <br />
-            เพิ่ม/ลบรายการ และจัดสี ต้องทำที่หลังบ้าน
+            กดปุ่ม “สี” ที่มุมซ้ายบนของแต่ละส่วนเพื่อเปลี่ยนสี
+            <br />
+            เพิ่ม/ลบรายการ ต้องทำที่หลังบ้าน
           </p>
 
           <div className="flex flex-col border-b border-white/10 py-1">
@@ -216,6 +232,32 @@ export function EditToolbar({ pageLabel, links }: { pageLabel: string; links: Ed
               </button>
             ))}
           </div>
+
+          {colorTargets.length > 0 ? (
+            <div className="flex flex-col border-b border-white/10 py-1">
+              <p className="px-4 pb-1 pt-2 text-2xs font-semibold tracking-wide text-ink-400">สี</p>
+              {colorTargets.map((target) => (
+                <button
+                  key={target.at}
+                  type="button"
+                  onClick={() => setStyleTarget(target)}
+                  className="flex items-center gap-3 px-4 py-2 text-left text-sm text-rice-100 transition-colors hover:bg-white/10"
+                >
+                  <span
+                    aria-hidden
+                    className="h-5 w-5 shrink-0 rounded-md border border-white/25"
+                    style={{
+                      background:
+                        target.current.backgroundColor ??
+                        target.current.accentColor ??
+                        "conic-gradient(#2e7d52, #ad8a1c, #9f1239, #3b4f9e, #2e7d52)",
+                    }}
+                  />
+                  สีของ{target.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
 
           <ul className="flex flex-col py-1">
             {links.map((link) => (
